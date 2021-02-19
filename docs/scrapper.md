@@ -307,3 +307,37 @@ This setting is specified in the config file under the key
 > IMPORTANT: ensure you have enough seeds in your configuration file to get at least 100 
 > articles in your dataset. 100 is a required number of papers for the final part of the
 > course.
+
+# Stage 8. Make your crawler a real recursive crawler (Stages 0-8 are required to get the mark 10)
+
+Crawlers used in production or even just for collection of documents from a website should be 
+much more robust and tricky than what you have implemented during previous steps. To name
+a few challenges:
+
+1. content is not in HTML. Yes, it can happen that your website is an empty HTML by default and
+   content appears dynamically when you click, scroll, etc. For example, many pages have 
+   so called virtual scroll, when new content appears when you scroll the page. You can think of
+   feed in VKontakte, for example.
+1. web sites defense against your crawler. Even if data is public, your crawler that sends thousands 
+   of requests produces huge load on the server and exposes risks for business continuity. 
+   Therefore, websites may reject too many traffic from suspicious origins.
+1. there is no way to specify seed URLs - due to size, budget constraints. Imagine, you need
+   to collect 100k articles of the Wikipedia. Do you think you are able to copy-paste enough
+   seeds? How about the task of collection 1M articles?
+1. software and hardware limitations and accidents. Imagine, you have your crawler running for 24 hours
+   and it crashes. If you have not mitigated this risk, you lose everything and need to re-start
+   your crawler.  
+
+And we are not talking about such objective challenges as impossibility of building universal
+crawlers.
+
+Therefore, your stage 8 is about addressing some of these questions. In particular, you need to 
+implement your crawler in a recursive manner: you provide a single seed url of your newspaper, and it
+visits every page of the website and collects *all* articles from the website. You need to
+make a child of `Crawler` class and name it `CrawlerRecursive`. Follow interface of Crawler.
+
+A required addition is an ability to stop crawler at any time. When it is started again, it
+continues search and crawling process without repetitions. 
+
+> HINT: think of storing intermediate information in one or few files? What information do you
+> need to store?
