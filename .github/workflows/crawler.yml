@@ -9,9 +9,24 @@ on:
   pull_request:
     branches: [ main ]
 
+
+
 jobs:
+  pr-name-check:
+    name: PR name check
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    env:
+      PR_ACTOR: ${{ github.event.actor }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: PR name check
+      run: echo "Hello ${{ env.PR_ACTOR }}"
+
   code-style:
     name: Code Style
+    needs: [ pr-name-check ]
     runs-on: ubuntu-latest
     timeout-minutes: 1
 
