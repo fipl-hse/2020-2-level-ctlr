@@ -161,9 +161,13 @@ jobs:
         name: raw-dataset
     - name: Run metadata validation
       run: |
+        echo "Validate raw data"
+        TARGET_SCORE=$(head -2 target_score.txt | tail -1)
         mkdir -p tmp/articles
-        mv *_meta.json tmp/articles
         mv *_raw.txt tmp/articles
+        if [[ ${TARGET_SCORE} != 4 ]]; then
+          mv *_meta.json tmp/articles
+        fi
         chmod +x config/check-raw-data.sh
         config/check-raw-data.sh
   
