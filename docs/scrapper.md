@@ -178,7 +178,7 @@ should be filled with collected URLs.
 > NOTE: crawling should find required number of articles
 
 > NOTE: here the conditions how to find articles on the seed page
-> will vary depending on the selected nespaper.
+> will vary depending on the selected newspaper.
 
 
 ### Stage 3. Extract data from every article page
