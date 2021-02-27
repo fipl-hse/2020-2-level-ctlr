@@ -1,6 +1,7 @@
 """
 Crawler implementation
 """
+import requests
 
 
 class IncorrectURLError(Exception):
@@ -88,4 +89,10 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/88.0.4324.41 YaBrowser/21.2.0.1099 Yowser/2.5 Safari/537.36 '
+    }
+    response = requests.get('http://vnpinfo.ru/novosti.html', headers=headers)
+    if not response:
+        raise IncorrectURLError
