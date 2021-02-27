@@ -9,7 +9,7 @@ def convert_raw_pr_name(pr_name_raw: str) -> str:
 
 
 def is_matching_name(pr_name: str) -> bool:
-    template = r'Laboratory work, \w+ \w+ - 19FPL\d'
+    template = r'Dataset Collector #\d, \w+ \w+ - 19FPL\d'
     pr_name = re.search(template, pr_name)
     if not pr_name:
         print('Your Pull Request title does not confirm to the template.')
@@ -23,6 +23,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Checks that PR name is done using the template')
     parser.add_argument('--pr-name', type=str, help='Current PR name')
     args: argparse.Namespace = parser.parse_args()
+
+    if '[skip-name]' in args.pr_name:
+        print("Developer Pull Request Passed")
+        sys.exit(0)
 
     pr_name_to_check = convert_raw_pr_name(args.pr_name)
 

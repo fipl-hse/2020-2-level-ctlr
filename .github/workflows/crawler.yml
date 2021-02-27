@@ -10,23 +10,44 @@ on:
     branches: [ main ]
 
 
-
 jobs:
   pr-name-check:
     name: PR name check
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     timeout-minutes: 1
     env:
-      PR_ACTOR: ${{ github.event.actor }}
+      PR_NAME: ${{ github.event.pull_request.title }}
 
     steps:
     - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        # This path is specific to Ubuntu
+        path: ~/.cache/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_qa.txt
+        pip install -r requirements.txt
     - name: PR name check
-      run: echo "Hello ${{ env.PR_ACTOR }}"
+      run: |
+        echo "Pull Request Name is $PR_NAME"
+        python config/pr_name_check.py --pr-name="$PR_NAME"
+
 
   code-style:
     name: Code Style
-    needs: [ pr-name-check ]
     runs-on: ubuntu-latest
     timeout-minutes: 1
 
@@ -51,7 +72,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
-        echo "TODO: PR name [skip-ci-name]"
     - name: Code Syle
       run: |
         chmod +x config/run-lint.sh
@@ -182,9 +202,21 @@ jobs:
       run: |
         echo "Crawler is working. Proceed to text processing pipeline."
 
+  milestone-2-pipeline:
+    name: Starting pipeline checks!
+    needs: [ milestone-1-crawler-is-working ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    if: ${{ ! contains(github.event.head_commit.message, '[skip-pipe]') }}
+    steps:
+      - name: Congratulations
+        run: |
+          echo "Preparing pipeline checks"
+
+
   checking-raw-dataset-before-running-pipeline:
     name: Pipe verifies dataset
-    needs: milestone-1-crawler-is-working
+    needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
     
@@ -222,7 +254,7 @@ jobs:
 
   checking-student-processing-works-for-admin-dataset:
     name: Pipe processed admin data
-    needs: milestone-1-crawler-is-working
+    needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
 
@@ -262,7 +294,7 @@ jobs:
 
   run-student-processing:
     name: Pipe processed student data
-    needs: milestone-1-crawler-is-working
+    needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
 

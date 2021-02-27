@@ -5,4 +5,4 @@
 6
 
 # Skip pipeline checks:
-1
+# add [skip-pipe] tag to your commit message to disable pipeline.py checks
