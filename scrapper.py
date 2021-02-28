@@ -1,3 +1,5 @@
+import requests
+
 """
 Crawler implementation
 """
@@ -36,7 +38,6 @@ class Crawler:
         """
         Finds articles
         """
-        pass
 
     def get_search_urls(self):
         """
@@ -83,9 +84,12 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    response = requests.get('https://moyaokruga.ru/mayakdelty/')
+    if not response:
+        raise ImportError
+
+    print(response.headers)
