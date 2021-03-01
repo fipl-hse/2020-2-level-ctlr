@@ -8,6 +8,7 @@ import re
 import requests
 from time import sleep
 
+
 class IncorrectURLError(Exception):
     """
     Custom error
@@ -41,8 +42,8 @@ class Crawler:
         self.seed_urls = seed_urls
         self.seed_urls_set = set()
         self.max_articles = max_articles
-        self.headers = headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                                                '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
+        self.headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                                      '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
         self.article_urls = []
 
         for url in self.seed_urls:
@@ -58,8 +59,8 @@ class Crawler:
             self.seed_urls.pop(url)
         else:
             if len(self.article_urls) > max_articles:
-                 with open('links.txt', 'w') as f:
-                     f.write('\n'.join(self.article_urls[:max_articles]))
+                with open('links.txt', 'w') as f:
+                    f.write('\n'.join(self.article_urls[:max_articles]))
 
     @staticmethod
     def _extract_url(article_bs):
@@ -76,7 +77,7 @@ class Crawler:
                     if res[0] not in self.article_urls:
                         new_links.append(res[0])
         with open('links.txt', 'a') as f:
-          f.write('\n'.join(new_links) + '\n')
+            f.write('\n'.join(new_links) + '\n')
         self.article_urls.extend(new_links)
 
     def get_search_urls(self, soup):
@@ -88,7 +89,6 @@ class Crawler:
                 if res[0] not in self.seed_urls:
                     self.seed_urls.append(res[0])
                     self.seed_urls_set.add(res[0])
-
 
     def get_page(self, url):
         response = requests.get(url, headers=self.headers)
@@ -102,16 +102,20 @@ class Crawler:
 
 class ArticleParser:
     """
-    ArticleParser implementfation
+    ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.author = '-'
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        self.text = ''
+        for paragraph in article_soup.find_all('p')[:-3]:
+            self.text += paragraph.text + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.title = article_soup.find('title').text
 
     @staticmethod
     def unify_date_format(date_str):
