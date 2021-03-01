@@ -2,11 +2,15 @@
 Crawler implementation
 """
 
-from bs4 import BeautifulSoup
+import json
 from random import randint
 import re
-import requests
 from time import sleep
+
+from bs4 import BeautifulSoup
+import requests
+
+from constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
 class IncorrectURLError(Exception):
@@ -27,6 +31,10 @@ class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
+    pass
+
+
+class UnknownConfigError(Exception):
     pass
 
 
@@ -107,7 +115,6 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.author = '-'
 
     def _fill_article_with_text(self, article_soup):
         self.text = ''
@@ -115,7 +122,9 @@ class ArticleParser:
             self.text += paragraph.text + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.title = article_soup.find('title').text
+        self.title = re.sub(r' - Звезда Алтая', '', article_soup.find('title').text)
+        self.date = article_soup.find('span', {'class' : 'mg-blog-date'}).text.strip()
+        self.author = article_soup.find('h4', {'class': 'media-heading'}).find('a').text
 
     @staticmethod
     def unify_date_format(date_str):
@@ -142,9 +151,59 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
+    with open(crawler_path, 'r') as f:
+        config = json.load(f)
+
+    is_config_a_dict = isinstance(config, dict)
+    is_base_urls_correct = (
+            isinstance(config['base_urls'], list) and
+            isinstance(config['base_urls'][0], str)
+    )
+    is_total_number_of_articles_correct = (
+        isinstance(config['total_articles_to_find_and_parse'], int),
+        config['total_articles_to_find_and_parse'] > 0
+    )
+    is_max_number_of_articles_int = (
+        isinstance(config['max_number_articles_to_get_from_one_seed'], int),
+        config['max_number_articles_to_get_from_one_seed'] > 0
+    )
+
+    is_max_number_of_articles_correct = (
+            config['max_number_articles_to_get_from_one_seed'] <=
+            config['total_articles_to_find_and_parse']
+    )
+
+    if all(
+            is_config_a_dict,
+            is_base_urls_correct,
+            is_total_number_of_articles_correct,
+            is_max_number_of_articles_int,
+            is_max_number_of_articles_correct
+    ):
+        return config.values()
+
+    elif not is_base_urls_correct:
+        raise IncorrectURLError
+
+    elif not is_total_number_of_articles_correct:
+        raise IncorrectNumberOfArticlesError
+
+    elif not is_max_number_of_articles_correct:
+        raise NumberOfArticlesOutOfRangeError
+
+    else:
+        raise UnknownConfigError
 
 
 if __name__ == '__main__':
-    # YOUR CODE HERE
     pass
+    # try:
+    #     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    # except (
+    #         IncorrectURLError,
+    #         IncorrectNumberOfArticlesError,
+    #         NumberOfArticlesOutOfRangeError,
+    #         UnknownConfigError
+    # ):
+    #     pass # todo script immediately finishes execution
+
