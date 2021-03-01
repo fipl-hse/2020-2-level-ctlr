@@ -7,7 +7,7 @@ import datetime
 
 from constants import ASSETS_PATH
 
-
+#can you delete me later?
 class Article:
     """
     Article class implementation.
