@@ -68,12 +68,11 @@ class Crawler:
         for link in article_bs.find_all('a'):
             if link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/.+/$', link.get('href')):
-                    category = article_bs.find('div', {'class': 'mg-blog-category'}).text.strip()
                     if not re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/\d{2}/', res[0])\
-                            and category in ['Новости', 'Статьи']\
+                            and not re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/.+\d/', res[0])\
                             and res[0] not in urls \
                             and res[0] not in article_links:
-                            article_links.append(res[0])
+                        article_links.append(res[0])
         if article_links:
             with open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt'), 'a', encoding='utf-8') as f:
                 f.write('\n'.join(article_links) + '\n')
@@ -260,8 +259,8 @@ def validate_config(crawler_path):
 
     is_config_a_dict = isinstance(config, dict)
     is_config_has_attributes = (
-        'max_number_articles_to_get_from_one_seed' in config,
-        'base_urls' in config,
+        'max_number_articles_to_get_from_one_seed' in config and
+        'base_urls' in config and
         'total_articles_to_find_and_parse' in config
     )
 
@@ -273,11 +272,11 @@ def validate_config(crawler_path):
             isinstance(config['base_urls'][0], str)
     )
     is_total_number_of_articles_correct = (
-        isinstance(config['total_articles_to_find_and_parse'], int),
+        isinstance(config['total_articles_to_find_and_parse'], int) and
         config['total_articles_to_find_and_parse'] > 0
     )
     is_max_number_of_articles_int = (
-        isinstance(config['max_number_articles_to_get_from_one_seed'], int),
+        isinstance(config['max_number_articles_to_get_from_one_seed'], int) and
         config['max_number_articles_to_get_from_one_seed'] > 0
     )
 
