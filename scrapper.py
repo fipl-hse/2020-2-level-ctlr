@@ -12,7 +12,9 @@ from time import sleep
 from bs4 import BeautifulSoup
 import requests
 
-from constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
+PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+ASSETS_PATH = os.path.join(PROJECT_ROOT, 'tmp', 'articles')
+CRAWLER_CONFIG_PATH = os.path.join(PROJECT_ROOT, 'crawler_config.json')
 
 
 class IncorrectURLError(Exception):

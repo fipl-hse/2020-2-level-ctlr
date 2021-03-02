@@ -1,18 +1,13 @@
 """
 Article implementation
 """
+
+import datetime
 import json
 import os
-import datetime
 
-from constants import ASSETS_PATH
-
-
-def date_from_meta(date_txt):
-    """
-    Converts text date to datetime object
-    """
-    return datetime.datetime.strptime(date_txt, "%Y-%m-%d %H:%M:%S")
+PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+ASSETS_PATH = os.path.join(PROJECT_ROOT, 'tmp', 'articles')
 
 
 def date_from_meta(date_txt):
