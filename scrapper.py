@@ -101,10 +101,6 @@ class Crawler:
                 self.get_search_urls(soup)
 
             self.seed_urls.remove(url)
-        if len(self.urls) > self.max_articles:
-            with open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt'),
-                      'w', encoding='utf-8') as f:
-                f.write('\n'.join(self.urls[:self.max_articles]))
 
     def get_search_urls(self, soup):
         """
@@ -340,12 +336,15 @@ if __name__ == '__main__':
 
         articles_urls = open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt')).read().split('\n')
 
-        for i, url in enumerate(articles_urls, start=1):
-            parser = ArticleParser(full_url=url, article_id=i)
-            try:
-                article = parser.parse()
-            except (BadStatusCode, BadArticle):
-                continue
-            else:
-                parser.save_raw()
-                parser.save_meta()
+        i = 1
+        while i <= 100:
+            for url in articles_urls:
+                parser = ArticleParser(full_url=url, article_id=i)
+                try:
+                    article = parser.parse()
+                except (BadStatusCode, BadArticle):
+                    continue
+                else:
+                    parser.save_raw()
+                    parser.save_meta()
+                    i += 1
