@@ -50,7 +50,6 @@ class Crawler:
     """
     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                              '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
-    pages_path = os.path.join(PROJECT_ROOT, 'tmp', 'pages')
 
     def __init__(self, seed_urls: list, max_articles: int = None, max_articles_per_seed: int = None):
         self.seed_urls = seed_urls
@@ -67,7 +66,7 @@ class Crawler:
                 if not re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/\d{2}/', res[0]):
                     if res[0] not in urls:
                         new_links.append(res[0])
-        with open(os.path.join(PROJECT_ROOT, 'links.txt', 'a')) as f:
+        with open(os.path.join(PROJECT_ROOT, 'tmp', 'links.txt'), 'a', encoding='utf-8') as f:
             f.write('\n'.join(new_links) + '\n')
         return new_links
 
@@ -75,14 +74,13 @@ class Crawler:
         """
         Finds articles
         """
-        if not os.path.exists(Crawler.pages_path):
-            os.makedirs(Crawler.pages_path)
-            self.id_generator = iter(range(1, self.max_articles + 1))
+        id_generator = iter(range(1, self.max_articles + 1))
 
         for url in self.seed_urls:
             try:
-                page = Crawler.get_page(url, self.headers)
-                with open(os.path.join(Crawler.pages_path, f'{next(self.id_generator)}.html'), 'w') as f:
+                page = Crawler.get_page(url)
+                with open(os.path.join(PROJECT_ROOT, 'tmp', 'pages', f'{next(id_generator)}.html'),
+                          'w', encoding='utf-8') as f:
                     f.write(page)
             except BadStatusCode:
                 continue
@@ -91,10 +89,11 @@ class Crawler:
                 new_links = crawler._extract_url(soup, self.urls)
                 self.urls.extend(new_links)
                 self.get_search_urls(soup)
-            self.seed_urls.pop(url)
+            self.seed_urls.remove(url)
         else:
             if len(self.urls) > max_articles:
-                with open(os.path.join(PROJECT_ROOT, 'links.txt'), 'w') as f:
+                with open(os.path.join(PROJECT_ROOT, 'tmp', 'links.txt'),
+                          'w', encoding='utf-8') as f:
                     f.write('\n'.join(self.urls[:max_articles]))
 
     def get_search_urls(self, soup):
@@ -108,8 +107,9 @@ class Crawler:
                     self.seed_urls_set.add(res[0])
 
     @staticmethod
-    def get_page(url, headers):
+    def get_page(url):
         response = requests.get(url, headers=Crawler.headers)
+        response.encoding = 'utf-8'
         if response.status_code == 200:
             page = response.text
         else:
@@ -171,8 +171,9 @@ class ArticleParser:
         """
         Parses each article
         """
-        article_page = Crawler.get_page(self.full_url, Crawler.headers)
-        with open(os.path.join(ASSETS_PATH,f'{self.article_id}_page.html', 'w')) as f:
+        article_page = Crawler.get_page(self.full_url)
+        with open(os.path.join(ASSETS_PATH, f'{self.article_id}_page.html'),
+                  'w', encoding='utf-8') as f:
             f.write(article_page)
         soup = BeautifulSoup(article_page, 'html.parser')
         self._fill_article_with_meta_information(soup)
@@ -180,7 +181,8 @@ class ArticleParser:
         return self.article
 
     def save_raw(self):
-        with open(os.path.join(ASSETS_PATH,f'{self.article_id}_raw.txt', 'w')) as f:
+        with open(os.path.join(ASSETS_PATH, f'{self.article_id}_raw.txt'),
+                  'w', encoding='utf-8') as f:
             f.write(self.article)
 
     def save_meta(self):
@@ -204,15 +206,18 @@ class ArticleParser:
         return raw
 
     def save_processed(self, processed_text):
-        with open(os.path.join(ASSETS_PATH, f'{self.article_id}_processed.txt', 'w')) as f:
+        with open(os.path.join(ASSETS_PATH, f'{self.article_id}_processed.txt'),
+                  'w', encoding='utf-8') as f:
             f.write(processed_text)
-
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
+    if not os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'pages')):
+        os.makedirs(os.path.join(PROJECT_ROOT, 'tmp', 'pages'))
+
     if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
         os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
@@ -275,8 +280,8 @@ if __name__ == '__main__':
             IncorrectNumberOfArticlesError,
             NumberOfArticlesOutOfRangeError,
             UnknownConfigError
-    ):
-        pass  # todo script immediately finishes execution
+    ) as error:
+        print(f'{error} occurred')
     else:
         crawler = Crawler(
             seed_urls=seed_urls,
@@ -284,6 +289,15 @@ if __name__ == '__main__':
             max_articles_per_seed=max_articles_per_seed
         )
         crawler.find_articles()
-        parser = ArticleParser(article_url=full_url, article_id=i)
-        try: parse
-        except BadStatusCode:
+
+        articles_urls = open(os.path.join(PROJECT_ROOT, 'tmp', 'links.txt')).read().split('\n')
+
+        for i, url in enumerate(articles_urls):
+            parser = ArticleParser(full_url=url, article_id=i)
+            try:
+                article = parser.parse()
+            except BadStatusCode:
+                continue
+            else:
+                parser.save_raw()
+                parser.save_meta()
