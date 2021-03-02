@@ -63,14 +63,16 @@ class Crawler:
         article_links = []
         for link in article_bs.find_all('a'):
             if link.get('href'):
-                if res := re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/.+', link.get('href')):
+                if res := re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/.+/$', link.get('href')):
                     category = article_bs.find('div', {'class': 'mg-blog-category'}).text.strip()
                     if not re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/\d{2}/', res[0])\
-                            and category in ['Новости', 'Статьи']:
-                        if res[0] not in urls and res[0] not in article_links:
+                            and category in ['Новости', 'Статьи']\
+                            and res[0] not in urls \
+                            and res[0] not in article_links:
                             article_links.append(res[0])
-        with open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt'), 'a', encoding='utf-8') as f:
-            f.write('\n'.join(article_links) + '\n')
+        if article_links:
+            with open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt'), 'a', encoding='utf-8') as f:
+                f.write('\n'.join(article_links) + '\n')
         return article_links
 
     def find_articles(self):
