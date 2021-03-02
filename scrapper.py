@@ -12,7 +12,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 import requests
 
-from .constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
+from constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
 class IncorrectURLError(Exception):
@@ -152,7 +152,6 @@ class CrawlerRecursive(Crawler):
     """
     Recursive Crawler
     """
-    pass
 
 
 class ArticleParser:
@@ -242,14 +241,14 @@ class ArticleParser:
 
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_meta.json'),
                   'w', encoding='utf-8') as file:
-            json.dump(meta, f, ensure_ascii=False)
+            json.dump(meta, file, ensure_ascii=False)
 
     def from_meta_json(self):
         """
         Gets meta data of article
         """
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_meta.json')) as file:
-            meta = json.load(f)
+            meta = json.load(file)
         return meta
 
     def get_raw_text(self):
@@ -261,7 +260,7 @@ class ArticleParser:
 
     def save_processed(self, processed_text):
         """
-        Saves proccesed text
+        Saves processed text
         """
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_processed.txt'),
                   'w', encoding='utf-8') as file:
@@ -373,7 +372,9 @@ if __name__ == '__main__':
 
         crawler.find_articles()
 
-        articles_urls = open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt')).read().split('\n')
+        articles_urls = open(
+            os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt')
+        ).read().split('\n')
 
         i = 1
         while i <= 100:
