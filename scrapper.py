@@ -12,40 +12,43 @@ from time import sleep
 from bs4 import BeautifulSoup
 import requests
 
-from constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
+from .constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
 class IncorrectURLError(Exception):
     """
     Custom error
     """
-    pass
 
 
 class NumberOfArticlesOutOfRangeError(Exception):
     """
     Custom error
     """
-    pass
 
 
 class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
-    pass
 
 
 class UnknownConfigError(Exception):
-    pass
+    """
+    Custom error
+    """
 
 
 class BadStatusCode(Exception):
-    pass
+    """
+    Custom error
+    """
 
 
 class BadArticle(Exception):
-    pass
+    """
+    Custom error
+    """
 
 
 class Crawler:
@@ -55,7 +58,9 @@ class Crawler:
     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                              '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
 
-    def __init__(self, seed_urls: list, max_articles: int = None, max_articles_per_seed: int = None):
+    def __init__(self, seed_urls: list,
+                 max_articles: int = None,
+                 max_articles_per_seed: int = None):
         self.seed_urls = seed_urls  # to parse
         self.seed_urls_set = set()  # seen urls
         self.max_articles = max_articles
@@ -63,20 +68,26 @@ class Crawler:
         self.urls = []  # articles urls
 
     @staticmethod
-    def _extract_url(article_bs, urls):
-        article_links = []
+    def _extract_url(article_bs, article_urls):
+        new_article_urls = []
         for link in article_bs.find_all('a'):
             if link.get('href'):
-                if res := re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/.+/$', link.get('href')):
-                    if not re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/\d{2}/', res[0])\
-                            and not re.findall(r'https://www.zvezdaaltaya.ru/\d{4}/\d{2}/.+\d/', res[0])\
-                            and res[0] not in urls \
-                            and res[0] not in article_links:
-                        article_links.append(res[0])
-        if article_links:
-            with open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt'), 'a', encoding='utf-8') as f:
-                f.write('\n'.join(article_links) + '\n')
-        return article_links
+                if res := re.findall(r'https://www.zvezdaaltaya.ru/'
+                                     r'\d{4}/\d{2}/.+/$', link.get('href')):
+                    if not re.findall(r'https://www.zvezdaaltaya.ru/'
+                                      r'\d{4}/\d{2}/\d{2}/', res[0])\
+                            and not re.findall(r'https://www.zvezdaaltaya.ru/'
+                                               r'\d{4}/\d{2}/.+\d/', res[0])\
+                            and res[0] not in article_urls \
+                            and res[0] not in new_article_urls:
+                        new_article_urls.append(res[0])
+        if new_article_urls:
+            with open(
+                    os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt'),
+                    'a', encoding='utf-8'
+            ) as file:
+                file.write('\n'.join(new_article_urls) + '\n')
+        return new_article_urls
 
     def find_articles(self):
         """
@@ -84,12 +95,14 @@ class Crawler:
         """
         id_generator = iter(range(1, self.max_articles + 1))
 
-        for url in self.seed_urls:
+        for seed_url in self.seed_urls:
             try:
-                page = Crawler.get_page(url)
-                with open(os.path.join(PROJECT_ROOT, 'tmp', 'pages', f'{next(id_generator)}.html'),
-                          'w', encoding='utf-8') as f:
-                    f.write(page)
+                page = Crawler.get_page(seed_url)
+                with open(
+                        os.path.join(PROJECT_ROOT, 'tmp', 'pages', f'{next(id_generator)}.html'),
+                        'w', encoding='utf-8'
+                ) as file:
+                    file.write(page)
             except BadStatusCode:
                 continue
             except StopIteration:
@@ -100,7 +113,7 @@ class Crawler:
                 self.urls.extend(article_links)
                 self.get_search_urls(soup)
 
-            self.seed_urls.remove(url)
+            self.seed_urls.remove(seed_url)
 
     def get_search_urls(self, soup):
         """
@@ -112,16 +125,19 @@ class Crawler:
                     if res[0] not in self.seed_urls:
                         self.seed_urls.append(res[0])
                         with open(os.path.join(PROJECT_ROOT, 'tmp', 'to_parse_urls.txt'), 'w',
-                                  encoding='utf-8') as f:
-                            f.write('\n'.join(self.seed_urls))
+                                  encoding='utf-8') as file:
+                            file.write('\n'.join(self.seed_urls))
 
                         self.seed_urls_set.add(res[0])
                         with open(os.path.join(PROJECT_ROOT, 'tmp', 'seen_urls.txt'), 'w',
-                                  encoding='utf-8') as f:
-                            f.write('\n'.join(self.seed_urls_set))
+                                  encoding='utf-8') as file:
+                            file.write('\n'.join(self.seed_urls_set))
 
     @staticmethod
     def get_page(url):
+        """
+        Returns requests page
+        """
         response = requests.get(url, headers=Crawler.headers)
         response.encoding = 'utf-8'
         if response.status_code == 200:
@@ -133,6 +149,9 @@ class Crawler:
 
 
 class CrawlerRecursive(Crawler):
+    """
+    Recursive Crawler
+    """
     pass
 
 
@@ -153,7 +172,6 @@ class ArticleParser:
             self.article += paragraph.text + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        # self.url = article_soup.find('meta', {'property': 'og:url'})['content']
         self.title = re.sub(r' - Звезда Алтая', '', article_soup.find('title').text)
         date_str = article_soup.find('span', {'class': 'mg-blog-date'}).text.strip()
         self.date = self.unify_date_format(date_str)
@@ -191,24 +209,30 @@ class ArticleParser:
         """
         article_page = Crawler.get_page(self.full_url)
         soup = BeautifulSoup(article_page, 'html.parser')
-        category = soup.find('div', {'class': 'mg-blog-category'}).text.strip()
-        if category not in ['Новости', 'Статьи']:
+        category = soup.find('div', {'class': 'mg-blog-category'}).text.strip().lower()
+        if category not in ['новости', 'статьи']:
             raise BadArticle
 
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_page.html'),
-                  'w', encoding='utf-8') as f:
-            f.write(article_page)
+                  'w', encoding='utf-8') as file:
+            file.write(article_page)
 
         self._fill_article_with_meta_information(soup)
         self._fill_article_with_text(soup)
         return self.article
 
     def save_raw(self):
+        """
+        Saves raw text
+        """
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_raw.txt'),
-                  'w', encoding='utf-8') as f:
-            f.write(self.article)
+                  'w', encoding='utf-8') as file:
+            file.write(self.article)
 
     def save_meta(self):
+        """
+        Saves meta data of article
+        """
         meta = {
             "url": self.full_url,
             "title": self.title,
@@ -217,22 +241,31 @@ class ArticleParser:
         }
 
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_meta.json'),
-                  'w', encoding='utf-8') as f:
+                  'w', encoding='utf-8') as file:
             json.dump(meta, f, ensure_ascii=False)
 
     def from_meta_json(self):
-        with open(os.path.join(ASSETS_PATH, f'{self.article_id}_meta.json')) as f:
+        """
+        Gets meta data of article
+        """
+        with open(os.path.join(ASSETS_PATH, f'{self.article_id}_meta.json')) as file:
             meta = json.load(f)
         return meta
 
     def get_raw_text(self):
+        """
+        Gets raw tex of article
+        """
         raw = open(os.path.join(ASSETS_PATH, f'{self.article_id}_raw.txt')).read()
         return raw
 
     def save_processed(self, processed_text):
+        """
+        Saves proccesed text
+        """
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_processed.txt'),
-                  'w', encoding='utf-8') as f:
-            f.write(processed_text)
+                  'w', encoding='utf-8') as file:
+            file.write(processed_text)
 
 
 def prepare_environment(base_path):
@@ -250,8 +283,8 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path) as f:
-        config = json.load(f)
+    with open(crawler_path) as file:
+        config = json.load(file)
 
     is_config_a_dict = isinstance(config, dict)
     is_config_has_attributes = (
@@ -265,7 +298,7 @@ def validate_config(crawler_path):
 
     is_base_urls_correct = (
             isinstance(config['base_urls'], list) and
-            all([isinstance(url, str) for url in config['base_urls']])
+            all([isinstance(seed_url, str) for seed_url in config['base_urls']])
     )
 
     if isinstance(config['total_articles_to_find_and_parse'], int):
@@ -294,24 +327,23 @@ def validate_config(crawler_path):
     )):
         return config.values()
 
-    elif not is_base_urls_correct:
+    if not is_base_urls_correct:
         raise IncorrectURLError
 
-    elif not is_total_number_of_articles_correct:
+    if not is_total_number_of_articles_correct:
         raise IncorrectNumberOfArticlesError
 
-    elif not is_max_number_of_articles_correct:
+    if not is_max_number_of_articles_correct:
         raise NumberOfArticlesOutOfRangeError
 
-    else:
-        raise UnknownConfigError
+    raise UnknownConfigError
 
 
 if __name__ == '__main__':
     prepare_environment(PROJECT_ROOT)
 
     try:
-        seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+        urls, articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     except (
             IncorrectURLError,
             IncorrectNumberOfArticlesError,
@@ -321,16 +353,23 @@ if __name__ == '__main__':
         print(f'{error} occurred')
     else:
         crawler = CrawlerRecursive(
-            seed_urls=seed_urls,
-            max_articles=max_articles,
-            max_articles_per_seed=max_articles_per_seed
+            seed_urls=urls,
+            max_articles=articles,
+            max_articles_per_seed=articles_per_seed
         )
+
         if os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'to_parse_urls.txt')):
-            crawler.seed_urls = open(os.path.join(PROJECT_ROOT, 'tmp', 'to_parse_urls.txt')).read().split('\n')
+            crawler.seed_urls = open(
+                os.path.join(PROJECT_ROOT, 'tmp', 'to_parse_urls.txt')
+            ).read().split('\n')
         if os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'seen_urls.txt')):
-            crawler.seed_urls_set = set(open(os.path.join(PROJECT_ROOT, 'tmp', 'seen_urls.txt')).read().split('\n'))
+            crawler.seed_urls_set = set(open(
+                os.path.join(PROJECT_ROOT, 'tmp', 'seen_urls.txt')
+            ).read().split('\n'))
         if os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt')):
-            crawler.urls = open(os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt')).read().split('\n')
+            crawler.urls = open(
+                os.path.join(PROJECT_ROOT, 'tmp', 'article_urls.txt')
+            ).read().split('\n')
 
         crawler.find_articles()
 
@@ -338,8 +377,8 @@ if __name__ == '__main__':
 
         i = 1
         while i <= 100:
-            for url in articles_urls:
-                parser = ArticleParser(full_url=url, article_id=i)
+            for article_url in articles_urls:
+                parser = ArticleParser(full_url=article_url, article_id=i)
                 try:
                     article = parser.parse()
                 except (BadStatusCode, BadArticle):
