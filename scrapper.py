@@ -269,12 +269,14 @@ def validate_config(crawler_path):
 
     is_base_urls_correct = (
             isinstance(config['base_urls'], list) and
-            isinstance(config['base_urls'][0], str)
+            all([isinstance(url, str) for url in config['base_urls']])
     )
-    is_total_number_of_articles_correct = (
-        isinstance(config['total_articles_to_find_and_parse'], int) and
-        config['total_articles_to_find_and_parse'] > 0
-    )
+
+    if isinstance(config['total_articles_to_find_and_parse'], int):
+        is_total_number_of_articles_correct = config['total_articles_to_find_and_parse'] > 0
+    else:
+        raise IncorrectNumberOfArticlesError
+
     is_max_number_of_articles_int = (
         isinstance(config['max_number_articles_to_get_from_one_seed'], int) and
         config['max_number_articles_to_get_from_one_seed'] > 0
@@ -282,7 +284,8 @@ def validate_config(crawler_path):
 
     is_max_number_of_articles_correct = (
             config['max_number_articles_to_get_from_one_seed'] <=
-            config['total_articles_to_find_and_parse']
+            config['total_articles_to_find_and_parse'] and
+            config['max_number_articles_to_get_from_one_seed'] <= 10000
     )
 
     if all((
