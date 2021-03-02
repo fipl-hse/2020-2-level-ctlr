@@ -250,6 +250,11 @@ def validate_config(crawler_path):
         config = json.load(f)
 
     is_config_a_dict = isinstance(config, dict)
+    is_config_has_attributes = (
+        'max_number_articles_to_get_from_one_seed' in config,
+        'base_urls' in config,
+        'total_articles_to_find_and_parse' in config
+    )
     is_base_urls_correct = (
             isinstance(config['base_urls'], list) and
             isinstance(config['base_urls'][0], str)
@@ -270,6 +275,7 @@ def validate_config(crawler_path):
 
     if all((
             is_config_a_dict,
+            is_config_has_attributes,
             is_base_urls_correct,
             is_total_number_of_articles_correct,
             is_max_number_of_articles_int,
