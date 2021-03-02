@@ -255,6 +255,10 @@ def validate_config(crawler_path):
         'base_urls' in config,
         'total_articles_to_find_and_parse' in config
     )
+
+    if not (is_config_a_dict and is_config_has_attributes):
+        raise UnknownConfigError
+
     is_base_urls_correct = (
             isinstance(config['base_urls'], list) and
             isinstance(config['base_urls'][0], str)
