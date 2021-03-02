@@ -15,6 +15,13 @@ def date_from_meta(date_txt):
     return datetime.datetime.strptime(date_txt, "%Y-%m-%d %H:%M:%S")
 
 
+def date_from_meta(date_txt):
+    """
+    Converts text date to datetime object
+    """
+    return datetime.datetime.strptime(date_txt, "%Y-%m-%d %H:%M:%S")
+
+
 class Article:
     """
     Article class implementation.
@@ -46,7 +53,7 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-
+    
     @staticmethod
     def from_meta_json(json_path: str):
         """
