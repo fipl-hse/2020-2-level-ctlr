@@ -44,6 +44,10 @@ class BadStatusCode(Exception):
     pass
 
 
+class BadArticle(Exception):
+    pass
+
+
 class Crawler:
     """
     Crawler implementation
@@ -191,10 +195,15 @@ class ArticleParser:
         Parses each article
         """
         article_page = Crawler.get_page(self.full_url)
+        soup = BeautifulSoup(article_page, 'html.parser')
+        category = soup.find('div', {'class': 'mg-blog-category'}).text.strip()
+        if category not in ['Новости', 'Статьи']:
+            raise BadArticle
+
         with open(os.path.join(ASSETS_PATH, f'{self.article_id}_page.html'),
                   'w', encoding='utf-8') as f:
             f.write(article_page)
-        soup = BeautifulSoup(article_page, 'html.parser')
+
         self._fill_article_with_meta_information(soup)
         self._fill_article_with_text(soup)
         return self.article
@@ -333,7 +342,7 @@ if __name__ == '__main__':
             parser = ArticleParser(full_url=url, article_id=i)
             try:
                 article = parser.parse()
-            except BadStatusCode:
+            except (BadStatusCode, BadArticle):
                 continue
             else:
                 parser.save_raw()
