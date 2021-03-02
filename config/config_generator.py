@@ -12,6 +12,7 @@ def generate_config(base_urls: list, num_articles: int, path: str = TEST_CRAWLER
     config = dict()
     config['base_urls'] = base_urls
     config['total_articles_to_find_and_parse'] = num_articles
+    config['max_number_articles_to_get_from_one_seed'] = num_articles
 
     if os.path.exists(TEST_CRAWLER_CONFIG_PATH):
         shutil.rmtree(TEST_PATH)
