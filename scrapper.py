@@ -2,6 +2,9 @@
 Crawler implementation
 """
 
+import requests
+from time import sleep
+from bs4 import BeautifulSoup
 
 class IncorrectURLError(Exception):
     """
@@ -25,8 +28,8 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int=None):
+        self.seed_urls = seed_urls
 
     @staticmethod
     def _extract_url(article_bs):
@@ -36,7 +39,11 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        for url in self.seed_urls:
+            response = requests.get(url)
+            sleep(5)
+
+        return []
 
     def get_search_urls(self):
         """
@@ -88,4 +95,20 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+
+    url = 'http://chelny-week.ru/2021/01/berega-kazanki-prevratyat-v-pervyjj-v-rossii-nacionalnyjj-park/'
+
+    response = requests.get(url, headers=headers)
+
+    # if not response:
+    #     raise IncorrectURLError
+
+    page_soup = BeautifulSoup(response.content, features='lxml')
+
+    header_soups = page_soup.find_all('h1')
+    for header_soup in header_soups:
+        print(header_soup.text)
+        text_soup = page_soup.find('div', class_="entry entry-content")
+        print(text_soup.text)
