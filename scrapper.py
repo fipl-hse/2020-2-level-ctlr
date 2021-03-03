@@ -1,7 +1,7 @@
 """
 Crawler implementation
 """
-import re
+
 import requests
 import json
 import sys
@@ -96,29 +96,27 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r') as crawler_config_file:
         crawler_config = json.load(crawler_config_file)
 
-    try:
-        if not isinstance(crawler_config, dict) or \
-                ("base_urls" not in crawler_config or "total_articles_to_find_and_parse" not in crawler_config
-                 or "max_number_articles_to_get_from_one_seed" not in crawler_config):
-            raise UnknownConfigError('Most common error')
+    if not isinstance(crawler_config, dict) or \
+            ("base_urls" not in crawler_config or "total_articles_to_find_and_parse" not in crawler_config
+             or "max_number_articles_to_get_from_one_seed" not in crawler_config):
+        raise UnknownConfigError('Most common error')
 
-        for key, value in crawler_config.items():
-            if key == "base_urls":
-                for el in value:
-                    if not re.fullmatch(r'https?\:\/\/.+', el):
-                        raise IncorrectURLError("Check up a format of URLs")
+    if not isinstance(crawler_config["base_urls"], list) or \
+            not (isinstance(url, str) for url in crawler_config["base_urls"]):
+        raise IncorrectURLError('Check up a format of URLs')
 
-            if key == "total_articles_to_find_and_parse" or key == "max_number_articles_to_get_from_one_seed":
-                if not isinstance(value, int):
-                    raise IncorrectNumberOfArticlesError("Not integer value")
+    if not isinstance(crawler_config["total_articles_to_find_and_parse"], int) \
+        or not isinstance(crawler_config["max_number_articles_to_get_from_one_seed"], int):
+        raise IncorrectNumberOfArticlesError("Not integer value")
+    if crawler_config["max_number_articles_to_get_from_one_seed"] < 0 \
+            or crawler_config["total_articles_to_find_and_parse"] < 0:
+        raise IncorrectNumberOfArticlesError("The number is less than 0")
 
-        if crawler_config["max_number_articles_to_get_from_one_seed"] > crawler_config["total_articles_to_find_and_parse"]:
-            raise NumberOfArticlesOutOfRangeError
+    if crawler_config["max_number_articles_to_get_from_one_seed"] > crawler_config["total_articles_to_find_and_parse"]:
+        raise NumberOfArticlesOutOfRangeError
 
-        return (crawler_config["base_urls"], crawler_config["total_articles_to_find_and_parse"],
-                crawler_config["max_number_articles_to_get_from_one_seed"])
-    except UnknownConfigError or IncorrectURLError or NumberOfArticlesOutOfRangeError or IncorrectNumberOfArticlesError:
-        return sys.exit(1)
+    return (crawler_config["base_urls"], crawler_config["total_articles_to_find_and_parse"],
+            crawler_config["max_number_articles_to_get_from_one_seed"])
 
 
 if __name__ == '__main__':
