@@ -4,7 +4,6 @@ Crawler implementation
 
 import requests
 import json
-import sys
 
 
 class IncorrectURLError(Exception):
@@ -35,6 +34,7 @@ class Crawler:
     """
     Crawler implementation
     """
+
     def __init__(self, seed_urls: list, max_articles: int):
         pass
 
@@ -59,6 +59,7 @@ class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         pass
 
@@ -109,10 +110,8 @@ def validate_config(crawler_path):
         raise IncorrectURLError
 
     elif not isinstance(crawler_config["total_articles_to_find_and_parse"], int) \
-        or not isinstance(crawler_config["max_number_articles_to_get_from_one_seed"], int):
-        is_crawler_config_ok = False
-        raise IncorrectNumberOfArticlesError
-    elif crawler_config["max_number_articles_to_get_from_one_seed"] < 0 \
+            or crawler_config["max_number_articles_to_get_from_one_seed"] < 0 \
+            or not isinstance(crawler_config["max_number_articles_to_get_from_one_seed"], int) \
             or crawler_config["total_articles_to_find_and_parse"] < 0:
         is_crawler_config_ok = False
         raise IncorrectNumberOfArticlesError
@@ -124,7 +123,6 @@ def validate_config(crawler_path):
     if is_crawler_config_ok:
         return (crawler_config["base_urls"], crawler_config["total_articles_to_find_and_parse"],
                 crawler_config["max_number_articles_to_get_from_one_seed"])
-    raise UnknownConfigError
 
 
 if __name__ == '__main__':
