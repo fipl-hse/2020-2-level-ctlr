@@ -1,7 +1,9 @@
 """
 Crawler implementation
 """
-
+import requests
+from time import sleep
+import random
 
 class IncorrectURLError(Exception):
     """
@@ -26,7 +28,9 @@ class Crawler:
     Crawler implementation
     """
     def __init__(self, seed_urls: list, max_articles: int):
-        pass
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+
 
     @staticmethod
     def _extract_url(article_bs):
@@ -36,7 +40,6 @@ class Crawler:
         """
         Finds articles
         """
-        pass
 
     def get_search_urls(self):
         """
@@ -87,5 +90,12 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    # YOUR CODE HERE
-    pass
+    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                             'Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36'}
+
+    response = requests.get('https://vn.ru/vn/', headers=headers)
+
+    if not response:
+        raise IncorrectURLError
+
+    sleep(random.randint(2, 7))
