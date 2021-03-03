@@ -1,6 +1,10 @@
 """
 Crawler implementation
 """
+import requests
+from bs4 import BeautifulSoup
+from time import sleep
+import lxml
 
 
 class IncorrectURLError(Exception):
@@ -88,4 +92,17 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    # response = requests.get('http://ks-yanao.ru/novosti/v-labytnangi-priznayut-sgorevshiy-dom-avariynym.html')
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'
+    }
+    response = requests.get('http://ks-yanao.ru/proisshestviya/v-novom-urengoe-mikroavtobus-stolknulsya-s-tremya-legkovushkami.html',
+                              headers=headers)
+    page_soup = BeautifulSoup(response.content, features='lxml')
+    header_soup = page_soup.find(class_="element-detail")
+    paragraphs_soup = header_soup.find_all('p')
+    # header = header_soup.text
+    for header in paragraphs_soup:
+        print(f'**{header.text.strip()}**')
+    # print(response.text)
+    # print(header)
