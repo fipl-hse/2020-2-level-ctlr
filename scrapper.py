@@ -99,18 +99,18 @@ def validate_config(crawler_path):
     if not isinstance(crawler_config, dict) or \
             ("base_urls" not in crawler_config or "total_articles_to_find_and_parse" not in crawler_config
              or "max_number_articles_to_get_from_one_seed" not in crawler_config):
-        raise UnknownConfigError('Most common error')
+        raise UnknownConfigError
 
     if not isinstance(crawler_config["base_urls"], list) or \
             not (isinstance(url, str) for url in crawler_config["base_urls"]):
-        raise IncorrectURLError('Check up a format of URLs')
+        raise IncorrectURLError
 
     if not isinstance(crawler_config["total_articles_to_find_and_parse"], int) \
         or not isinstance(crawler_config["max_number_articles_to_get_from_one_seed"], int):
-        raise IncorrectNumberOfArticlesError("Not integer value")
+        raise IncorrectNumberOfArticlesError
     if crawler_config["max_number_articles_to_get_from_one_seed"] < 0 \
             or crawler_config["total_articles_to_find_and_parse"] < 0:
-        raise IncorrectNumberOfArticlesError("The number is less than 0")
+        raise IncorrectNumberOfArticlesError
 
     if crawler_config["max_number_articles_to_get_from_one_seed"] > crawler_config["total_articles_to_find_and_parse"]:
         raise NumberOfArticlesOutOfRangeError
