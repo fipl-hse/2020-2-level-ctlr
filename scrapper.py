@@ -1,7 +1,8 @@
 """
 Crawler implementation
 """
-
+import requests
+from time import sleep
 
 class IncorrectURLError(Exception):
     """
@@ -88,4 +89,7 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    response = requests.get('https://www.ks87.ru/')
+    if not requests:
+        raise ImportError
+    print(response.headers)
