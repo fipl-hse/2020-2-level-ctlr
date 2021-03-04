@@ -93,5 +93,22 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    # YOUR CODE HERE
-    pass
+    import requests
+    from time import sleep
+    import random
+
+    # use user-agent
+    headers = {
+        'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
+    }
+    response = requests.get('http://kamtime.ru/node/5244', headers=headers)
+
+    # add sleeps between requests
+    # sleep(random.randrange(3,6))
+
+    # go offline asap
+    # with open(file='text.html', mode='w') as f:
+    # f.write(response.text)
+
+    print(response.text)
+
