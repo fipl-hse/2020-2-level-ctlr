@@ -88,4 +88,7 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    response = requests.get('http://www.znamyatrud.ru/')
+    if not requests:
+        raise ImportError
+    print(response.headers)
