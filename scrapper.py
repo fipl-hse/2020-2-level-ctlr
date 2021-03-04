@@ -2,6 +2,9 @@
 Crawler implementation
 """
 
+import requests
+from time import sleep
+from bs4 import BeautifulSoup
 
 class IncorrectURLError(Exception):
     """
@@ -25,8 +28,8 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles=1):
+        self.seed_urls = seed_urls
 
     @staticmethod
     def _extract_url(article_bs):
@@ -36,7 +39,12 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        for url in self.seed_urls:
+            response = requests.get(url)
+            sleep(5)
+            print('good')
+
+        return [response]
 
     def get_search_urls(self):
         """
@@ -88,4 +96,32 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    headers = {'Use-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36'}
+    response = requests.get('https://ugra-news.ru/article/andrey_filatov_vstupil_v_dolzhnost_glavy_surguta/',
+                            headers=headers)
+    print('good')
+
+    page_bs = BeautifulSoup(response.content, features='lxml')
+
+    header_soup = page_bs.find_all(name='h1')
+
+    for line in header_soup:
+        print('Tag name: {}'.format(line.name))
+        print('Tag text:',format(line.text))
+
+    article_content = page_bs.find(name='div', class_="col_content")
+    print(article_content)
+    #print(article.text for article in article_contetnt)
+
+    '''sleep(5)
+
+    with open(file='text.html', mode='w', encoding='utf-8') as f:
+        f.write(response.text)
+
+    with open(file='text.html', mode='r', encoding='utf-8') as f:
+        print(f.read())
+    print(response.request.headers)'''
+
+    #test = Crawler(['https://ugra-news.ru/', 'https://ugra-news.ru/article/andrey_filatov_vstupil_v_dolzhnost_glavy_surguta/'])
+    #all_articles = test.find_articles()
+
