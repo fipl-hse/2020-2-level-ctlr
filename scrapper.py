@@ -1,6 +1,10 @@
 """
 Crawler implementation
 """
+import requests
+from time import sleep
+
+
 
 
 class IncorrectURLError(Exception):
@@ -25,8 +29,8 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int=None):
+        self.seed_urls = seed_urls
 
     @staticmethod
     def _extract_url(article_bs):
@@ -36,7 +40,10 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        for url in self.seed_urls:
+            response = requests.get(url)
+            sleep(5)
+        return []
 
     def get_search_urls(self):
         """
@@ -88,4 +95,11 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
+    response = requests.get('https://moyaokruga.ru/ahtpravda/', headers=headers)
+    if not response:
+        raise IncorrectURLError
+    print(response.request.headers)
+
+    test = Crawler(['https://moyaokruga.ru/ahtpravda/', 'https://moyaokruga.ru/ahtpravda/'])
+    test.find_articles()
