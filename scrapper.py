@@ -27,7 +27,7 @@ class Crawler:
     Crawler implementation
     """
     def __init__(self, seed_urls: list, max_articles: int):
-        pass
+
 
     @staticmethod
     def _extract_url(article_bs):
