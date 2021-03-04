@@ -25,7 +25,7 @@ if __name__ == '__main__':
     args: argparse.Namespace = parser.parse_args()
 
     if '[skip-name]' in args.pr_name:
-        print("Developer Pull Request Passed")
+        print("Skipping PR name checks.")
         sys.exit(0)
 
     pr_name_to_check = convert_raw_pr_name(args.pr_name)
