@@ -98,35 +98,30 @@ def validate_config(crawler_path):
         crawler_config = json.load(crawler_config_file)
 
     is_crawler_config_ok = True
-    if not isinstance(crawler_config, dict) or \
-            "base_urls" not in crawler_config or "total_articles_to_find_and_parse" not in crawler_config \
-            or "max_number_articles_to_get_from_one_seed" not in crawler_config:
+    if not isinstance(crawler_config, dict):
         is_crawler_config_ok = False
         raise UnknownConfigError
 
-    elif not isinstance(crawler_config["base_urls"], list) or \
-            not (isinstance(url, str) for url in crawler_config["base_urls"]):
+    if not isinstance(crawler_config['base_urls'], list) or \
+            not all(isinstance(url, str) for url in crawler_config['base_urls']):
         is_crawler_config_ok = False
         raise IncorrectURLError
 
-    elif not isinstance(crawler_config["total_articles_to_find_and_parse"], int) \
-            or crawler_config["max_number_articles_to_get_from_one_seed"] < 0 \
-            or not isinstance(crawler_config["max_number_articles_to_get_from_one_seed"], int) \
-            or crawler_config["total_articles_to_find_and_parse"] < 0:
+    if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
         is_crawler_config_ok = False
         raise IncorrectNumberOfArticlesError
 
-    elif crawler_config["max_number_articles_to_get_from_one_seed"] >= crawler_config["total_articles_to_find_and_parse"]:
+    if crawler_config['total_articles_to_find_and_parse'] >= 1000000:
         is_crawler_config_ok = False
         raise NumberOfArticlesOutOfRangeError
 
     if is_crawler_config_ok:
-        return (crawler_config["base_urls"], crawler_config["total_articles_to_find_and_parse"],
-                crawler_config["max_number_articles_to_get_from_one_seed"])
+        return crawler_config.values()
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     import constants
+
     seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
     print(seed_urls)
