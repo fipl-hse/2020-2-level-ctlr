@@ -2,9 +2,11 @@
 Crawler implementation
 """
 import json
+import re
 import requests
 import random
-import re
+from article import Article
+from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 from time import sleep
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'}
@@ -76,10 +78,15 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
+        self.article_url = full_url
+        self.i = article_id
+        self.article = Article(full_url, article_id)
         pass
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        article_bs = article_soup
+        self.article.text = article_bs.find(name='div', class_='content')
+        return None
 
     def _fill_article_with_meta_information(self, article_soup):
         pass
@@ -95,7 +102,17 @@ class ArticleParser:
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.article_url, headers=headers)
+        print('The webpage is being requested...')
+        if response.status_code == 200:
+            print('Request is OK')
+        article_bs = BeautifulSoup(response.content, features='lxml')
+        self.article.title = article_bs.find(name='h1').text
+        self.article.date = article_bs.find(name='time', class_='js-time').text
+        self.article.author = article_bs.find(class_='author').text[6:]
+        self.article.topics = []
+        self.article.text = article_bs.find(name='div', class_='content').text
+        return self.article
 
 
 def prepare_environment(base_path):
@@ -111,24 +128,24 @@ def validate_config(crawler_path):
     """
     with open(crawler_path, 'r') as crawler:
         data = json.loads(str(crawler.read()))
-        validating_seed_urls = data["base_urls"]
-        validating_max_articles = data["total_articles_to_find_and_parse"]
-        validating_max_articles_per_seed = data["max_number_articles_to_get_from_one_seed"]
+
+    validating_seed_urls = data.get("base_urls")
+    validating_max_articles = data.get("total_articles_to_find_and_parse")
+    validating_max_articles_per_seed = data.get("max_number_articles_to_get_from_one_seed")
 
     if not isinstance(validating_seed_urls, list) or not isinstance(validating_max_articles, int)\
             or not isinstance(validating_max_articles_per_seed, int):
         raise UnknownConfigError
 
     for url in validating_seed_urls:
-        response = requests.get(url)
-        if not response:
+        if not re.match('https://www\.[\d\w-]+\..+', url):
             raise IncorrectURLError
 
-    '''if validating_max_articles == 0:
+    if validating_max_articles == 0:
         raise NumberOfArticlesOutOfRangeError
 
     if validating_max_articles_per_seed == 0:
-        raise IncorrectNumberOfArticlesError'''
+        raise IncorrectNumberOfArticlesError
     return validating_seed_urls, validating_max_articles, validating_max_articles_per_seed
 
 
@@ -136,4 +153,9 @@ if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     example = Crawler(seed_urls, max_articles, max_articles_per_seed)
     example.find_articles()
-    pass
+    print()
+    for url in example.urls:
+        parser = ArticleParser(url, some_id) #where to take id
+        article = parser.parse()
+        article.save_raw()
+
