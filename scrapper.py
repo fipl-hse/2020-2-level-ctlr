@@ -3,7 +3,13 @@ Crawler implementation
 """
 
 import json
+import requests
+import re
 
+from random import randint
+from time import sleep
+from requests import HTTPError
+from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 
 
@@ -39,6 +45,7 @@ class Crawler:
         self.seed_urls = seed_urls
         self.total_max_articles = total_max_articles
         self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
@@ -48,7 +55,26 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
+                                 "Chrome/88.0.4324.190 Safari/537.36"}
+        for url in self.seed_urls:
+            try:
+                response = requests.get(url, headers=headers)
+                page_soup = BeautifulSoup(response.content, 'lxml')
+                news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
+                news_container = page_soup.find('div', attrs={'class': 'news-container', 'id': news_container_id})
+                a_tags = news_container.find_all('a', id=re.compile('articleLink'))
+                for a_tag in a_tags:
+                    if len(self.urls) < self.max_articles_per_seed:
+                        self.urls.append(a_tag.attrs['href'])
+                    else:
+                        break
+            except HTTPError:
+                print('Something wrong the URL...')
+            if len(self.urls) < self.total_max_articles:
+                sleep(randint(3, 6))
+            else:
+                break
 
     def get_search_urls(self):
         """
@@ -112,7 +138,7 @@ def validate_config(crawler_path):
     if not is_articles_num_ok:
         raise IncorrectNumberOfArticlesError
 
-    is_articles_num_in_range = 0 < max_artcls <= total_artcls and 2 <= total_artcls <= 1000
+    is_articles_num_in_range = 0 < max_artcls <= total_artcls and 5 <= total_artcls <= 1000
 
     if not is_articles_num_in_range:
         raise NumberOfArticlesOutOfRangeError
@@ -129,3 +155,4 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=url_list,
                       total_max_articles=total,
                       max_articles_per_seed=max_num)
+    crawler.find_articles()
