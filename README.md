@@ -1,6 +1,6 @@
 # Dataset Collector Lab for 2nd course of Fundamental and Computational Linguistics (2020/2021)
 
-![Dataset collection](https://github.com/fipl-hse/2020-2-level-ctlr-admin/workflows/Crawler%20is%20functioning/badge.svg)
+[![Corpus Collection and Annotation](https://github.com/fipl-hse/2020-2-level-ctlr/actions/workflows/crawler.yml/badge.svg?branch=main)](https://github.com/fipl-hse/2020-2-level-ctlr/actions/workflows/crawler.yml)
 
 ## About the course
 
@@ -64,28 +64,27 @@ Software solution is built on top of three components:
    
 ## Handing over your work
 
-Порядок сдачи:
+Order of handing over:
 
-1. лабораторная работа допускается к очной сдаче.
-2. студент объяснил работу программы и показал её в действии.
-3. студент выполнил мини-задание ментора по некоторой модификации кода.
-4. студент получает оценку:
-   1. соответствующую ожидаемой, если все шаги выше выполнены и ментор удовлетворён ответом студента
-   2. на балл выше ожидаемой, если все шаги выше выполнены и ментор решает поощрить студента за отличный ответ
-   3. на балл ниже ожидаемой, если лабораторная работа сдаётся на неделю позже срока сдачи и выполнены критерии в 4.1
-   4. на два балла ниже ожидаемой, если лабораторная работа сдаётся на две недели и позже от срока сдачи и выполнены критерии в 4.1
+1. lab work is accepted for oral presentation.
+2. a student has explained the work of the program and showed it in action.
+3. a student has completed the min-task from a mentor that requires some slight code modifications.
+4. a student receives a mark:
+   1. that corresponds to the expected one, if all the steps above are completed and mentor is satisified with the answer
+   2. one point bigger than the expected one, if all the steps above are completed and mentor is very satisified with the answer
+   3. one point smaller than the expected one, if a lab is handed over one week later than the deadline and criteria from 4.1 are satisfied
+   4. two points smaller than the expected one, if a lab is handed over more than one week later than the deadline and criteria from 4.1 are satisfied
 
-> Замечание: студент может улучшить оценку по лабораторной работе, если после основной сдачи выполнит 
-> задания следующего уровня сложности
-> относительно того уровня, на котором выполнялась реализация.
+> NOTE: a student might improve their mark for the lab, if they complete tasks of the next level after handing over
+> the lab.
 
-Лабораторная работа допускается к очной сдаче, если выполнены все пункты ниже:
+A lab work is accepted for oral presentation if all the critera below are satsified:
 
-1. представлена в виде пулл реквеста (Pull Request, PR) с правильно составленным названием по шаблону:
-   `Laboratory work #<NUMBER>, <SURNAME> <NAME> - <UNIVERSITY GROUP NAME>`. Пример: `Laboratory work #1, Kuznetsova Valeriya - 19FPL1`.
-2. имеет заполненный файл `target_score.txt` с ожидаемой оценкой. Допустимые значения: 4, 6, 8, 10.
-3. имеет "зелёный" статус - автоматические проверки качества и стиля кода, соответствующие заданной ожидаемой оценке, удовлетворены.
-4. имеет лейбл `done`, выставленный ментором. Означает, что ментор посмотрел код студента и удовлетворён качеством кода.
+1. there is a Pull Request (PR) with a correctly formatted name:
+   `Laboratory work #<NUMBER>, <SURNAME> <NAME> - <UNIVERSITY GROUP NAME>`. Example: `Laboratory work #1, Kuznetsova Valeriya - 19FPL1`.
+2. has a filled file `target_score.txt` with an expected mark. Acceptable values: 4, 6, 8, 10.
+3. has green status.
+4. has a label `done`, set by mentor.
  
 ## Resources
 
