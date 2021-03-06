@@ -1,9 +1,12 @@
 """
 Crawler implementation
 """
+import os
+
 import requests
 import json
-from constants import CRAWLER_CONFIG_PATH
+import BeautifulSoup as bs4
+from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
 
 
 class IncorrectURLError(Exception):
@@ -37,10 +40,11 @@ class Crawler:
     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                              '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
 
-    def __init__(self, seed_urls: list, max_articles: int):
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
-        self.visited_urls: list = []
+        self.max_articles_per_seed = max_articles_per_seed
+        self.visited_urls: set = set()
         self.urls: list = []
 
     @staticmethod
@@ -60,10 +64,17 @@ class Crawler:
         pass
 
 
+class CrawlerRecursive(Crawler):
+    """
+    Recursive Crawler
+    """
+
+
 class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         pass
 
@@ -91,7 +102,11 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if not os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'pages')):
+        os.makedirs(os.path.join(PROJECT_ROOT, 'tmp', 'pages'))
+
+    if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
+        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
 
 def validate_config(crawler_path: str):
@@ -101,36 +116,43 @@ def validate_config(crawler_path: str):
     with open(crawler_path) as file:
         config: dict = json.load(file)
 
-    params: tuple = 'base_urls', 'total_articles_to_find_and_parse', 'max_number_articles_to_get_from_one_seed'
+    checks = {
+        all(isinstance(x, str) for x in config['base_urls']): IncorrectURLError,
+        (isinstance(config['total_articles_to_find_and_parse'], int) and
+         config['total_articles_to_find_and_parse'] > 0): IncorrectNumberOfArticlesError,
+        config['total_articles_to_find_and_parse'] <= 10000: NumberOfArticlesOutOfRangeError
+    }
 
-    if not all((isinstance(config, dict), params == config.keys())):
-        print('UnknownConfigError 1')
-        raise UnknownConfigError
-    
-    type_checks = [
-        # all([isinstance(x, str) for x in config['base_url']]),
-        isinstance(config['total_articles_to_find_and_parse'], int),
-        isinstance(config['max_number_articles_to_get_from_one'], int)
-    ]
+    for check, exception in checks.items():
+        if check:
+            raise exception
 
-    if not type_checks:
-        print('UnknownConfigError 2')
-        raise UnknownConfigError
+    if all(checks):
+        return config.values()
 
-    if not all(isinstance(x, str) for x in config['base_url']):
-        print('IncorrectURLError')
-        raise IncorrectURLError
-
-    if config['total_articles_to_find_and_parse'] < 0:
-        print('IncorrectNumberOfArticlesError')
-        raise IncorrectNumberOfArticlesError
-
-    if not config['max_number_articles_to_get_from_one_seed'] < config['total_articles_to_find_and_parse'] < 10000:
-        print('NumberOfArticlesOutOfRangeError')
-        raise NumberOfArticlesOutOfRangeError
-
-    return config.values()
+    raise UnknownConfigError
 
 
 if __name__ == '__main__':
-    pass
+    prepare_environment(PROJECT_ROOT)
+
+    try:
+        urls, articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    except (
+            IncorrectURLError,
+            IncorrectNumberOfArticlesError,
+            NumberOfArticlesOutOfRangeError,
+            UnknownConfigError
+    ) as e:
+        print(f'{e} was encountered during the crawler execution')
+    else:
+        crawler = CrawlerRecursive(
+            seed_urls=urls,
+            max_articles=articles,
+            max_articles_per_seed=articles_per_seed
+        )
+
+        crawler.find_articles()
+
+
+
