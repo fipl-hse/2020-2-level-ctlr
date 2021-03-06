@@ -26,7 +26,7 @@ class IncorrectNumberOfArticlesError(Exception):
 
 class UnknownConfigError(Exception):
     """
-    Custom error
+    Most general error
     """
 
 
