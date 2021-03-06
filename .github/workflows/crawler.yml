@@ -9,7 +9,43 @@ on:
   pull_request:
     branches: [ main ]
 
+
 jobs:
+  pr-name-check:
+    name: PR name check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 1
+    env:
+      PR_NAME: ${{ github.event.pull_request.title }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        # This path is specific to Ubuntu
+        path: ~/.cache/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_qa.txt
+        pip install -r requirements.txt
+    - name: PR name check
+      run: |
+        echo "Pull Request Name is $PR_NAME"
+        python config/pr_name_check.py --pr-name="$PR_NAME"
+
+
   code-style:
     name: Code Style
     runs-on: ubuntu-latest
@@ -36,11 +72,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
-        echo "TODO: PR name [skip-ci-name]"
     - name: Code Syle
       run: |
         chmod +x config/run-lint.sh
         config/run-lint.sh
+
+        
   
   checking-crawler-config:
     name: Crawler checks config
@@ -71,7 +108,12 @@ jobs:
         pip install -r requirements.txt
     - name: Run crawler config checks
       run: |
-        python -m unittest config/crawler_config_test.py
+        TARGET_SCORE=$(head -2 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          python -m unittest config/crawler_config_test.py
+        else
+          echo "Skipping stage"
+        fi
 
   collecting-articles-from-internet:
     name: Download articles
@@ -102,9 +144,14 @@ jobs:
         pip install -r requirements.txt
     - name: Crawl a raw dataset from web
       run: |
-        chmod +x config/collect-articles-from-internet.sh
-        config/collect-articles-from-internet.sh
-        ls -la tmp/articles
+        TARGET_SCORE=$(head -2 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          chmod +x config/collect-articles-from-internet.sh
+          config/collect-articles-from-internet.sh
+          ls -la tmp/articles
+        else
+          echo "Skipping stage"
+        fi
     - name: Archive raw dataset
       uses: actions/upload-artifact@v2
       with:
@@ -141,16 +188,25 @@ jobs:
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
     - name: Download previously collected dataset
+      continue-on-error: true
       uses: actions/download-artifact@v2
       with:
         name: raw-dataset
     - name: Run metadata validation
       run: |
-        mkdir -p tmp/articles
-        mv *_meta.json tmp/articles
-        mv *_raw.txt tmp/articles
-        chmod +x config/check-raw-data.sh
-        config/check-raw-data.sh
+        echo "Validate raw data"
+        TARGET_SCORE=$(head -2 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          mkdir -p tmp/articles
+          mv *_raw.txt tmp/articles
+          if [[ ${TARGET_SCORE} != 4 ]]; then
+            mv *_meta.json tmp/articles
+          fi
+          chmod +x config/check-raw-data.sh
+          config/check-raw-data.sh
+        else
+          echo "Skipping stage"
+        fi
   
   milestone-1-crawler-is-working:
     name: Crawler is accepted!
@@ -161,11 +217,27 @@ jobs:
     steps:
     - name: Congratulations
       run: |
-        echo "Crawler is working. Proceed to text processing pipeline."
+        TARGET_SCORE=$(head -2 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          echo "Crawler is working. Proceed to text processing pipeline."
+        else
+          echo "Skipping stage"
+        fi
+
+  milestone-2-pipeline:
+    name: Starting pipeline checks!
+    needs: [ milestone-1-crawler-is-working ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Congratulations
+        run: |
+          echo "Preparing pipeline checks"
+
 
   checking-raw-dataset-before-running-pipeline:
     name: Pipe verifies dataset
-    needs: milestone-1-crawler-is-working
+    needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
     
@@ -191,19 +263,25 @@ jobs:
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
     - name: Download previously collected dataset
+      continue-on-error: true
       uses: actions/download-artifact@v2
       with:
         name: raw-dataset
     - name: Run crawler config checks
       run: |
-        mkdir -p tmp/articles
-        mv *_meta.json tmp/articles
-        mv *_raw.txt tmp/articles
-        python -m unittest config/raw_dataset_test.py
+        TARGET_SCORE=$(head -5 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          mkdir -p tmp/articles
+          mv *_meta.json tmp/articles
+          mv *_raw.txt tmp/articles
+          python -m unittest config/raw_dataset_test.py
+        else
+          echo "Skip stage"
+        fi
 
   checking-student-processing-works-for-admin-dataset:
     name: Pipe processed admin data
-    needs: milestone-1-crawler-is-working
+    needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
 
@@ -229,21 +307,27 @@ jobs:
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
     - name: Download previously collected dataset
+      continue-on-error: true
       uses: actions/download-artifact@v2
       with:
         name: raw-dataset
     - name: Run metadata validation
       run: |
-        mkdir -p tmp/articles
-        mv *_meta.json tmp/articles
-        mv *_raw.txt tmp/articles
-        chmod +x config/reference-text-preprocess.sh
-        config/reference-text-preprocess.sh
-        ls -la tmp/articles
+        TARGET_SCORE=$(head -5 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          mkdir -p tmp/articles
+          mv *_meta.json tmp/articles
+          mv *_raw.txt tmp/articles
+          chmod +x config/reference-text-preprocess.sh
+          config/reference-text-preprocess.sh
+          ls -la tmp/articles
+        else
+          echo "Skip stage"
+        fi
 
   run-student-processing:
     name: Pipe processed student data
-    needs: milestone-1-crawler-is-working
+    needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
 
@@ -269,17 +353,24 @@ jobs:
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
     - name: Download previously collected dataset
+      continue-on-error: true
       uses: actions/download-artifact@v2
       with:
         name: raw-dataset
     - name: Run validation of `_processed.txt` files
       run: |
-        mkdir -p tmp/articles
-        mv *_meta.json tmp/articles
-        mv *_raw.txt tmp/articles
-        python pipeline.py
-        ls -la tmp/articles
+        TARGET_SCORE=$(head -5 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          mkdir -p tmp/articles
+          mv *_meta.json tmp/articles
+          mv *_raw.txt tmp/articles
+          python pipeline.py
+          ls -la tmp/articles
+        else
+          echo "Skip stage"
+        fi
     - name: Archive processed dataset
+      continue-on-error: true
       uses: actions/upload-artifact@v2
       with:
         name: processed-dataset
@@ -315,17 +406,23 @@ jobs:
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
     - name: Download previously collected dataset
+      continue-on-error: true
       uses: actions/download-artifact@v2
       with:
         name: processed-dataset
     - name: Run validation of `_processed.txt` files
       run: |
-        mkdir -p tmp/articles
-        mv *_meta.json tmp/articles
-        mv *_raw.txt tmp/articles
-        mv *_processed.txt tmp/articles
-        chmod +x config/student-text-preprocess.sh
-        config/student-text-preprocess.sh
+        TARGET_SCORE=$(head -5 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} != 0 ]]; then
+          mkdir -p tmp/articles
+          mv *_meta.json tmp/articles
+          mv *_raw.txt tmp/articles
+          mv *_processed.txt tmp/articles
+          chmod +x config/student-text-preprocess.sh
+          config/student-text-preprocess.sh
+        else
+          echo "Skip stage"
+        fi
 
   milestone-2-pipeline-is-working:
     name: Pipeline is accepted!
