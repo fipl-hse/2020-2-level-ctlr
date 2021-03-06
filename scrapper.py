@@ -3,8 +3,6 @@ Crawler implementation
 """
 
 import json
-import requests
-import bs4
 
 from constants import CRAWLER_CONFIG_PATH
 
@@ -97,8 +95,8 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path) as f:
-        config = json.load(f)
+    with open(crawler_path) as json_file:
+        config = json.load(json_file)
 
     urls = config['base_urls']
     total_artcls = config['total_articles_to_find_and_parse']
@@ -123,7 +121,7 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls,
-                      total_max_articles=max_articles,
-                      max_articles_per_seed=max_articles_per_seed)
+    url_list, total, max_num = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=url_list,
+                      total_max_articles=total,
+                      max_articles_per_seed=max_num)
