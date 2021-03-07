@@ -1,5 +1,6 @@
 {
-    "base_urls": [],
-    "total_articles_to_find_and_parse": 0,
-    "max_number_articles_to_get_from_one_seed": 0
+    "base_urls": ["http://www.kprfast.ru/news/ournews.html?start=20",
+                  "http://www.kprfast.ru/news/ournews.html?start=30"],
+    "total_articles_to_find_and_parse": 10,
+    "max_number_articles_to_get_from_one_seed": 10
 }
