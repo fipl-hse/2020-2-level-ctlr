@@ -4,11 +4,12 @@ Crawler implementation
 import article
 import json
 import lxml
+import os
 import re
 import requests
 
 from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, PROJECT_ROOT
 from datetime import datetime
 from random import randint
 from time import sleep
@@ -144,6 +145,8 @@ class ArticleParser:
             article_soup = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_soup)
             self._fill_article_with_meta_information(article_soup)
+        self.article.save_raw()
+
         return self.article
 
 
@@ -151,7 +154,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
+        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
 
 def validate_config(crawler_path):
@@ -221,7 +225,16 @@ if __name__ == '__main__':
     #     print(header.text.strip())
     # print(response.text)
     #print(header)
-
+    prepare_environment(PROJECT_ROOT)
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
-    crawler.find_articles()
+    crawler = Crawler(seed_urls=seed_urls,
+                      max_articles=max_articles,
+                      max_articles_per_seed=max_articles_per_seed)
+    articles = crawler.find_articles()
+    for art_id, art_url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(full_url=art_url, article_id=art_id)
+        article_from_list = parser.parse()
+        sleep(randint(3, 5))
+
+
+
