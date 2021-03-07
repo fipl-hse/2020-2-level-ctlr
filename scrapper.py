@@ -1,18 +1,17 @@
 """
 Crawler implementation
 """
-import article
-import json
-import lxml
-import os
-import re
-import requests
 
+import json
+import os
+import requests
 from bs4 import BeautifulSoup
-from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, PROJECT_ROOT
 from datetime import datetime
 from random import randint
 from time import sleep
+import article
+from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
+
 
 
 class UnknownConfigError(Exception):
@@ -47,7 +46,8 @@ class IncorrectStatusCode(Exception):
 
 headers = {
         'user-agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+            '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
 
 
 class Crawler:
@@ -193,48 +193,13 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    # headers = {
-    #     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'
-    # }
-    # response = requests.get(
-    #     'http://ks-yanao.ru/ekonomika/v-yanao-sozdan-reestr-pererabotchikov-ryby.html',
-    #     headers=headers)
-    # page_soup = BeautifulSoup(response.content, features='lxml')
-    # header_soup = page_soup.find('h1')
-    # print(header_soup.text.strip())
-    # author_soup = page_soup.find('div', class_='text-box text-right').find('a').text.strip()
-    # print(author_soup)
-    # date_soup = page_soup.find('p', class_='date font-open-s-light').text
-    # print(date_soup)
-    # date, time = date_soup.split()
-    # day, month, year = date.split('.')
-    # hours, minutes, secs = time.split(':')
-    # # right_date = datetime(int(year), int(month), int(day), int(hours), int(minutes), int(secs))
-    # # print(right_date)
-    # ints = tuple(map(int, [year, month, day, hours, minutes, secs]))
-    # print(ints)
-    # right = datetime(*ints)
-    # print(right)
-    #print(author_soup.text)
-
-    # paragraphs_soup = header_soup.find_all('p')
-    # article_list = [paragraph.text.strip() for paragraph in paragraphs_soup if paragraph.text.strip()]
-    # article = ' '.join(article_list)
-    # print(article)
-    # for header in paragraphs_soup:
-    #     print(header.text.strip())
-    # print(response.text)
-    #print(header)
     prepare_environment(PROJECT_ROOT)
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls,
                       max_articles=max_articles,
                       max_articles_per_seed=max_articles_per_seed)
-    articles = crawler.find_articles()
+    crawler.find_articles()
     for art_id, art_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(full_url=art_url, article_id=art_id)
         article_from_list = parser.parse()
         sleep(randint(3, 5))
-
-
-
