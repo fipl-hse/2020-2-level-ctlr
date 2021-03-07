@@ -149,7 +149,7 @@ def validate_config(crawler_path):
     is_config_unknown = ('base_urls' not in config
                          or 'total_articles_to_find_and_parse' not in config
                          or 'max_number_articles_to_get_from_one_seed' not in config)
-    if not isinstance(config, dict) or is_config_unknown:
+    if not isinstance(config, dict) and is_config_unknown:
         raise UnknownConfigError
 
     are_urls_incorrect = (not isinstance(config['base_urls'], list)
@@ -158,14 +158,14 @@ def validate_config(crawler_path):
         raise IncorrectURLError
 
     is_num_articles_incorrect = (not isinstance(config['total_articles_to_find_and_parse'], int)
-                                 or not isinstance(config['max_number_articles_to_get_from_one_seed'], int)
+                                 #or not isinstance(config['max_number_articles_to_get_from_one_seed'], int)
                                  or config['total_articles_to_find_and_parse'] < 0
-                                 or config['max_number_articles_to_get_from_one_seed'] < 0)
+                                 #or config['max_number_articles_to_get_from_one_seed'] < 0
+                                 )
     if is_num_articles_incorrect:
         raise IncorrectNumberOfArticlesError
 
-    is_num_out_of_range = (config['max_number_articles_to_get_from_one_seed'] >
-                           config['total_articles_to_find_and_parse'])
+    is_num_out_of_range = (config['total_articles_to_find_and_parse'] > 100)
     if is_num_out_of_range:
         raise NumberOfArticlesOutOfRangeError
 
