@@ -4,11 +4,11 @@ Crawler implementation
 
 import json
 import os
-import requests
-from bs4 import BeautifulSoup
 from datetime import datetime
 from random import randint
 from time import sleep
+import requests
+from bs4 import BeautifulSoup
 import article
 from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
 
@@ -194,10 +194,10 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     prepare_environment(PROJECT_ROOT)
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls,
-                      max_articles=max_articles,
-                      max_articles_per_seed=max_articles_per_seed)
+    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls_ex,
+                      max_articles=max_articles_ex,
+                      max_articles_per_seed=max_articles_per_seed_ex)
     crawler.find_articles()
     for art_id, art_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(full_url=art_url, article_id=art_id)
