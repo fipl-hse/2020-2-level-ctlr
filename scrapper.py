@@ -72,11 +72,13 @@ class Crawler:
                 news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
                 news_container = page_soup.find('div', attrs={'class': 'news-container', 'id': news_container_id})
                 a_tags = news_container.find_all('a', id=re.compile('articleLink'))
+                articles_per_seed = []
                 for a_tag in a_tags:
-                    if len(self.urls) < self.max_articles_per_seed:
-                        self.urls.append(a_tag.attrs['href'])
+                    if len(articles_per_seed) < self.max_articles_per_seed:
+                        articles_per_seed.append(a_tag.attrs['href'])
                     else:
                         break
+                self.urls.extend(articles_per_seed)
             except HTTPError:
                 print('Something wrong the URL...')
             if len(self.urls) < self.total_max_articles:
@@ -95,10 +97,10 @@ class ArticleParser:
     """
     ArticleParser implementation
     """
-    def __init__(self, full_url: str, article_id: int):
-        self.full_url = full_url
+    def __init__(self, article_url: str, article_id: int):
+        self.article_url = article_url
         self.article_id = article_id
-        self.article = Article(full_url, article_id)
+        self.article = Article(article_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
         text_list = list()
@@ -131,7 +133,7 @@ class ArticleParser:
         """
         headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
                                  "Chrome/88.0.4324.190 Safari/537.36"}
-        response = requests.get(self.full_url, headers=headers)
+        response = requests.get(self.article_url, headers=headers)
         article_bs = BeautifulSoup(response.content, 'lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
@@ -187,8 +189,8 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=url_list, total_max_articles=total, max_articles_per_seed=max_num)
     crawler.find_articles()
     prepare_environment(PROJECT_ROOT)
-    for i, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=i+1)
+    for i, full_url in enumerate(crawler.urls):
+        parser = ArticleParser(article_url=full_url, article_id=i+1)
         article = parser.parse()
         article.save_raw()
         sleep(randint(3, 6))
