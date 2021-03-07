@@ -9,6 +9,7 @@ import requests
 
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
+from datetime import datetime
 from random import randint
 from time import sleep
 
@@ -87,7 +88,7 @@ class Crawler:
             except IncorrectStatusCode:
                 continue
             else:
-                found_links = self._extract_url(main_page_soup)
+                found_links = self._extract_url(main_page_soup, urls=self.urls)
                 if len(found_links) < self.max_articles_per_seed:
                     self.urls.extend(found_links)
                 else:
@@ -114,22 +115,36 @@ class ArticleParser:
         paragraphs_soup = article_soup.find_all('p')
         article_list = [paragraph.text.strip() for paragraph in paragraphs_soup if paragraph.text.strip()]
         article_str = ' '.join(article_list)
+        self.article.text = article_str
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h1').text.strip()
+        self.article.author = article_soup.find('div', class_='text-box text-right').find('a').text.strip()
+        self.article.date = self.unify_date_format(article_soup.find('p', class_='date font-open-s-light').text)
+
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        date, time = date_str.split()
+        day, month, year = date.split('.')
+        hours, minutes, secs = time.split(':')
+        date_int = tuple(map(int, [year, month, day, hours, minutes, secs]))
+        valid_date = datetime(*date_int)
+        return valid_date
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers=headers)
+        if response:
+            article_soup = BeautifulSoup(response.content, features='lxml')
+            self._fill_article_with_text(article_soup)
+            self._fill_article_with_meta_information(article_soup)
+        return self.article
 
 
 def prepare_environment(base_path):
@@ -178,19 +193,34 @@ if __name__ == '__main__':
     #     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'
     # }
     # response = requests.get(
-    #     'http://ks-yanao.ru/proisshestviya/v-novom-urengoe-mikroavtobus-stolknulsya-s-tremya-legkovushkami.html',
+    #     'http://ks-yanao.ru/ekonomika/v-yanao-sozdan-reestr-pererabotchikov-ryby.html',
     #     headers=headers)
     # page_soup = BeautifulSoup(response.content, features='lxml')
-    # header_soup = page_soup.find(class_="element-detail")
+    # header_soup = page_soup.find('h1')
+    # print(header_soup.text.strip())
+    # author_soup = page_soup.find('div', class_='text-box text-right').find('a').text.strip()
+    # print(author_soup)
+    # date_soup = page_soup.find('p', class_='date font-open-s-light').text
+    # print(date_soup)
+    # date, time = date_soup.split()
+    # day, month, year = date.split('.')
+    # hours, minutes, secs = time.split(':')
+    # # right_date = datetime(int(year), int(month), int(day), int(hours), int(minutes), int(secs))
+    # # print(right_date)
+    # ints = tuple(map(int, [year, month, day, hours, minutes, secs]))
+    # print(ints)
+    # right = datetime(*ints)
+    # print(right)
+    #print(author_soup.text)
+
     # paragraphs_soup = header_soup.find_all('p')
     # article_list = [paragraph.text.strip() for paragraph in paragraphs_soup if paragraph.text.strip()]
     # article = ' '.join(article_list)
     # print(article)
     # for header in paragraphs_soup:
     #     print(header.text.strip())
-    #print(response.text)
+    # print(response.text)
     #print(header)
-
 
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
