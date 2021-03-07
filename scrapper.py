@@ -2,6 +2,9 @@
 Crawler implementation
 """
 import requests
+import json
+from bs4 import BeautifulSoup
+from constants import CRAWLER_CONFIG_PATH
 
 
 class IncorrectURLError(Exception):
@@ -32,8 +35,11 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
@@ -43,7 +49,21 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/88.0.4324.41 YaBrowser/21.2.0.1099 Yowser/2.5 Safari/537.36 '
+        }
+        for url in self.seed_urls:
+            response = requests.get(url, headers=headers)
+            if not response:
+                raise IncorrectURLError
+            page_soup = BeautifulSoup(response.content)
+            main_soup = page_soup.find('main', id='main')
+            articles_soup = main_soup.find_all('article')
+            for i in range(self.max_articles_per_seed):
+                url_article = articles_soup[i].find('h2', class_="entry-title").find('a')
+                if len(self.urls) <= self.max_articles:
+                    self.urls.append(url_article.attrs['href'])
 
     def get_search_urls(self):
         """
@@ -90,15 +110,31 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        crawler = json.load(file)
+    if 'base_urls' not in crawler or not isinstance(crawler['base_urls'], list) or\
+            not all([isinstance(url, str) for url in crawler['base_urls']]):
+        raise IncorrectURLError
+
+    if 'total_articles_to_find_and_parse' in crawler and \
+            isinstance(crawler['total_articles_to_find_and_parse'], int) and \
+            crawler['total_articles_to_find_and_parse'] > 40:
+        raise NumberOfArticlesOutOfRangeError
+
+    if 'max_number_articles_to_get_from_one_seed' not in crawler or\
+            not isinstance(crawler['max_number_articles_to_get_from_one_seed'], int) or\
+            'total_articles_to_find_and_parse' not in crawler or\
+            not isinstance(crawler['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+
+    seed_urls = crawler['base_urls']
+    max_articles = crawler['total_articles_to_find_and_parse']
+    max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
+    return seed_urls, max_articles, max_articles_per_seed
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/88.0.4324.41 YaBrowser/21.2.0.1099 Yowser/2.5 Safari/537.36 '
-    }
-    response = requests.get('http://vnpinfo.ru/novosti.html', headers=headers)
-    if not response:
-        raise IncorrectURLError
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+    crawler.find_articles()
