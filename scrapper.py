@@ -1,10 +1,21 @@
 """
 Crawler implementation
 """
-import requests
-from bs4 import BeautifulSoup
-from time import sleep
+import json
 import lxml
+import re
+import requests
+
+from bs4 import BeautifulSoup
+from constants import CRAWLER_CONFIG_PATH
+from random import randint
+from time import sleep
+
+
+class UnknownConfigError(Exception):
+    """
+    Most general error
+    """
 
 
 class IncorrectURLError(Exception):
@@ -25,34 +36,98 @@ class IncorrectNumberOfArticlesError(Exception):
     """
 
 
+class IncorrectStatusCode(Exception):
+    """"
+    Custom error
+    """
+
+headers = {
+        'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+
 class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.max_articles_per_seed = max_articles_per_seed
+        self.max_articles = max_articles
+        self.urls = []
+
 
     @staticmethod
-    def _extract_url(article_bs):
-        pass
+    def _extract_url(article_bs, urls):
+        pages_links = []
+        for tag_a_content in article_bs.find_all('div', class_='signature'):
+            link = tag_a_content.find('a').get('href')
+            if link and link not in urls:
+                pages_links.append('http://ks-yanao.ru/' + link)
+
+        return pages_links
+
+        # a = re.findall(r'http://ks-yanao\.ru/\w+/(\w+-)+\w+\.html')
 
     def find_articles(self):
         """
         Finds articles
         """
-        pass
+        for seed_url in self.seed_urls:
+            try:
+                response = requests.get(seed_url, headers=headers)
+                sleep(randint(2, 6))
+                if response.status_code:
+                    main_page_soup = BeautifulSoup(response.content, features='lxml')
+                else:
+                    raise IncorrectStatusCode
+            except IncorrectStatusCode:
+                continue
+            else:
+                found_links = self._extract_url(main_page_soup)
+                if len(found_links) < self.max_articles_per_seed:
+                    self.urls.extend(found_links)
+                else:
+                    self.urls.extend(found_links[:self.max_articles_per_seed])
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
+
+#url = 'http://ks-yanao.ru//novosti/goroskop-na-8-marta-skorpiony-okazhutsya-radushnymi-khozyaevami-i-ustroyat-sudbu-odinokikh-teltsov.html'
+# headers = {
+#         'user-agent':
+#                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+# a = 'http://ks-yanao.ru/novosti/'
+# response = requests.get('http://ks-yanao.ru/novosti/', headers=headers)
+# page_soup = BeautifulSoup(response.content, features='lxml')
+# urls = []
+# pages_links = []
+# for tag_a_content in page_soup.find_all('div', class_='signature'):
+#     link = tag_a_content.find('a').get('href')
+#     if link and link not in urls:
+#         pages_links.append('http://ks-yanao.ru/' + link)
+# print(pages_links)
+# a = page_soup.find_all('div', class_='signature')
+# print(a)
+# for el in a:
+#     b = el.find('a').get('href')
+#     print(b)
+        # for el in a:
+        #     b = el.find_all('a')
+        #     for link in b:
+        #         c = link.get('href')
+        #         print(c)
+#print(a)
 
 
 class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         pass
 
@@ -87,22 +162,52 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
+    with open(crawler_path) as opened_file:
+        config = json.load(opened_file)
+
+    is_config_unknown = ('base_urls' not in config
+                         or 'total_articles_to_find_and_parse' not in config
+                         or 'max_number_articles_to_get_from_one_seed' not in config)
+    if not isinstance(config, dict) or is_config_unknown:
+        raise UnknownConfigError
+
+    are_urls_incorrect = (not isinstance(config['base_urls'], list)
+                          or not all([isinstance(url, str) for url in config['base_urls']]))
+    if are_urls_incorrect:
+        raise IncorrectURLError
+
+    is_num_articles_incorrect = (not isinstance(config['total_articles_to_find_and_parse'], int)
+                                 or not isinstance(config['max_number_articles_to_get_from_one_seed'], int)
+                                 or config['total_articles_to_find_and_parse'] < 0
+                                 or config['max_number_articles_to_get_from_one_seed'] < 0)
+    if is_num_articles_incorrect:
+        raise IncorrectNumberOfArticlesError
+
+    is_num_out_of_range = (config['max_number_articles_to_get_from_one_seed'] >
+                           config['total_articles_to_find_and_parse'])
+    if is_num_out_of_range:
+        raise NumberOfArticlesOutOfRangeError
+
+    return config.values()
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     # response = requests.get('http://ks-yanao.ru/novosti/v-labytnangi-priznayut-sgorevshiy-dom-avariynym.html')
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'
-    }
-    response = requests.get('http://ks-yanao.ru/proisshestviya/v-novom-urengoe-mikroavtobus-stolknulsya-s-tremya-legkovushkami.html',
-                              headers=headers)
-    page_soup = BeautifulSoup(response.content, features='lxml')
-    header_soup = page_soup.find(class_="element-detail")
-    paragraphs_soup = header_soup.find_all('p')
-    # header = header_soup.text
-    for header in paragraphs_soup:
-        print(f'**{header.text.strip()}**')
-    # print(response.text)
-    # print(header)
+    # headers = {
+    #     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'
+    # }
+    # response = requests.get(
+    #     'http://ks-yanao.ru/proisshestviya/v-novom-urengoe-mikroavtobus-stolknulsya-s-tremya-legkovushkami.html',
+    #     headers=headers)
+    # page_soup = BeautifulSoup(response.content, features='lxml')
+    # header_soup = page_soup.find(class_="element-detail")
+    # paragraphs_soup = header_soup.find_all('p')
+    # # header = header_soup.text
+    # for header in paragraphs_soup:
+    #     print(f'**{header.text.strip()}**')
+    # # print(response.text)
+    # # print(header)
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+    crawler.find_articles()
