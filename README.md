@@ -1,6 +1,6 @@
 # Dataset Collector Lab for 2nd course of Fundamental and Computational Linguistics (2020/2021)
 
-![Dataset collection](https://github.com/fipl-hse/2020-2-level-ctlr-admin/workflows/Crawler%20is%20functioning/badge.svg)
+[![Corpus Collection and Annotation](https://github.com/fipl-hse/2020-2-level-ctlr/actions/workflows/crawler.yml/badge.svg?branch=main)](https://github.com/fipl-hse/2020-2-level-ctlr/actions/workflows/crawler.yml)
 
 ## About the course
 
@@ -61,9 +61,34 @@ Software solution is built on top of three components:
    basic morphological analysis. Students need to implement it.
 1. [article.py](./article.py) - a module for article abstraction to incapsulate low-level
    manipulations with the article
+   
+## Handing over your work
+
+Order of handing over:
+
+1. lab work is accepted for oral presentation.
+2. a student has explained the work of the program and showed it in action.
+3. a student has completed the min-task from a mentor that requires some slight code modifications.
+4. a student receives a mark:
+   1. that corresponds to the expected one, if all the steps above are completed and mentor is satisified with the answer
+   2. one point bigger than the expected one, if all the steps above are completed and mentor is very satisified with the answer
+   3. one point smaller than the expected one, if a lab is handed over one week later than the deadline and criteria from 4.1 are satisfied
+   4. two points smaller than the expected one, if a lab is handed over more than one week later than the deadline and criteria from 4.1 are satisfied
+
+> NOTE: a student might improve their mark for the lab, if they complete tasks of the next level after handing over
+> the lab.
+
+A lab work is accepted for oral presentation if all the critera below are satsified:
+
+1. there is a Pull Request (PR) with a correctly formatted name:
+   `Laboratory work #<NUMBER>, <SURNAME> <NAME> - <UNIVERSITY GROUP NAME>`. Example: `Laboratory work #1, Kuznetsova Valeriya - 19FPL1`.
+2. has a filled file `target_score.txt` with an expected mark. Acceptable values: 4, 6, 8, 10.
+3. has green status.
+4. has a label `done`, set by mentor.
  
 ## Resources
 
 1. Academic performance: [link](https://docs.google.com/spreadsheets/d/1qM5Drt8Us6QewWRo7n6k_TqlgoA-F9jrtvHNzrZzHM4/edit?usp=sharing) 
 1. Media websites list: [link](https://drive.google.com/file/d/13daSXTD6S-LIr0oNLBz6XeA74ZwYYsQp/view?usp=sharing)
 1. Python programming course from previous semester: [link](https://github.com/fipl-hse/2020-2-level-labs)
+1. Scrapping tutorials: [YouTube series (russian)](https://youtu.be/7hn1_t2ZtJQ)
