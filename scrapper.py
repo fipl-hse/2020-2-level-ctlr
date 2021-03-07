@@ -3,11 +3,13 @@ Crawler implementation
 """
 
 import json
-import requests
 import re
 
 from random import randint
 from time import sleep
+
+import requests
+
 from requests import HTTPError
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
