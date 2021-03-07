@@ -1,6 +1,10 @@
 """
 Crawler implementation
 """
+import requests
+from bs4 import BeautifulSoup
+from constants import CRAWLER_CONFIG_PATH
+import json
 
 
 class IncorrectURLError(Exception):
@@ -85,13 +89,37 @@ def prepare_environment(base_path):
     pass
 
 
-def validate_config(crawler_path):
+def validate_config(crawler_path): # возможна замена значений в условиях
     """
     Validates given config
     """
-    pass
+    with open(crawler_path, 'r', encoding='utf-8') as f:
+        initial_values = json.load(f)
+
+    for url in initial_values["base_urls"]:
+        if not isinstance(url, str):
+            raise IncorrectURLError
+
+    if initial_values["base_urls"] == []:
+        raise IncorrectURLError
+
+    if initial_values["total_articles_to_find_and_parse"] <= 0 \
+            or initial_values["total_articles_to_find_and_parse"] > 100:
+        raise NumberOfArticlesOutOfRangeError
+
+    if initial_values["max_number_articles_to_get_from_one_seed"] > initial_values["total_articles_to_find_and_parse"] \
+            or initial_values["max_number_articles_to_get_from_one_seed"] <= 0:
+        raise IncorrectNumberOfArticlesError
+
+    if not isinstance(initial_values["total_articles_to_find_and_parse"], int) \
+        or not isinstance(initial_values["max_number_articles_to_get_from_one_seed"], int):
+        raise UnknownConfigError
+
+    return initial_values["base_urls"], initial_values["total_articles_to_find_and_parse"], \
+               initial_values["max_number_articles_to_get_from_one_seed"]
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    print(seed_urls, max_articles, max_articles_per_seed)
