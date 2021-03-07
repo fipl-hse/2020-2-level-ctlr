@@ -65,9 +65,9 @@ class Crawler:
         """
         headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
                                  "Chrome/88.0.4324.190 Safari/537.36"}
-        for u in self.seed_urls:
+        for seed_url in self.seed_urls:
             try:
-                response = requests.get(u, headers=headers)
+                response = requests.get(seed_url, headers=headers)
                 page_soup = BeautifulSoup(response.content, 'lxml')
                 news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
                 news_container = page_soup.find('div', attrs={'class': 'news-container', 'id': news_container_id})
@@ -160,7 +160,7 @@ def validate_config(crawler_path):
     total_artcls = config['total_articles_to_find_and_parse']
     max_artcls = config.get('max_number_articles_to_get_from_one_seed', total_artcls)
 
-    is_url_ok = isinstance(urls, list) and all(isinstance(u, str) for u in urls)
+    is_url_ok = isinstance(urls, list) and all(isinstance(url, str) for url in urls)
     is_articles_num_ok = (isinstance(total_artcls, int) and not isinstance(total_artcls, bool) and
                           isinstance(max_artcls, int) and not isinstance(max_artcls, bool))
 
@@ -187,8 +187,8 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=url_list, total_max_articles=total, max_articles_per_seed=max_num)
     crawler.find_articles()
     prepare_environment(PROJECT_ROOT)
-    for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i+1)
+    for i, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=article_url, article_id=i+1)
         article = parser.parse()
         article.save_raw()
         sleep(randint(3, 6))
