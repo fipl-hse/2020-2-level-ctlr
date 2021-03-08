@@ -1,20 +1,18 @@
 """
 Crawler implementation
 """
-import article
 import datetime
 import json
 import os
 import random
 import re
-import requests
-
+from time import sleep
 from bs4 import BeautifulSoup
+import requests
+import article
+
 from constants import CRAWLER_CONFIG_PATH
 from constants import PROJECT_ROOT
-from time import sleep
-
-from constants import CRAWLER_CONFIG_PATH
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
@@ -62,11 +60,10 @@ class Crawler:
     def _extract_url(article_bs):
         links_list = []
         soup_strings = article_bs.find_all(class_="penci-grid")
-        links = re.findall(r'(\"https://кан-чарас.рф/((%\w+){1,}-?){1,}/")', str(soup_strings))
-        for i in links:
-            first_enter = i[0]
-            if first_enter not in links_list:
-                links_list.append(first_enter)
+        links = re.findall(r'(\"https?://кан-чарас.рф/.+/")', str(soup_strings))
+        for link in links:
+            if link not in links_list:
+                links_list.append(link)
         return links_list
 
 
@@ -74,25 +71,16 @@ class Crawler:
         """
         Finds articles
         """
+        raw_urls = []
         for url in self.seed_urls:
-            try:
-                response = requests.get(url, headers=headers)
-                if response.status_code == 200:
-                    sleep(random.randrange(2, 5))
-                    articles_page = BeautifulSoup(response.content, 'lxml')
-                else:
-                    raise BadStatusCode
-            except BadStatusCode:
-                continue
-            else:
-                links = self._extract_url(articles_page)
-                articles_per_one_seed = 0
-                for link in links:
-                    if articles_per_one_seed >= self.max_articles_per_seed or len(self.urls) >= self.total_max_articles:
-                        continue
-                    else:
-                        articles_per_one_seed += 1
-                        self.urls.append(link[0][1:-2])
+            response = requests.get(url, headers=headers)
+            print('Making a request...')
+            sleep(random.randrange(3, 6))
+            articles_page = BeautifulSoup(response.content, 'lxml')
+            links = self._extract_url(articles_page)
+            raw_urls.extend(links)
+        for url in raw_urls:
+            self.urls.append(url)
         return self.urls
 
     def get_search_urls(self):
@@ -166,7 +154,9 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    # YOUR CODE HERE
-    pass
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    example = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    articles = example.find_articles()
+    print(articles)
 
-seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+
