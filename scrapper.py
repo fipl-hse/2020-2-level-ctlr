@@ -59,6 +59,7 @@ class Crawler:
         """
         Finds articles
         """
+        self.get_search_urls()
         for url in self.seed_urls:
             response = requests.get(url, headers=HEADERS)
             if not response:
@@ -67,14 +68,20 @@ class Crawler:
             main_soup = page_soup.find('main', id='main')
             articles_soup = main_soup.find_all('article')
             for i in range(self.max_articles_per_seed):
-                if len(self.urls) <= self.max_articles:
+                if len(self.urls) < self.max_articles:
                     self.urls.append(self._extract_url(articles_soup[i]))
+                else:
+                    break
+            if len(self.urls) == self.max_articles:
+                break
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        default_url = self.seed_urls[0]
+        for i in range(2, 13):
+            self.seed_urls.append(f'{default_url}/page/{i}')
 
 
 class ArticleParser:
@@ -137,7 +144,7 @@ def prepare_environment(base_path):
     """
     if os.path.exists(base_path):
         for file in os.listdir(base_path):
-            os.remove(base_path + file)
+            os.remove(f'{base_path}\\{file}')
     else:
         try:
             os.makedirs(base_path, mode=0o777)
@@ -158,7 +165,7 @@ def validate_config(crawler_path):
 
     if 'total_articles_to_find_and_parse' in crawler and \
             isinstance(crawler['total_articles_to_find_and_parse'], int) and \
-            crawler['total_articles_to_find_and_parse'] > 40:
+            crawler['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
 
     if 'max_number_articles_to_get_from_one_seed' not in crawler or\
