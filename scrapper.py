@@ -5,7 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 import json
-
+from time import sleep
+import article
 
 class IncorrectURLError(Exception):
     """
@@ -35,8 +36,11 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.total_max_articles = total_max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
@@ -46,13 +50,25 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
+        }
+        for seed_url in self.seed_urls:
+            response = requests.get(seed_url, headers=headers)
+            sleep(5)
+
+            if response.status_code == 200:
+                seed_url_soup = BeautifulSoup(response.content, features='lxml')
+                future_article_links_soup = seed_url_soup.find_all(class_="grow_single")
+                future_article_links_soup = future_article_links_soup[0:self.max_articles_per_seed]
+                for future_article_link in future_article_links_soup:
+                    self.urls.append(future_article_link.find('a').get('href'))
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -60,10 +76,18 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.article = article.Article(full_url, article_id)
 
-    def _fill_article_with_text(self, article_soup):
-        pass
+    def _fill_article_with_text(self, article_bs):
+        list_text = []
+        article_main_text_soup = article_bs.find(class_="video-show")
+        article_paragraphs_soup = article_main_text_soup.find_all('p')
+        for paragraph in article_paragraphs_soup:
+            list_text.append(paragraph.text)
+        list_text = "\n".join(list_text)
+        self.article.text = list_text
 
     def _fill_article_with_meta_information(self, article_soup):
         pass
@@ -79,7 +103,14 @@ class ArticleParser:
         """
         Parses each article
         """
-        pass
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
+        }
+        response = requests.get(self.full_url, headers=headers)
+        if response.status_code == 200:
+            article_bs = BeautifulSoup(response.content, features='lxml')
+            self._fill_article_with_text(article_bs)
+            # записываем текст в экземпляр article и возвращаем этот экземпляр
 
 
 def prepare_environment(base_path):
@@ -103,16 +134,16 @@ def validate_config(crawler_path): # возможна замена значен�
     if initial_values["base_urls"] == []:
         raise IncorrectURLError
 
+    if not isinstance(initial_values["total_articles_to_find_and_parse"], int):
+        raise IncorrectNumberOfArticlesError
+
     if initial_values["total_articles_to_find_and_parse"] <= 0 \
             or initial_values["total_articles_to_find_and_parse"] > 100:
         raise NumberOfArticlesOutOfRangeError
 
-    if initial_values["max_number_articles_to_get_from_one_seed"] > initial_values["total_articles_to_find_and_parse"] \
-            or initial_values["max_number_articles_to_get_from_one_seed"] <= 0:
-        raise IncorrectNumberOfArticlesError
-
-    if not isinstance(initial_values["total_articles_to_find_and_parse"], int) \
-        or not isinstance(initial_values["max_number_articles_to_get_from_one_seed"], int):
+    if not isinstance(initial_values["max_number_articles_to_get_from_one_seed"], int) \
+            or initial_values["max_number_articles_to_get_from_one_seed"] <= 0 \
+            or initial_values["max_number_articles_to_get_from_one_seed"] > 100:
         raise UnknownConfigError
 
     return initial_values["base_urls"], initial_values["total_articles_to_find_and_parse"], \
@@ -121,5 +152,18 @@ def validate_config(crawler_path): # возможна замена значен�
 
 if __name__ == '__main__':
     # YOUR CODE HERE
+
+    # step 1
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    print(seed_urls, max_articles, max_articles_per_seed)
+
+    # step 2.1
+    crawler = Crawler(seed_urls=seed_urls, total_max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+
+    # step 2.2
+    crawler.find_articles()
+
+    # step 3.1, 3.2
+    for url_id, url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url, article_id=url_id)
+        article = parser.parse()
+        sleep(5)
