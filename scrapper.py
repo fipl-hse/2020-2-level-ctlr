@@ -2,18 +2,17 @@
 Crawler implementation
 """
 
-import article
-import json
 import os
-import requests
+import json
 import shutil
-
-from bs4 import BeautifulSoup
-from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 from datetime import datetime
 from random import randrange
-from requests import HTTPError
 from time import sleep
+import requests
+from bs4 import BeautifulSoup
+from requests import HTTPError
+import article
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -163,12 +162,13 @@ def validate_config(crawler_path):
             crawler_config['total_articles_to_find_and_parse']):
         raise NumberOfArticlesOutOfRangeError
 
+    are_numbers_incorrect = (not isinstance(crawler_config['total_articles_to_find_and_parse'], int) or
+                             not isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], int) or
+                             isinstance(crawler_config['total_articles_to_find_and_parse'], bool) or
+                             isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], bool))
+
     if ('total_articles_to_find_and_parse' not in crawler_config or
-            'max_number_articles_to_get_from_one_seed' not in crawler_config or
-            not isinstance(crawler_config['total_articles_to_find_and_parse'], int) or
-            not isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], int) or
-            isinstance(crawler_config['total_articles_to_find_and_parse'], bool) or
-            isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], bool)):
+            'max_number_articles_to_get_from_one_seed' not in crawler_config or are_numbers_incorrect):
         raise IncorrectNumberOfArticlesError
 
     return (crawler_config['base_urls'],
