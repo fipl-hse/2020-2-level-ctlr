@@ -1,11 +1,11 @@
 """
 Crawler implementation
 """
-import requests
 import json
 import os
-from bs4 import BeautifulSoup
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 from article import Article
 
@@ -88,9 +88,9 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         article_texts = article_soup.find_all('p')
-        for p in article_texts:
-            if 'class' not in p.attrs:
-                self.article.text += p.text.strip() + ' '
+        for par in article_texts:
+            if 'class' not in par.attrs:
+                self.article.text += par.text.strip() + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
         # find title
@@ -141,8 +141,8 @@ def prepare_environment(base_path):
     else:
         try:
             os.makedirs(base_path, mode=0o777)
-        except OSError as e:
-            raise UnknownConfigError(e)
+        except OSError as error:
+            raise UnknownConfigError(error)
 
 
 def validate_config(crawler_path):
@@ -175,11 +175,11 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
-    crawler.find_articles()
+    urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler_current = Crawler(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
+    crawler_current.find_articles()
 
     prepare_environment(ASSETS_PATH)
-    for ind, article_url in enumerate(crawler.urls):
+    for ind, article_url in enumerate(crawler_current.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind)
         parser.parse()
