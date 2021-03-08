@@ -4,6 +4,9 @@ Crawler implementation
 
 import requests
 import json
+from bs4 import BeautifulSoup
+from time import sleep
+import random
 
 
 class IncorrectURLError(Exception):
@@ -35,24 +38,40 @@ class Crawler:
     Crawler implementation
     """
 
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        url = article_bs.contents[1]
+        return url.get('href')
 
     def find_articles(self):
         """
         Finds articles
         """
-        pass
+        for seed in self.seed_urls:
+            sleep(random.randint(4, 8))
+            headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                         'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36'}
+            response = requests.get(seed, headers=headers)
+            if not response:
+                break
+            seed_soup = BeautifulSoup(response.content, features='lxml')
+            article_soup = seed_soup.find_all(['li'])
+            for element in article_soup[:max_articles_per_seed]:
+                self.urls.append(self._extract_url(element))
+                if len(self.urls) == max_articles:
+                    return self.urls
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -124,4 +143,5 @@ if __name__ == '__main__':
     import constants
 
     seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
-    print(seed_urls)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    print(crawler.find_articles())
