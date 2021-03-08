@@ -142,7 +142,7 @@ def prepare_environment(base_path):
         try:
             os.makedirs(base_path, mode=0o777)
         except OSError as error:
-            raise UnknownConfigError(error)
+            raise UnknownConfigError from error
 
 
 def validate_config(crawler_path):
