@@ -1,17 +1,15 @@
 {
-    "base_urls": ["https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/2/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/3/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/4/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/5/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/6/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/7/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/8/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/9/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/10/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/11/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/12/",
-        "https://кан-чарас.рф/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/13/"],
-    "total_articles_to_find_and_parse": 100,
-    "max_number_articles_to_get_from_one_seed": 100
+    "base_urls": ["https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/2/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/3/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/4/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/5/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/6/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/7/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/8/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/9/",
+      "https://xn----7sbba0ctxj4c.xn--p1ai/category/%d1%81%d1%82%d0%b0%d1%82%d1%8c%d0%b8/page/10/"
+    ],
+    "total_articles_to_find_and_parse": 1,
+    "max_number_articles_to_get_from_one_seed": 1
 }

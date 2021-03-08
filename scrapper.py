@@ -1,21 +1,24 @@
 """
 Crawler implementation
 """
-import datetime
+from datetime import datetime
 import json
 import os
 import random
 import re
 from time import sleep
 from bs4 import BeautifulSoup
+from article import Article
 import requests
-import article
+
 
 from constants import CRAWLER_CONFIG_PATH
 from constants import PROJECT_ROOT
+from constants import ASSETS_PATH
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+
 
 class IncorrectURLError(Exception):
     """
@@ -40,10 +43,7 @@ class UnknownConfigError(Exception):
     Most general error
 
     """
-class BadStatusCode(Exception):
-    """
-    Custom error
-    """
+
 
 class Crawler:
     """
@@ -65,7 +65,6 @@ class Crawler:
             if link not in links_list:
                 links_list.append(link)
         return links_list
-
 
     def find_articles(self):
         """
@@ -95,33 +94,63 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.article_url = full_url
+        self.i = article_id
+        self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        text_soup = article_soup.find('div', class_="inner-post-entry").find_all('p')
+        text = ''
+        for par in text_soup:
+            if par.text:
+                text += par.text.strip() + '\n'
+        if " " in text:
+            text = text.replace(" ", ' ')
+        self.article.text = text[:-1]
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h1').text
+        text_soup = article_soup.find('div', class_="inner-post-entry").find_all('p')
+        self.article.author = (text_soup[-1]).text
+        self.article.date = self.unify_date_format(article_soup.find('div', class_="post-box-meta-single").text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        unified_date = datetime.strptime(date_str.strip(), "%d.%m.%Y")
+        return unified_date
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.article_url, headers=headers)
+        if response:
+            article_bs = BeautifulSoup(response.content, 'lxml')
+            self._fill_article_with_text(article_bs)
+            self._fill_article_with_meta_information(article_bs)
+        return self.article
+
+    def save_raw(self):
+        """
+        Saves raw text
+        """
+        with open(os.path.join(ASSETS_PATH, f'{self.i}_raw.txt'),
+                  'w', encoding='utf-8') as file:
+            file.write(self.article)
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if not os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'pages')):
+        os.makedirs(os.path.join(PROJECT_ROOT, 'tmp', 'pages'))
+
+    if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
+        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
 
 def validate_config(crawler_path):
@@ -157,6 +186,4 @@ if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     example = Crawler(seed_urls, max_articles, max_articles_per_seed)
     articles = example.find_articles()
-    print(articles)
-
-
+    print('\n'.join(articles))
