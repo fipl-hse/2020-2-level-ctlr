@@ -72,14 +72,13 @@ class Crawler:
                 news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
                 news_container = page_soup.find('div', attrs={'class': 'news-container', 'id': news_container_id})
                 a_tags = news_container.find_all('a', id=re.compile('articleLink'))
-                articles_per_seed = []
+                articles_per_seed = 0
                 for a_tag in a_tags:
-                    if len(articles_per_seed) < self.max_articles_per_seed \
-                            and len(self.urls) < self.max_articles_per_seed:
-                        articles_per_seed.append(a_tag.attrs['href'])
+                    if articles_per_seed < self.max_articles_per_seed and len(self.urls) < self.total_max_articles:
+                        self.urls.append(a_tag.attrs['href'])
+                        articles_per_seed += 1
                     else:
                         break
-                self.urls.extend(articles_per_seed)
             except HTTPError:
                 print('Something wrong the URL...')
             if len(self.urls) < self.total_max_articles:
