@@ -59,12 +59,8 @@ class Crawler:
         """
         Finds articles
         """
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/88.0.4324.41 YaBrowser/21.2.0.1099 Yowser/2.5 Safari/537.36 '
-        }
         for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=HEADERS)
             if not response:
                 raise IncorrectURLError
             page_soup = BeautifulSoup(response.content, features='lxml')
@@ -140,8 +136,8 @@ def prepare_environment(base_path):
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     if os.path.exists(base_path):
-        # delete here?
-        pass
+        for file in os.listdir(base_path):
+            os.remove(base_path + file)
     else:
         try:
             os.makedirs(base_path, mode=0o777)
