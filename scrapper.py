@@ -74,7 +74,8 @@ class Crawler:
                 a_tags = news_container.find_all('a', id=re.compile('articleLink'))
                 articles_per_seed = []
                 for a_tag in a_tags:
-                    if len(articles_per_seed) < self.max_articles_per_seed:
+                    if len(articles_per_seed) < self.max_articles_per_seed \
+                            and len(self.urls) < self.max_articles_per_seed:
                         articles_per_seed.append(a_tag.attrs['href'])
                     else:
                         break
