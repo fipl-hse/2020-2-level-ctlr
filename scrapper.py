@@ -45,8 +45,8 @@ class Crawler:
         self.urls = []
 
     @staticmethod
-    def _extract_url(article_bs):
-        url = article_bs.contents[1]
+    def _extract_url(element_from_article_bs):
+        url = element_from_article_bs.contents[1]
         return url.get('href')
 
     def find_articles(self):
@@ -61,7 +61,7 @@ class Crawler:
             if not response:
                 break
             seed_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = seed_soup.find_all(['li'])
+            article_soup = seed_soup.find_all('li')
             for element in article_soup[:max_articles_per_seed]:
                 self.urls.append(self._extract_url(element))
                 if len(self.urls) == max_articles:
