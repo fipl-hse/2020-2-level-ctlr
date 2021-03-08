@@ -81,13 +81,13 @@ class ArticleParser:
         self.article = article.Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_bs):
-        list_text = []
+        article_text_list = []
         article_main_text_soup = article_bs.find(class_="video-show")
         article_paragraphs_soup = article_main_text_soup.find_all('p')
         for paragraph in article_paragraphs_soup:
-            list_text.append(paragraph.text)
-        list_text = "\n".join(list_text)
-        self.article.text = list_text
+            article_text_list.append(paragraph.text)
+        article_text = "\n".join(article_text_list)
+        self.article.text = article_text
 
     def _fill_article_with_meta_information(self, article_soup):
         pass
@@ -110,8 +110,9 @@ class ArticleParser:
         if response.status_code == 200:
             article_bs = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_bs)
-            # записываем текст в экземпляр article и возвращаем этот экземпляр
-
+            self._fill_article_with_meta_information(article_bs)
+        article.save_raw()
+        return self.article
 
 def prepare_environment(base_path):
     """
@@ -162,8 +163,8 @@ if __name__ == '__main__':
     # step 2.2
     crawler.find_articles()
 
-    # step 3.1, 3.2
+    # step 3.1, 3.2, 3.3, 4
     for url_id, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=url_id)
-        article = parser.parse()
+        parsed_article = parser.parse()
         sleep(5)
