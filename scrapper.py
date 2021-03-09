@@ -78,7 +78,9 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        pass
+        default_url = self.seed_urls[0]
+        for i in range(2, 13):
+            self.seed_urls.append(f'{default_url}/page/{i}')
 
 
 class ArticleParser:
@@ -86,13 +88,30 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        article_texts = article_soup.find_all('p')
+        for par in article_texts:
+            if 'class' not in par.attrs:
+                self.article.text += par.text.strip() + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        # find title
+        self.article.title = article_soup.find('h1', class_="entry-title").text
+
+        # find topics
+        for topic in article_soup.find_all('a', rel="category tag"):
+            self.article.topics.append(topic.text)
+
+        # find author
+        self.article.author = article_soup.find('span', class_="author vcard").find('a').text
+
+        # find date
+        date_art = self.unify_date_format(article_soup.find('time', class_="entry-date published").text)
+        self.article.date = date_art
 
     @staticmethod
     def unify_date_format(date_str):
