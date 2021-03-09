@@ -1,8 +1,7 @@
 """
 Crawler implementation
 """
-
-
+#oh shit here we go again
 class IncorrectURLError(Exception):
     """
     Custom error
