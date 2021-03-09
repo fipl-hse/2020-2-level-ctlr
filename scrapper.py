@@ -65,16 +65,19 @@ class Crawler:
             response = requests.get(seed_url, headers=headers)
             sleep(random.randrange(2,6))
             page_bs = BeautifulSoup(response.content, 'lxml')
-            container = page_bs.find('div', attrs={'class': 'news-container', 'id':
-                'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'})
-            tags = container.find_all('a', id=re.compile('_articleLink'))  # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
+            container = page_bs.find('div', attrs={
+                'class': 'news-container',
+                'id': 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'})
+            tags = container.find_all('a', id=re.compile('_articleLink'))
+            # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
             # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
             articles_per_seed = 0
             for tag in tags:
                 if articles_per_seed < self.max_articles_per_seed and len(self.urls) < self.max_articles:
                     self.urls.append(tag.attrs['href'])
                     articles_per_seed += 1
-
+                else:
+                    break
 
     def get_search_urls(self):
         """
