@@ -3,18 +3,16 @@ Crawler implementation
 """
 
 import re
-import requests
-from time import sleep
-from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH
-from constants import HEADERS
-from constants import PROJECT_ROOT
-from constants import ASSETS_PATH
-from article import Article
 import json
 import os
 import shutil
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+from constants import CRAWLER_CONFIG_PATH
+from constants import HEADERS
+from constants import ASSETS_PATH
+from article import Article
 
 class IncorrectURLError(Exception):
     """
@@ -54,8 +52,8 @@ class Crawler:
     def _extract_url(article_bs):
         links = []
         articles = article_bs.find_all(class_ = "pb-caption")
-        for article in articles:
-            links.extend(re.findall(r'/article/[\w+_]+[\w]+/', str(article)))
+        for one_article in articles:
+            links.extend(re.findall(r'/article/[\w+_]+[\w]+/', str(one_article)))
         for index, link in enumerate(links):
             links[index] = 'https://ugra-news.ru' + link
         return links
@@ -65,8 +63,8 @@ class Crawler:
         Finds articles
         """
 
-        for url in self.seed_urls:
-            response = requests.get(url, headers=HEADERS)
+        for one_url in self.seed_urls:
+            response = requests.get(one_url, headers=HEADERS)
             article_bs = BeautifulSoup(response.content, features='lxml')
             links = self._extract_url(article_bs)
             self.all_urls.extend(links)
@@ -158,13 +156,13 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     print(CRAWLER_CONFIG_PATH)
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls=seed_urls, total_max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles, max_articles_per_seed=articles_per_seed)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
-    for i, full_url in enumerate(crawler.all_urls):
-        parser = ArticleParser(full_url=full_url, article_id=i)
+    for i, url in enumerate(crawler.all_urls):
+        parser = ArticleParser(full_url=url, article_id=i)
         article = parser.parse()
         print(article.author, article.title, article.text)
         article.save_raw()
