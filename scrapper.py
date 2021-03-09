@@ -136,8 +136,8 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path) as f:
-        cr_config = json.load(f)
+    with open(crawler_path) as file:
+        cr_config = json.load(file)
     if not isinstance(cr_config, dict) or not 'base_urls' in cr_config \
             or not 'total_articles_to_find_and_parse' in cr_config:
         raise UnknownConfigError
