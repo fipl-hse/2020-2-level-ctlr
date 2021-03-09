@@ -6,12 +6,11 @@ import random
 import re
 import os
 
+import requests
 from datetime import datetime
 from time import sleep
 from bs4 import BeautifulSoup
 from article import Article
-import requests
-
 
 from constants import CRAWLER_CONFIG_PATH
 from constants import PROJECT_ROOT
@@ -175,8 +174,8 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
     articles = crawler.find_articles()
     prepare_environment(PROJECT_ROOT)
     for art_id, art_url in enumerate(crawler.urls, 1):

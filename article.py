@@ -46,7 +46,7 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
+
     @staticmethod
     def from_meta_json(json_path: str):
         """
@@ -100,7 +100,7 @@ class Article:
         Converts datetime object to text
         """
         return self.date.strftime("%Y-%m-%d %H:%M:%S")
-    
+
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article
