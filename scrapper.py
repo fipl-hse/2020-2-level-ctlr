@@ -8,8 +8,13 @@ from time import sleep
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 from constants import HEADERS
+from constants import PROJECT_ROOT
+from constants import ASSETS_PATH
 from article import Article
 import json
+import os
+import shutil
+from datetime import datetime
 
 class IncorrectURLError(Exception):
     """
@@ -97,13 +102,15 @@ class ArticleParser:
                 self.article.author = inf.find('a', href=href_name.group(0)).text
             else:
                 self.article.author = 'NOT FOUND'
+        date = article_soup.find(name='span', class_='t-date').text
+        self.article.date = self.unify_date_format(date)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        return datetime.strptime(date_str.strip(), "%d.%m.%Y")
 
     def parse(self):
         """
@@ -122,7 +129,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if os.path.exists(ASSETS_PATH):
+        shutil.rmtree(os.path.dirname(ASSETS_PATH))
+    os.makedirs(ASSETS_PATH)
 
 
 def validate_config(crawler_path):
@@ -153,6 +162,7 @@ if __name__ == '__main__':
 
     crawler = Crawler(seed_urls=seed_urls, total_max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
     crawler.find_articles()
+    prepare_environment(ASSETS_PATH)
     for i, full_url in enumerate(crawler.all_urls):
         parser = ArticleParser(full_url=full_url, article_id=i)
         article = parser.parse()
