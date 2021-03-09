@@ -14,10 +14,8 @@ from bs4 import BeautifulSoup
 from article import Article
 
 from constants import CRAWLER_CONFIG_PATH
+from constants import HEADERS
 from constants import PROJECT_ROOT
-
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                         '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -72,7 +70,7 @@ class Crawler:
         """
         raw_urls = []
         for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=HEADERS)
             print('Making a request...')
             sleep(random.randrange(2, 5))
             articles_page = BeautifulSoup(response.content, 'lxml')
@@ -111,7 +109,11 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
         text_soup = article_soup.find('div', class_="inner-post-entry").find_all('p')
-        self.article.author = (text_soup[-1]).text
+        article_author = (text_soup[-1]).text
+        if len(article_author) < 40:
+            self.article.author = article_author
+        else:
+            self.article.author = "NOT FOUND"
         self.article.date = self.unify_date_format(article_soup.find('div', class_="post-box-meta-single").text)
 
     @staticmethod
@@ -126,7 +128,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.article_url, headers=headers)
+        response = requests.get(self.article_url, headers=HEADERS)
         if not response:
             raise IncorrectURLError
 
@@ -183,7 +185,6 @@ if __name__ == '__main__':
     urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
     articles = crawler.find_articles()
-    print(articles)
     prepare_environment(PROJECT_ROOT)
     for art_id, art_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(art_url, art_id)
