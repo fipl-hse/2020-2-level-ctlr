@@ -2,15 +2,15 @@
 Crawler implementation
 """
 
+import os
+import re
 import json
+from datetime import date
 import requests
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 # from time import sleep as wait
 from article import Article
-import re
-from datetime import date
-import os
 
 CRAWLER_CONFIG_PATH = 'crawler_config.json'
 NEWLINES_RE = re.compile(r"\n{2,}")  # two or more "\n" characters
@@ -50,7 +50,7 @@ class Crawler:
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
-        self.URL_START = 'https://burunen.ru'
+        self.URLSTART = 'https://burunen.ru'
 
     @staticmethod
     def _extract_url(article_bs, seen):
@@ -66,8 +66,8 @@ class Crawler:
         """
         Finds articles
         """
-        for url in self.seed_urls:
-            article_bs = BeautifulSoup(requests.get(url, 'html.parser').text, 'html.parser')
+        for link in self.seed_urls:
+            article_bs = BeautifulSoup(requests.get(link, 'html.parser').text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             self.urls.extend(newfound[:self.max_articles_per_seed])
         self.urls = [i for i in self.urls if len(i) > 20
@@ -78,8 +78,8 @@ class Crawler:
         while len(self.urls) < self.total_max_articles:
             print('Due to insufficient number started further iteration')
             print('current number', len(self.urls), ', required', self.total_max_articles)
-            for url in self.urls:
-                article_bs = BeautifulSoup(requests.get(self.URL_START + url, 'html.parser').text, 'html.parser')
+            for link in self.urls:
+                article_bs = BeautifulSoup(requests.get(self.URLSTART + link, 'html.parser').text, 'html.parser')
                 newfound = filter(lambda x: len(x) > 20, self._extract_url(article_bs, self.urls))
                 print('    checked new url, found', len(newfound), 'articles')
                 self.urls.extend(newfound[:self.max_articles_per_seed])
@@ -103,8 +103,8 @@ class ArticleParser:
     """
     ArticleParser implementation
     """
-    def __init__(self, full_url: str, article_id: int):
-        self.full_url = full_url
+    def __init__(self, full__url: str, article_id: int):
+        self.full_url = full__url
         self.article_id = article_id
         self.article = Article(self.full_url, self.article_id)
 
@@ -121,16 +121,17 @@ class ArticleParser:
             title = article_soup.title.text
             self.article.title = title
 
-            credits = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0]
-            if 'Автор:' in credits:
+            credit = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0]
+            if 'Автор:' in credit:
                 author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0][7:]
-            elif 'Источник:' in credits:
-                author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0][9:].strip()
+            elif 'Источник:' in credit:
+                author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip()
+                author = author.split('\n')[0][9:].strip()
             else:
                 author = ''
             self.article.author = author
-            date = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[1]
-            self.article.date = self.unify_date_format(date)
+            when = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[1]
+            self.article.date = self.unify_date_format(when)
 
             topic = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[0]
             self.article.topics = topic
@@ -193,10 +194,10 @@ def validate_config(crawler_path):
     try:
         good_response = list(map(lambda link: True if requests.get(link).status_code == 200 else False,
                                  config['base_urls']))
-    except RequestException:
-        raise IncorrectURLError
-    except Exception:
-        raise UnknownConfigError
+    except RequestException as e:
+        raise IncorrectURLError from e
+    except Exception as e:
+        raise UnknownConfigError from e
     if not all(good_response):
         raise IncorrectURLError
     if not all((isinstance(config['total_articles_to_find_and_parse'], int),
@@ -210,10 +211,10 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls,
+    seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seedurls,
                       total_max_articles=max_articles,
-                      max_articles_per_seed=max_articles_per_seed)
+                      max_articles_per_seed=max_arts_per_seed)
 
     crawler.find_articles()
     # print('Scraped', len(crawler.urls), 'articles')
@@ -221,7 +222,7 @@ if __name__ == '__main__':
     print('onto parsing')
 
     for n, url in enumerate(crawler.urls):
-        full_url = crawler.URL_START + url
+        full_url = crawler.URLSTART + url
         parser = ArticleParser(full_url, n + 1)
         parser.parse()
     print('parsing is finished')
