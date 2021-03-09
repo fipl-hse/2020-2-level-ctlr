@@ -5,6 +5,7 @@ import json
 import random
 import re
 import os
+import shutil
 
 from datetime import datetime
 from time import sleep
@@ -139,8 +140,10 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+    assets_path = os.path.join(base_path, 'tmp', 'articles')
+    if os.path.exists(assets_path):
+        shutil.rmtree(os.path.dirname(assets_path))
+    os.makedirs(assets_path)
 
 
 def validate_config(crawler_path):
@@ -180,9 +183,10 @@ if __name__ == '__main__':
     urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
     articles = crawler.find_articles()
+    print(articles)
     prepare_environment(PROJECT_ROOT)
     for art_id, art_url in enumerate(crawler.urls, 1):
-        parser = ArticleParser(full_url=art_url, article_id=art_id)
+        parser = ArticleParser(art_url, art_id)
         article = parser.parse()
-        article.save_raw()
-        sleep(random.randrange(2, 5))
+        #article.save_raw()
+        #sleep(random.randrange(2, 5))
