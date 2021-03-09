@@ -73,7 +73,7 @@ class Crawler:
             page_bs = BeautifulSoup(page_content, features='lxml')
             page_urls = page_bs.find_all('div', {'class': 'news-preview-content'})
 
-            urls_number = min(max_articles_num_per_seed, len(page_urls), (max_articles - len(self.urls)))
+            urls_number = min(max_articles_num_per_seed, len(page_urls), (max_articles_num - len(self.urls)))
             for index in range(urls_number):
                 self.urls.append('https://vn.ru' + self._extract_url(article_bs=page_urls[index]))
 
@@ -212,6 +212,6 @@ if __name__ == '__main__':
     crawler.find_articles()
 
     prepare_environment(ASSETS_PATH)
-    for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i)
+    for i, url_full in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url_full, article_id=i)
         parser.parse()
