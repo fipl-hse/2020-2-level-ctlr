@@ -1,31 +1,35 @@
 """
 Crawler implementation
 """
-#oh shit here we go again
+import requests
+
 class IncorrectURLError(Exception):
     """
     Custom error
     """
+    pass
+    # def __init__(self, ):
 
 
 class NumberOfArticlesOutOfRangeError(Exception):
     """
     Custom error
     """
-
+    pass
 
 class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
-
+    pass
 
 class Crawler:
     """
     Crawler implementation
     """
     def __init__(self, seed_urls: list, max_articles: int):
-        pass
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
 
     @staticmethod
     def _extract_url(article_bs):
@@ -35,13 +39,15 @@ class Crawler:
         """
         Finds articles
         """
-        pass
+        raise IncorrectURLError
+
+
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return seed_urls
 
 
 class ArticleParser:
