@@ -1,9 +1,19 @@
-import requests
-
 """
 Crawler implementation
 """
+import json
+import os
+from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
+from article import Article
 
+
+HEADERS = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36 '
+        }
 
 class IncorrectURLError(Exception):
     """
