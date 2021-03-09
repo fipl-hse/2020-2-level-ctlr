@@ -180,8 +180,8 @@ def validate_config(crawler_path):
     try:
         for url in config['base_urls']:
             requests.get(str(url))
-    except MissingSchema:
-        raise IncorrectURLError
+    except MissingSchema as error:
+        raise IncorrectURLError from error
 
     if 'total_articles_to_find_and_parse' in config and \
             isinstance(config['total_articles_to_find_and_parse'], int) and \
