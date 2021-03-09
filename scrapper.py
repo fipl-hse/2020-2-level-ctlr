@@ -7,8 +7,8 @@ import os
 from datetime import datetime
 from random import randint
 from time import sleep
-import requests
 import re
+import requests
 from bs4 import BeautifulSoup
 import article
 from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
@@ -117,7 +117,8 @@ class CrawlerRecursive(Crawler):
         return page_links
 
 
-# response = requests.get('http://ks-yanao.ru/zdorove/besplatnoe-lechenie-v-moskve-i-tyumeni-eto-realno.html', headers=headers)
+# response = requests.get('http://ks-yanao.ru/zdorove/besplatnoe-lechenie-v-moskve-i-tyumeni-eto-realno.html',
+    # headers=headers)
 # page_soup = BeautifulSoup(response.content, features='lxml')
 # for tag_a_content in page_soup.find_all('a'):
 #     get_url = tag_a_content.get('href')
@@ -249,14 +250,13 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
-    # prepare_environment(PROJECT_ROOT)
-    # seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    # crawler = Crawler(seed_urls=seed_urls_ex,
-    #                   max_articles=max_articles_ex,
-    #                   max_articles_per_seed=max_articles_per_seed_ex)
-    # crawler.find_articles()
-    # for art_id, art_url in enumerate(crawler.urls, 1):
-    #     parser = ArticleParser(full_url=art_url, article_id=art_id)
-    #     article_from_list = parser.parse()
-    #     sleep(randint(3, 5))
+    prepare_environment(PROJECT_ROOT)
+    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls_ex,
+                      max_articles=max_articles_ex,
+                      max_articles_per_seed=max_articles_per_seed_ex)
+    crawler.find_articles()
+    for art_id, art_url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(full_url=art_url, article_id=art_id)
+        article_from_list = parser.parse()
+        sleep(randint(3, 5))
