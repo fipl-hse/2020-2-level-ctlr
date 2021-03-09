@@ -7,11 +7,11 @@ import json
 from bs4 import BeautifulSoup
 from time import sleep
 import random
-import article
+from article import Article
 import os
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                                 'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36'}
+                         'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -85,7 +85,7 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = article.Article(full_url, article_id)
+        self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
         text_soup = article_soup.find_all('p')
@@ -95,7 +95,8 @@ class ArticleParser:
         return text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h1').text
+        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -113,6 +114,7 @@ class ArticleParser:
             raise IncorrectURLError
         article_soup = BeautifulSoup(response.content, features='lxml')
         self.article.text += self._fill_article_with_text(article_soup)
+        self._fill_article_with_meta_information(article_soup)
         return self.article
 
 
@@ -136,18 +138,24 @@ def validate_config(crawler_path):
         is_crawler_config_ok = False
         raise UnknownConfigError
 
-    if not isinstance(crawler_config['base_urls'], list) or \
+    if 'base_urls' not in crawler_config or not isinstance(crawler_config['base_urls'], list) or \
             not all(isinstance(url, str) for url in crawler_config['base_urls']):
         is_crawler_config_ok = False
         raise IncorrectURLError
 
-    if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
-        is_crawler_config_ok = False
-        raise IncorrectNumberOfArticlesError
-
-    if crawler_config['total_articles_to_find_and_parse'] >= 1000000:
+    if 'total_articles_to_find_and_parse' in crawler_config \
+            and isinstance(crawler_config['total_articles_to_find_and_parse'], int) \
+            and crawler_config['total_articles_to_find_and_parse'] >= 1000000:
         is_crawler_config_ok = False
         raise NumberOfArticlesOutOfRangeError
+
+    if 'total_articles_to_find_and_parse' in crawler_config and 'max_number_articles_to_get_from_one_seed':
+        if not(isinstance(crawler_config['total_articles_to_find_and_parse'], int)
+               and isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], int)):
+            is_crawler_config_ok = False
+            raise IncorrectNumberOfArticlesError
+    else:
+        is_crawler_config_ok = False
 
     if is_crawler_config_ok:
         return crawler_config.values()
@@ -156,6 +164,7 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     import constants
+
     seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
     urls = crawler.find_articles()
