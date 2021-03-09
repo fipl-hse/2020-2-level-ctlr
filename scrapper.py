@@ -99,59 +99,59 @@ class Crawler:
         return self.seed_urls
 
 
-class CrawlerRecursive(Crawler):
-    """
-    Recursive Crawler
-    """
-    @staticmethod
-    def _extract_url(article_bs, urls):
-        page_links = []
-        for tag_a_content in article_bs.find_all('a'):
-            get_url = tag_a_content.get('href')
-            if get_url:
-                re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
-                if re_url:
-                    if get_url == re_url[0][0] and get_url not in page_links:
-                        page_links.append('http://ks-yanao.ru' + get_url)
+# class CrawlerRecursive(Crawler):
+#     """
+#     Recursive Crawler
+#     """
+#     @staticmethod
+#     def _extract_url(article_bs, urls):
+#         page_links = []
+#         for tag_a_content in article_bs.find_all('a'):
+#             get_url = tag_a_content.get('href')
+#             if get_url:
+#                 re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
+#                 if re_url:
+#                     if get_url == re_url[0][0] and get_url not in page_links:
+#                         page_links.append('http://ks-yanao.ru' + get_url)
+#
+#         return page_links
 
-        return page_links
-
-    def find_articles(self):
-        """
-        Finds articles
-        """
-        for seed_url in self.seed_urls:
-            try:
-                response = requests.get(seed_url, headers=headers)
-                sleep(randint(2, 6))
-                if response.status_code:
-                    main_page_soup = BeautifulSoup(response.content, features='lxml')
-                else:
-                    raise IncorrectStatusCode
-            except IncorrectStatusCode:
-                continue
-            else:
-                found_links = self._extract_url(main_page_soup, urls=self.urls)
-                if len(found_links) < self.max_articles_per_seed:
-                    self.urls.extend(found_links)
-                else:
-                    self.urls.extend(found_links[:self.max_articles_per_seed])
-                self.get_search_urls(main_page_soup)
-
-    def get_search_urls(self, page_soup):
-        """
-        Returns seed_urls param
-        """
-        for tag_a_content in page_soup.find_all('a'):
-            get_url = tag_a_content.get('href')
-            if get_url:
-                re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
-                if re_url:
-                    if get_url == re_url[0][0] and get_url not in self.seed_urls:
-                        self.seed_urls.append(get_url)
-                        with open(os.path.join(PROJECT_ROOT, 'tmp', 'notparsed_links.txt'),
-                                  'w', encoding='utf-8') as file:
-                            file.write('\n'.join(self.seed_urls))
+    # def find_articles(self):
+    #     """
+    #     Finds articles
+    #     """
+    #     for seed_url in self.seed_urls:
+    #         try:
+    #             response = requests.get(seed_url, headers=headers)
+    #             sleep(randint(2, 6))
+    #             if response.status_code:
+    #                 main_page_soup = BeautifulSoup(response.content, features='lxml')
+    #             else:
+    #                 raise IncorrectStatusCode
+    #         except IncorrectStatusCode:
+    #             continue
+    #         else:
+    #             found_links = self._extract_url(main_page_soup, urls=self.urls)
+    #             if len(found_links) < self.max_articles_per_seed:
+    #                 self.urls.extend(found_links)
+    #             else:
+    #                 self.urls.extend(found_links[:self.max_articles_per_seed])
+    #             self.get_search_urls(main_page_soup)
+    #
+    # def get_search_urls(self, page_soup):
+    #     """
+    #     Returns seed_urls param
+    #     """
+    #     for tag_a_content in page_soup.find_all('a'):
+    #         get_url = tag_a_content.get('href')
+    #         if get_url:
+    #             re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
+    #             if re_url:
+    #                 if get_url == re_url[0][0] and get_url not in self.seed_urls:
+    #                     self.seed_urls.append(get_url)
+    #                     with open(os.path.join(PROJECT_ROOT, 'tmp', 'notparsed_links.txt'),
+    #                               'w', encoding='utf-8') as file:
+    #                         file.write('\n'.join(self.seed_urls))
 
 
 class ArticleParser:
