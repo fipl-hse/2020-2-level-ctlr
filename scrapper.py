@@ -1,15 +1,16 @@
 """
 Crawler implementation
 """
-import requests
 import random
 import json
 import datetime
 import os
 import re
 from time import sleep
-from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+import requests
+from requests.exceptions import MissingSchema
 from bs4 import BeautifulSoup, NavigableString
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 from article import Article
 
 
@@ -57,7 +58,7 @@ class Crawler:
         Finds articles
         """
         self.get_search_urls()
-        for seed_url in seed_urls:
+        for seed_url in urls:
             try:
                 response = requests.get(seed_url, headers=headers)
                 sleep(random.randint(2, 6))
@@ -72,7 +73,7 @@ class Crawler:
             page_bs = BeautifulSoup(page_content, features='lxml')
             page_urls = page_bs.find_all('div', {'class': 'news-preview-content'})
 
-            urls_number = min(max_articles_per_seed, len(page_urls), (max_articles - len(self.urls)))
+            urls_number = min(max_articles_num_per_seed, len(page_urls), (max_articles - len(self.urls)))
             for index in range(urls_number):
                 self.urls.append('https://vn.ru' + self._extract_url(article_bs=page_urls[index]))
 
@@ -170,17 +171,17 @@ def validate_config(crawler_path):
     Validates given config
     """
 
-    with open(crawler_path, 'r', encoding='utf-8') as f:
-        config = json.load(f)
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        config = json.load(file)
 
     if 'base_urls' not in config or not isinstance(config['base_urls'], list):
         raise IncorrectURLError
-    else:
-        try:
-            for url in config['base_urls']:
-                requests.get(str(url))
-        except requests.exceptions.MissingSchema:
-            raise IncorrectURLError
+
+    try:
+        for url in config['base_urls']:
+            requests.get(str(url))
+    except MissingSchema:
+        raise IncorrectURLError
 
     if 'total_articles_to_find_and_parse' in config and \
             isinstance(config['total_articles_to_find_and_parse'], int) and \
@@ -200,17 +201,17 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
 
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    urls, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                              'Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36'}
 
-    crawler = Crawler(seed_urls=seed_urls,
-                      max_articles=max_articles,
-                      max_articles_per_seed=max_articles_per_seed)
+    crawler = Crawler(seed_urls=urls,
+                      max_articles=max_articles_num,
+                      max_articles_per_seed=max_articles_num_per_seed)
     crawler.find_articles()
 
     prepare_environment(ASSETS_PATH)
-    for i, full_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=full_url, article_id=i)
+    for i, url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url, article_id=i)
         parser.parse()
