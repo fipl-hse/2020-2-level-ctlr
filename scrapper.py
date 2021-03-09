@@ -70,14 +70,15 @@ class Crawler:
             tags = container.find_all('a', id=re.compile('_articleLink'))  # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
             # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
             for tag in tags:
-                self.urls.append(tags.attrs['href'])
+                if len(self.urls) < self.total_max_articles:
+                    self.urls.append(tags.attrs['href'])
 
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        return self.seed_urls
+        pass
 
 
 class ArticleParser:
