@@ -43,17 +43,36 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        url_article = article_bs.find('h2', class_="entry-title").find('a')
+        return url_article.attrs['href']
 
     def find_articles(self):
         """
         Finds articles
         """
+        self.get_search_urls()
+        for url in self.seed_urls:
+            response = requests.get(url, headers=HEADERS)
+            if not response:
+                raise IncorrectURLError
+            page_soup = BeautifulSoup(response.content, features='lxml')
+            main_soup = page_soup.find('main', id='main')
+            articles_soup = main_soup.find_all('article')
+            for i in range(self.max_articles_per_seed):
+                if len(self.urls) < self.max_articles:
+                    self.urls.append(self._extract_url(articles_soup[i]))
+                else:
+                    break
+            if len(self.urls) == self.max_articles:
+                break
 
     def get_search_urls(self):
         """
