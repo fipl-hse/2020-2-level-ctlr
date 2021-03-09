@@ -183,7 +183,6 @@ if __name__ == '__main__':
     urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
     articles = crawler.find_articles()
-    print(articles)
     prepare_environment(PROJECT_ROOT)
     for art_id, art_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(art_url, art_id)
