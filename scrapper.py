@@ -4,8 +4,10 @@ Crawler implementation
 
 import json
 import requests
+import datetime
 from bs4 import BeautifulSoup
 import article
+import os
 from constants import CRAWLER_CONFIG_PATH
 
 headers = {
@@ -86,17 +88,27 @@ class ArticleParser:
         self.article = article.Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        paragraphs_soup = article_soup.find_all('p')
+        for parag in paragraphs_soup:
+            self.article.text += parag.text.strip() + ''
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h1').text
+
+        self.article.author = article_soup.find('div', class_='news-tags').find('a').text
+
+        self.article.topics = article_soup.find('div', class_='article-details-left')\
+            .find('a', class_='article-section')
+
+        date = article_soup.find('div', class_='article-details-left').find('a', class_='article-date')
+        self.article.date = self.unify_date_format(date)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        return datetime.datetime.strftime(date_str, '%d.%m.%Y')
 
     def parse(self):
         """
@@ -115,7 +127,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if not os.path.exists(os.path.join(base_path, 'tmp', 'article')):
+        os.makedirs(os.path.join(base_path, 'tmp', 'article'))
 
 
 def validate_config(crawler_path):
