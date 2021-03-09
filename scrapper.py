@@ -8,6 +8,7 @@ import json
 from time import sleep
 import article
 
+
 class IncorrectURLError(Exception):
     """
     Custom error
@@ -68,7 +69,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        return self.seed_urls
+        return self.urls
 
 
 class ArticleParser:
@@ -120,6 +121,7 @@ class ArticleParser:
         article.save_raw()
         return self.article
 
+
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
@@ -127,18 +129,18 @@ def prepare_environment(base_path):
     pass
 
 
-def validate_config(crawler_path): # возможна замена значений в условиях
+def validate_config(crawler_path):
     """
     Validates given config
     """
     with open(crawler_path, 'r', encoding='utf-8') as f:
         initial_values = json.load(f)
 
-    for url in initial_values["base_urls"]:
-        if not isinstance(url, str):
+    for base_url in initial_values["base_urls"]:
+        if not isinstance(base_url, str):
             raise IncorrectURLError
 
-    if initial_values["base_urls"] == []:
+    if not initial_values["base_urls"]:
         raise IncorrectURLError
 
     if not isinstance(initial_values["total_articles_to_find_and_parse"], int):
@@ -154,7 +156,7 @@ def validate_config(crawler_path): # возможна замена значен�
         raise UnknownConfigError
 
     return initial_values["base_urls"], initial_values["total_articles_to_find_and_parse"], \
-               initial_values["max_number_articles_to_get_from_one_seed"]
+           initial_values["max_number_articles_to_get_from_one_seed"]
 
 
 if __name__ == '__main__':
@@ -169,7 +171,7 @@ if __name__ == '__main__':
     # step 2.2
     crawler.find_articles()
 
-    # step 3.1, 3.2, 3.3, 4
+    # step 3.1, 3.2, 3.3, 4, 5
     for url_id, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=url_id)
         parsed_article = parser.parse()
