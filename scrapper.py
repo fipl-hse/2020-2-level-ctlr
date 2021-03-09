@@ -127,8 +127,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(os.path.join(base_path, 'tmp', 'article')):
-        os.makedirs(os.path.join(base_path, 'tmp', 'article'))
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
