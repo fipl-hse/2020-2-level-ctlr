@@ -1,11 +1,12 @@
 """
 Crawler implementation
 """
-from datetime import datetime
 import json
-import os
 import random
 import re
+import os
+
+from datetime import datetime
 from time import sleep
 from bs4 import BeautifulSoup
 from article import Article
@@ -14,7 +15,6 @@ import requests
 
 from constants import CRAWLER_CONFIG_PATH
 from constants import PROJECT_ROOT
-from constants import ASSETS_PATH
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
@@ -74,7 +74,7 @@ class Crawler:
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
             print('Making a request...')
-            sleep(random.randrange(3, 6))
+            sleep(random.randrange(2, 5))
             articles_page = BeautifulSoup(response.content, 'lxml')
             links = self._extract_url(articles_page)
             raw_urls.extend(links)
@@ -86,7 +86,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -127,28 +127,20 @@ class ArticleParser:
         Parses each article
         """
         response = requests.get(self.article_url, headers=headers)
-        if response:
-            article_bs = BeautifulSoup(response.content, 'lxml')
-            self._fill_article_with_text(article_bs)
-            self._fill_article_with_meta_information(article_bs)
-        return self.article
+        if not response:
+            raise IncorrectURLError
 
-    def save_raw(self):
-        """
-        Saves raw text
-        """
-        with open(os.path.join(ASSETS_PATH, f'{self.i}_raw.txt'),
-                  'w', encoding='utf-8') as file:
-            file.write(self.article)
+        article_bs = BeautifulSoup(response.content, 'lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'pages')):
-        os.makedirs(os.path.join(PROJECT_ROOT, 'tmp', 'pages'))
-
     if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
         os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
@@ -184,6 +176,10 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    example = Crawler(seed_urls, max_articles, max_articles_per_seed)
-    articles = example.find_articles()
-    print('\n'.join(articles))
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    articles = crawler.find_articles()
+    prepare_environment(PROJECT_ROOT)
+    for art_id, art_url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(full_url=art_url, article_id=art_id)
+        article_from_list = parser.parse()
+        sleep(random.randrange(2, 5))
