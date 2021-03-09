@@ -159,8 +159,8 @@ def validate_config(crawler_path):
             not isinstance(conf['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
 
-    return conf['base_urls'], conf['total_articles_to_find_and_parse'], \
-           conf['max_number_articles_to_get_from_one_seed']
+    return conf['base_urls'], conf['total_articles_to_find_and_parse'], conf[
+        'max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
