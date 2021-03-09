@@ -6,9 +6,9 @@ import random
 import re
 import os
 
-import requests
 from datetime import datetime
 from time import sleep
+import requests
 from bs4 import BeautifulSoup
 from article import Article
 

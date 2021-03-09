@@ -94,7 +94,7 @@ class Article:
             'author': self.author,
             'topics': self.topics
         }
-    
+
     def _date_to_text(self):
         """
         Converts datetime object to text
