@@ -7,8 +7,8 @@ from time import sleep
 import datetime
 import random
 import re
-import requests
 import shutil
+import requests
 from bs4 import BeautifulSoup
 import article
 from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
