@@ -116,18 +116,6 @@ class CrawlerRecursive(Crawler):
 
         return page_links
 
-
-# response = requests.get('http://ks-yanao.ru/zdorove/besplatnoe-lechenie-v-moskve-i-tyumeni-eto-realno.html',
-    # headers=headers)
-# page_soup = BeautifulSoup(response.content, features='lxml')
-# for tag_a_content in page_soup.find_all('a'):
-#     get_url = tag_a_content.get('href')
-#     if get_url:
-#         re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
-#         if re_url:
-#             if get_url == re_url[0][0]:
-#                 print(get_url)
-
     def find_articles(self):
         """
         Finds articles
