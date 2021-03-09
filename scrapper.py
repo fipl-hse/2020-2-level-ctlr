@@ -61,16 +61,17 @@ class Crawler:
         """
         Finds articles
         """
-
         for seed_url in self.seed_urls:
             response = requests.get(seed_url, headers=headers)
             sleep(random.randrange(2,6))
             page_bs = BeautifulSoup(response.content, 'lxml')
             container = page_bs.find('div', attrs={'class': 'news-container', 'id':
                 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'})
-            tags = container.find_all('a', id=)  #id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
-            # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
-            self.urls.append(tags.attrs['href'])
+            tags = container.find_all('a', id=re.compile('_articleLink'))  # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
+            # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
+            for tag in tags:
+                self.urls.append(tags.attrs['href'])
+
 
     def get_search_urls(self):
         """
