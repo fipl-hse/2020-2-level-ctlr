@@ -4,8 +4,8 @@ Article implementation
 import json
 import os
 import datetime
-
 from constants import ASSETS_PATH
+
 
 
 def date_from_meta(date_txt):
@@ -46,7 +46,7 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
+
     @staticmethod
     def from_meta_json(json_path: str):
         """
