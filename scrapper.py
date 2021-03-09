@@ -2,11 +2,14 @@
 Crawler implementation
 """
 import requests
-from time import sleep
 import random
 import json
-from constants import PROJECT_ROOT, ASSETS_PATH, CRAWLER_CONFIG_PATH
-from bs4 import BeautifulSoup
+import datetime
+import os
+import re
+from time import sleep
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+from bs4 import BeautifulSoup, NavigableString
 from article import Article
 
 
@@ -47,7 +50,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
@@ -69,14 +72,16 @@ class Crawler:
             page_bs = BeautifulSoup(page_content, features='lxml')
             page_urls = page_bs.find_all('div', {'class': 'news-preview-content'})
 
-            for i in range(min(max_articles, len(page_urls))):
-                self.urls.append('https://vn.ru' + page_urls[i].contents[1].attrs['href'])
+            urls_number = min(max_articles_per_seed, len(page_urls), (max_articles - len(self.urls)))
+            for index in range(urls_number):
+                self.urls.append('https://vn.ru' + self._extract_url(article_bs=page_urls[index]))
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        themes = ['oblast', 'obshchestvo', 'ekonomika', 'proisshestviya', 'dom', 'transport', 'razvlecheniya']
+
+        themes = ['ekonomika', 'oblast', 'obshchestvo',  'proisshestviya', 'dom', 'transport', 'razvlecheniya']
         self.seed_urls.extend([f'{self.seed_urls[0]}news/{theme}/' for theme in themes])
 
 
@@ -91,22 +96,48 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+
+        article_text = article_soup.find('div', {'class': 'js-mediator-article divider-news clearfix'}).find_all('p')
+
+        if not re.sub(r'[^А-Яа-я]', '', ''.join(list(map(lambda x: x.text, article_text)))):
+            text = article_soup.find('div', {'class': 'js-mediator-article divider-news clearfix'}).contents
+            text_list = []
+            for item in text:
+                if isinstance(item, NavigableString):
+                    continue
+
+                for index in range(len(item.contents)):
+                    if isinstance(item.contents[index], NavigableString):
+                        text_list.append(item.contents[index])
+        else:
+            text_list = list(map(lambda x: x.text, article_text))
+
+        self.article.text = '\n'.join(text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h1').text
+
+        self.article.author = article_soup.find('div', {'class': 'author-name floatleft clearfix'}).text.strip('\n')
+
+        raw_topics = article_soup.find_all('div', {'class': 'on-footer-row'})
+        self.article.topics = list(map(lambda x: x.find('a').text.lower(), raw_topics))
+
+        raw_date = article_soup.find('div', {'class': 'nw-dn-date floatleft'}).text
+        self.article.date = self.unify_date_format(raw_date)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+
+        return datetime.datetime.strptime(date_str, '%d.%m.%Y')
 
     def parse(self):
         """
         Parses each article
         """
+
         response = requests.get(self.full_url, headers=headers)
 
         if not response:
@@ -114,20 +145,31 @@ class ArticleParser:
 
         page_content = response.content
         article_bs = BeautifulSoup(page_content, features='lxml')
+
         self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+
+    try:
+        os.makedirs(base_path, mode=0o777)
+    except FileExistsError:
+        for file in os.listdir(base_path):
+            os.remove(f'{base_path}\\{file}')
+    except OSError as error:
+        raise error
 
 
 def validate_config(crawler_path):
     """
     Validates given config
     """
+
     with open(crawler_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
 
@@ -166,9 +208,9 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=seed_urls,
                       max_articles=max_articles,
                       max_articles_per_seed=max_articles_per_seed)
-
     crawler.find_articles()
 
+    prepare_environment(ASSETS_PATH)
     for i, full_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=full_url, article_id=i)
         parser.parse()
