@@ -149,8 +149,9 @@ def validate_config(crawler_path):
             not all([isinstance(link, str) for link in conf['base_urls']]):
         raise IncorrectURLError
 
-    if 'total_articles_to_find_and_parse' in conf and\
-            isinstance(conf['total_articles_to_find_and_parse'], int):
+    if 'total_articles_to_find_and_parse' in conf and \
+            isinstance(conf['total_articles_to_find_and_parse'], int) and \
+            conf['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
 
     if 'max_number_articles_to_get_from_one_seed' not in conf or\
@@ -165,11 +166,11 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    prepare_environment(constants.PROJECT_ROOT)
     seed_urls_list, total_max_articles, max_articles_per_seed_num = validate_config(constants.CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_list, max_articles=total_max_articles,
                       max_articles_per_seed=max_articles_per_seed_num)
     crawler.find_articles()
+    prepare_environment(constants.PROJECT_ROOT)
 
     for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
