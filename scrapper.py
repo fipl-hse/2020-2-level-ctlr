@@ -17,7 +17,7 @@ from requests import HTTPError
 from bs4 import BeautifulSoup
 
 from constants import CRAWLER_CONFIG_PATH
-from constants import PROJECT_ROOT
+from constants import ASSETS_PATH
 from article import Article
 
 
@@ -57,7 +57,11 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
+        news_container = article_bs.find('div', attrs={'class': 'news-container', 'id': news_container_id})
+        a_tags = news_container.find_all('a', id=re.compile('articleLink'))
+
+        return [a_tag.attrs['href'] for a_tag in a_tags]
 
     def find_articles(self):
         """
@@ -68,19 +72,16 @@ class Crawler:
         for seed_url in self.seed_urls:
             try:
                 response = requests.get(seed_url, headers=headers)
-                page_soup = BeautifulSoup(response.content, 'lxml')
-                news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
-                news_container = page_soup.find('div', attrs={'class': 'news-container', 'id': news_container_id})
-                a_tags = news_container.find_all('a', id=re.compile('articleLink'))
-                articles_per_seed = 0
-                for a_tag in a_tags:
-                    if articles_per_seed < self.max_articles_per_seed and len(self.urls) < self.total_max_articles:
-                        self.urls.append(a_tag.attrs['href'])
-                        articles_per_seed += 1
-                    else:
-                        break
             except HTTPError:
                 print('Something wrong the URL...')
+                continue
+            page_soup = BeautifulSoup(response.content, 'lxml')
+            extracted_urls = self._extract_url(page_soup)
+            articles_to_add = self.total_max_articles - len(self.urls)
+            if articles_to_add >= self.max_articles_per_seed:
+                self.urls.extend(extracted_urls[:self.max_articles_per_seed])
+            else:
+                self.urls.extend(extracted_urls[:articles_to_add])
             if len(self.urls) < self.total_max_articles:
                 sleep(randint(3, 6))
             else:
@@ -88,9 +89,9 @@ class Crawler:
 
     def get_search_urls(self):
         """
-        Returns seed_urls param
+        Returns search_urls (?) param
         """
-        pass
+        return self.urls
 
 
 class ArticleParser:
@@ -114,7 +115,7 @@ class ArticleParser:
         title_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader')
         self.article.title = title_tag.text
         date_tag = article_soup.find('time', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleTime')
-        self.article.date = datetime.strptime(date_tag.text, "%d.%m.%Y")
+        self.article.date = self.unify_date_format(date_tag.text)
         author_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_authorName')
         self.article.author = author_tag.text
         topic_tags = article_soup.find_all('a', id=re.compile('[cC]ategoryName'))
@@ -125,7 +126,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        return datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
@@ -145,10 +146,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    assets_path = os.path.join(base_path, 'tmp', 'articles')
-    if os.path.exists(assets_path):
-        shutil.rmtree(os.path.dirname(assets_path))
-    os.makedirs(assets_path)
+    if os.path.exists(base_path):
+        shutil.rmtree(os.path.dirname(base_path))
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -188,8 +188,8 @@ if __name__ == '__main__':
     url_list, total, max_num = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=url_list, total_max_articles=total, max_articles_per_seed=max_num)
     crawler.find_articles()
-    prepare_environment(PROJECT_ROOT)
-    for i, full_url in enumerate(crawler.urls):
+    prepare_environment(ASSETS_PATH)
+    for i, full_url in enumerate(crawler.get_search_urls()):
         parser = ArticleParser(article_url=full_url, article_id=i+1)
         article = parser.parse()
         article.save_raw()
