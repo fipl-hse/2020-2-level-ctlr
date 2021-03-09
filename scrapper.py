@@ -2,8 +2,8 @@
 Crawler implementation
 """
 
-import requests
 import json
+import requests
 from bs4 import BeautifulSoup
 import article
 from constants import CRAWLER_CONFIG_PATH
