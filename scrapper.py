@@ -3,11 +3,11 @@ Crawler implementation
 """
 
 import json
-import requests
 import datetime
+import os
+import requests
 from bs4 import BeautifulSoup
 import article
-import os
 from constants import CRAWLER_CONFIG_PATH
 
 headers = {
