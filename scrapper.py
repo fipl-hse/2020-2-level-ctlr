@@ -1,19 +1,17 @@
 """
 Crawler implementation
 """
-from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
-from time import sleep
-
-import datetime
 import json
 import os
+from time import sleep
+import datetime
 import random
 import re
 import requests
 import shutil
-
+from bs4 import BeautifulSoup
 import article
+from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74'}
