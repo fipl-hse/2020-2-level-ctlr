@@ -144,6 +144,7 @@ def validate_config(crawler_path):
             'total_articles_to_find_and_parse' not in config or \
             not isinstance(config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
+    return config.values()
 
 
 if __name__ == '__main__':
