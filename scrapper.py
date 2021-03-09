@@ -6,11 +6,14 @@ import json
 import requests
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
-from time import sleep as wait
+# from time import sleep as wait
 from article import Article
+import re
 
 
 CRAWLER_CONFIG_PATH = 'crawler_config.json'
+NEWLINES_RE = re.compile(r"\n{2,}")  # two or more "\n" characters
+
 
 class IncorrectURLError(Exception):
     """
@@ -66,7 +69,8 @@ class Crawler:
             article_bs = BeautifulSoup(requests.get(url, 'html.parser').text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             self.urls.extend(newfound[:self.max_articles_per_seed])
-        self.urls = [i for i in self.urls if len(i) > 20][:self.total_max_articles]
+        self.urls = [i for i in self.urls if len(i) > 20
+                     and not any(map(lambda y: y.isupper(), i))][:self.total_max_articles]
         print('Scraped seed urls, overall number of urls is', len(self.urls))
 
         old = len(self.urls)
@@ -82,11 +86,10 @@ class Crawler:
                 if len(self.urls) > self.total_max_articles:
                     break
             if len(self.urls) == old:
-                print('Something is wrong with scraping parameters')
+                print('     Something is wrong with scraping parameters')
                 break
 
             self.urls = self.urls[:self.total_max_articles]
-
 
     def get_search_urls(self):
         """
@@ -105,9 +108,12 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        all_text = article_soup.find('div', {'class' : 'text letter', 'itemprop' : 'articleBody'}).text
-        text = (all_text..split('Автор:')[0].strip())
-        self.text = text
+        try:
+            text = article_soup.find('div', {'class': 'text letter', 'itemprop': 'articleBody'}).text.strip()
+            # text = NEWLINES_RE.split(all_text)  # regex splitting
+            self.article.text = text
+        except AttributeError:
+            print('    unable to parse', self.full_url)
 
     def _fill_article_with_meta_information(self, article_soup):
         pass
@@ -123,18 +129,21 @@ class ArticleParser:
         """
         Parses each article
         """
+        # print(self.full_url)
+        self.article.url = self.full_url
+        self.article.article_id = self.article_id
         html = requests.get(self.full_url, 'html.parser').text
         article_bs = BeautifulSoup(html, 'html.parser')
         self._fill_article_with_text(article_bs)
-        # self._fill_article_with_text(article_bs)
         # self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
 
 
-def prepare_environment(base_path):
-    """
-    Creates ASSETS_PATH folder if not created and removes existing folder
-    """
-    pass
+# def prepare_environment(base_path):
+#     """
+#     Creates ASSETS_PATH folder if not created and removes existing folder
+#     """
+#     pass
 
 
 def validate_config(crawler_path):
@@ -169,11 +178,12 @@ if __name__ == '__main__':
                       max_articles_per_seed=max_articles_per_seed)
 
     crawler.find_articles()
-    print('Scraped', len(crawler.urls), 'articles')
+    # print('Scraped', len(crawler.urls), 'articles')
 
     print('onto parsing')
 
-    for n, url in enumerate(crawler.urls[:1]):
+    for n, url in enumerate(crawler.urls):
         full_url = crawler.URL_START + url
         parser = ArticleParser(full_url, n)
-        article = parser.parse()
+        parser.parse()
+    print('parsing is finished')
