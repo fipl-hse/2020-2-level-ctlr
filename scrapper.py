@@ -50,17 +50,17 @@ class Crawler:
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
-        self.URLSTART = 'https://burunen.ru'
+        self.url_start = 'https://burunen.ru'
 
     @staticmethod
     def _extract_url(article_bs, seen):
-        extracted = list(set([link['href'] for link in article_bs.find_all('a', href=True)]))
+        extracted = list({link['href'] for link in article_bs.find_all('a', href=True)})
         # print(extracted)
         # print('          ',extracted)
-        return list(filter(lambda x: True if x.startswith('/news/')
+        return list(filter(lambda x: x.startswith('/news/')
                            and x not in seen
                            # and any(map(lambda y: y.isdigit(), x))
-                           else False, extracted))
+                           , extracted))
 
     def find_articles(self):
         """
@@ -79,8 +79,8 @@ class Crawler:
             print('Due to insufficient number started further iteration')
             print('current number', len(self.urls), ', required', self.total_max_articles)
             for link in self.urls:
-                article_bs = BeautifulSoup(requests.get(self.URLSTART + link, 'html.parser').text, 'html.parser')
-                newfound = filter(lambda x: len(x) > 20, self._extract_url(article_bs, self.urls))
+                article_bs = BeautifulSoup(requests.get(self.url_start + link, 'html.parser').text, 'html.parser')
+                newfound = list(filter(lambda x: len(x) > 20, self._extract_url(article_bs, self.urls)))
                 print('    checked new url, found', len(newfound), 'articles')
                 self.urls.extend(newfound[:self.max_articles_per_seed])
                 # wait(10)
@@ -192,12 +192,12 @@ def validate_config(crawler_path):
     with open(crawler_path) as crawler_config:
         config = json.load(crawler_config)
     try:
-        good_response = list(map(lambda link: True if requests.get(link).status_code == 200 else False,
+        good_response = list(map(lambda link: requests.get(link).status_code == 200,
                                  config['base_urls']))
-    except RequestException as e:
-        raise IncorrectURLError from e
-    except Exception as e:
-        raise UnknownConfigError from e
+    except RequestException as exception:
+        raise IncorrectURLError from exception
+    except Exception as exception:
+        raise UnknownConfigError from exception
     if not all(good_response):
         raise IncorrectURLError
     if not all((isinstance(config['total_articles_to_find_and_parse'], int),
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     print('onto parsing')
 
     for n, url in enumerate(crawler.urls):
-        full_url = crawler.URLSTART + url
+        full_url = crawler.url_start + url
         parser = ArticleParser(full_url, n + 1)
         parser.parse()
     print('parsing is finished')
