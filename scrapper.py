@@ -44,7 +44,7 @@ class Crawler:
         self.urls = []
 
     @staticmethod
-    def _extract_url(article_bs):
+    def _extract_url(article_bs): # тащит ссылки с рандомной страницы
         pass
 
     def find_articles(self):
@@ -118,7 +118,7 @@ class ArticleParser:
             article_bs = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_bs)
             self._fill_article_with_meta_information(article_bs)
-        article.save_raw()
+        self.article.save_raw() #self.article.save_raw() а не article.save_raw()
         return self.article
 
 
