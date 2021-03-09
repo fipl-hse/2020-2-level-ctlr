@@ -4,17 +4,15 @@ Crawler implementation
 
 import article
 import json
-import os
-import random
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
-from time import sleep
-from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
+from constants import CRAWLER_CONFIG_PATH
 
 headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/88.0.4324.190 Safari/537.36'
 }
+
 
 class IncorrectURLError(Exception):
     """
@@ -52,19 +50,30 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        url_article = article_bs.find('div', class_='article-link').find('a')
+        link = url_article.attrs['href']
+        return 'https://newbur.ru' + link
 
     def find_articles(self):
         """
         Finds articles
         """
-        pass
+        for url in self.seed_urls:
+            response = requests.get(url, headers=headers)
+            if not response:
+                raise IncorrectURLError
+            page_soup = BeautifulSoup(response.content, features='lxml')
+            links = self._extract_url(page_soup)
+            if len(links) < self.max_articles_per_seed:
+                self.urls.extend(links)
+            else:
+                self.urls.extend(links[:self.max_articles_per_seed])
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -93,7 +102,13 @@ class ArticleParser:
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers=headers)
+        if not response:
+            raise IncorrectURLError
+        article_soup = BeautifulSoup(response.content, features='lxml')
+        self._fill_article_with_text(article_soup)
+        self._fill_article_with_meta_information(article_soup)
+        self.article.save_raw()
 
 
 def prepare_environment(base_path):
@@ -129,4 +144,6 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls_ex, max_articles_ex, max_articles_per_seed_ex)
+    crawler.find_articles()
