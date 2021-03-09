@@ -38,14 +38,14 @@ class Article:
 
         with open(self._get_raw_text_path(), 'w', encoding='utf-8') as file:
             file.write(self.text)
-        #
-        # with open(os.path.join(ASSETS_PATH, article_meta_name), "w", encoding='utf-8') as file:
-        #     json.dump(self._get_meta(),
-        #               file,
-        #               sort_keys=False,
-        #               indent=4,
-        #               ensure_ascii=False,
-        #               separators=(',', ': '))
+
+        with open(os.path.join(ASSETS_PATH, article_meta_name), "w", encoding='utf-8') as file:
+            json.dump(self._get_meta(),
+                      file,
+                      sort_keys=False,
+                      indent=4,
+                      ensure_ascii=False,
+                      separators=(',', ': '))
     
     @staticmethod
     def from_meta_json(json_path: str):
@@ -99,7 +99,7 @@ class Article:
         """
         Converts datetime object to text
         """
-        return self.date.strftime("%Y-%m-%d %H:%M:%S")
+        return self.date.strftime("%Y-%m-%d")
     
     def _get_raw_text_path(self):
         """

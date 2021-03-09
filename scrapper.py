@@ -9,7 +9,8 @@ from bs4 import BeautifulSoup
 # from time import sleep as wait
 from article import Article
 import re
-
+from datetime import date
+import os
 
 CRAWLER_CONFIG_PATH = 'crawler_config.json'
 NEWLINES_RE = re.compile(r"\n{2,}")  # two or more "\n" characters
@@ -128,6 +129,11 @@ class ArticleParser:
             else:
                 author = ''
             self.article.author = author
+            date = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[1]
+            self.article.date = self.unify_date_format(date)
+
+            topic = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[0]
+            self.article.topics = topic
         except AttributeError:
             print('    something is off with', self.full_url)
         # print(title)
@@ -138,7 +144,22 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        day, month, year = date_str.split()
+        if len(day) == 1:
+            day = '0' + day
+        match = {'янв': '01',
+                 'фев': '02',
+                 'мар': '03',
+                 'апр': '04',
+                 'май': '05',
+                 'июн': '06',
+                 'июл': '07',
+                 'авг': '08',
+                 'сен': '09',
+                 'окт': '10',
+                 'ноя': '11',
+                 'дек': '12'}
+        return date.fromisoformat(year + '-' + match[month] + '-' + day)
 
     def parse(self):
         """
@@ -154,11 +175,13 @@ class ArticleParser:
         self.article.save_raw()
 
 
-# def prepare_environment(base_path):
-#     """
-#     Creates ASSETS_PATH folder if not created and removes existing folder
-#     """
-#     pass
+def prepare_environment(base_path):
+    """
+    Creates ASSETS_PATH folder if not created and removes existing folder
+    """
+    newpath = r'{}/ASSETS_PATH'.format(base_path)
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
 
 
 def validate_config(crawler_path):
