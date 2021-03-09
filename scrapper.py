@@ -63,7 +63,7 @@ class Crawler:
         """
         for seed_url in self.seed_urls:
             response = requests.get(seed_url, headers=headers)
-            sleep(random.randrange(2,6))
+            sleep(random.randrange(2, 6))
             page_bs = BeautifulSoup(response.content, 'lxml')
             container = page_bs.find('div', attrs={
                 'class': 'news-container',
@@ -71,13 +71,13 @@ class Crawler:
             tags = container.find_all('a', id=re.compile('_articleLink'))
             # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
             # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
-            articles_per_seed = 0
-            for tag in tags:
-                if articles_per_seed < self.max_articles_per_seed and len(self.urls) < self.max_articles:
-                    self.urls.append(tag.attrs['href'])
-                    articles_per_seed += 1
+            for tag in range(self.max_articles_per_seed):
+                if len(self.urls) < self.max_articles:
+                    self.urls.append(tags[tag].attrs['href'])
                 else:
                     break
+            if len(self.urls) == self.max_articles:
+                break
 
     def get_search_urls(self):
         """
@@ -145,34 +145,34 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         conf = json.load(file)
 
-    if not isinstance(conf, dict) or 'base_urls' not in conf or\
-            'max_number_articles_to_get_from_one_seed' not in conf or\
-            'total_articles_to_find_and_parse' not in conf:
-        raise UnknownConfigError
-
-    if not isinstance(conf['base_urls'], list) or\
-            not all([isinstance(url,str) for url in conf['base_urls']]):
+    if 'base_urls' not in conf or not isinstance(conf['base_urls'], list) or\
+            not all([isinstance(link, str) for link in conf['base_urls']]):
         raise IncorrectURLError
 
-    if not isinstance(conf['total_articles_to_find_and_parse'], int) or \
-            not isinstance(conf['max_number_articles_to_get_from_one_seed'], int):
-        raise IncorrectNumberOfArticlesError
-
-    if conf['max_number_articles_to_get_from_one_seed'] < 0:
+    if 'total_articles_to_find_and_parse' in conf and\
+            isinstance(conf['total_articles_to_find_and_parse'], int):
         raise NumberOfArticlesOutOfRangeError
 
-    return conf['base_urls'], conf['total_articles_to_find_and_parse'], conf['max_number_articles_to_get_from_one_seed']
+    if 'max_number_articles_to_get_from_one_seed' not in conf or\
+            not isinstance(conf['max_number_articles_to_get_from_one_seed'], int) or\
+            'total_articles_to_find_and_parse' not in conf or\
+            not isinstance(conf['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+
+    return conf['base_urls'], conf['total_articles_to_find_and_parse'], \
+           conf['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     prepare_environment(constants.PROJECT_ROOT)
-    seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+    seed_urls_list, total_max_articles, max_articles_per_seed_num = validate_config(constants.CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls_list, max_articles=total_max_articles,
+                      max_articles_per_seed=max_articles_per_seed_num)
     crawler.find_articles()
 
     for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
         article = parser.parse()
         article.save_raw()
-        sleep(random.randrange(2,6))
+        sleep(random.randrange(2, 6))
