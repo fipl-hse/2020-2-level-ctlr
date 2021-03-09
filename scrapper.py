@@ -72,7 +72,7 @@ class Crawler:
             articles_per_seed = 0
             for tag in tags:
                 if articles_per_seed < self.max_articles_per_seed and len(self.urls) < self.max_articles:
-                    self.urls.append(tags.attrs['href'])
+                    self.urls.append(tag.attrs['href'])
                     articles_per_seed += 1
 
 
