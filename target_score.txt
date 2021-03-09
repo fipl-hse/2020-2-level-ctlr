@@ -1,4 +1,3 @@
-  
 # Target score for scrapper.py:
 4
 

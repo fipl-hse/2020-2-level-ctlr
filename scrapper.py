@@ -116,7 +116,22 @@ class ArticleParser:
             print('    unable to parse', self.full_url)
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        try:
+            title = article_soup.title.text
+            self.article.title = title
+
+            credits = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0]
+            if 'Автор:' in credits:
+                author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0][7:]
+            elif 'Источник:' in credits:
+                author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0][9:].strip()
+            else:
+                author = ''
+            self.article.author = author
+        except AttributeError:
+            print('    something is off with', self.full_url)
+        # print(title)
+        # self.article.title = title
 
     @staticmethod
     def unify_date_format(date_str):
@@ -135,7 +150,7 @@ class ArticleParser:
         html = requests.get(self.full_url, 'html.parser').text
         article_bs = BeautifulSoup(html, 'html.parser')
         self._fill_article_with_text(article_bs)
-        # self._fill_article_with_meta_information(article_bs)
+        self._fill_article_with_meta_information(article_bs)
         self.article.save_raw()
 
 
@@ -184,6 +199,6 @@ if __name__ == '__main__':
 
     for n, url in enumerate(crawler.urls):
         full_url = crawler.URL_START + url
-        parser = ArticleParser(full_url, n)
+        parser = ArticleParser(full_url, n + 1)
         parser.parse()
     print('parsing is finished')
