@@ -125,7 +125,7 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
 
-    unknown = ('base_urls' not in config or 'total_artivles_to_find_and_parse' not in config
+    unknown = ('base_urls' not in config or 'total_articles_to_find_and_parse' not in config
                or 'max_number_articles_to_get_from_one_seed' not in config)
     if not isinstance(config, dict) and unknown:
         raise UnknownConfigError
@@ -134,13 +134,16 @@ def validate_config(crawler_path):
             not all(isinstance(url, str) for url in config['base_urls']):
         raise IncorrectURLError
 
-    if config['total_articles_to_find_and_parse'] < 0:
-        raise IncorrectNumberOfArticlesError
-
-    if config['max_number_articles_to_get_from_one_seed'] < 0 or \
-            config['max_number_articles_to_get_from_one_seed'] > config['total_articles_to_find_and_parse']:
+    if 'total_articles_to_find_and_parse' in config and \
+            isinstance(config['total_articles_to_find_and_parse'], int) and \
+            config['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
-    return config.values()
+
+    if 'max_number_articles_to_get_from_one_seed' not in config or \
+            not isinstance(config['max_number_articles_to_get_from_one_seed'], int) or \
+            'total_articles_to_find_and_parse' not in config or \
+            not isinstance(config['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
 
 
 if __name__ == '__main__':
