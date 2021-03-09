@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from random import randint
 from time import sleep
-import re
+# import re
 import requests
 from bs4 import BeautifulSoup
 import article
