@@ -132,7 +132,6 @@ class ArticleParser:
         article_bs = BeautifulSoup(response.content, 'lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
-        self.article.save_raw()
         return self.article
 
 
@@ -184,5 +183,6 @@ if __name__ == '__main__':
     prepare_environment(PROJECT_ROOT)
     for art_id, art_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(full_url=art_url, article_id=art_id)
-        article_from_list = parser.parse()
+        article = parser.parse()
+        article.save_raw()
         sleep(random.randrange(2, 5))
