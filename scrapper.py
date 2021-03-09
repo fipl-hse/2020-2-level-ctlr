@@ -2,16 +2,15 @@
 Crawler implementation
 """
 import json
-import requests
 import os
 import shutil
 import random
 import re
-import constants
-
 from time import sleep
-from bs4 import BeautifulSoup
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+import constants
 from article import Article
 
 
