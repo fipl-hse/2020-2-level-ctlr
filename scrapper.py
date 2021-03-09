@@ -154,12 +154,35 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        crawler = json.load(file)
 
+    if 'base_urls' not in crawler or not isinstance(crawler['base_urls'], list) or \
+            not all([isinstance(url, str) for url in crawler['base_urls']]):
+        raise IncorrectURLError
+
+    if 'total_articles_to_find_and_parse' in crawler and \
+            isinstance(crawler['total_articles_to_find_and_parse'], int) and \
+            crawler['total_articles_to_find_and_parse'] > 100:
+        raise NumberOfArticlesOutOfRangeError
+
+    if 'max_number_articles_to_get_from_one_seed' not in crawler or \
+            not isinstance(crawler['max_number_articles_to_get_from_one_seed'], int) or \
+            'total_articles_to_find_and_parse' not in crawler or \
+            not isinstance(crawler['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+
+    seed_urls = crawler['base_urls']
+    max_articles = crawler['total_articles_to_find_and_parse']
+    max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
+    return seed_urls, max_articles, max_articles_per_seed
 
 if __name__ == '__main__':
-    response = requests.get('https://moyaokruga.ru/privgaz/')
-    if not response:
-        raise ImportError
+    urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler_current = Crawler(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
+    crawler_current.find_articles()
 
-    print(response.headers)
-    pass
+    prepare_environment(ASSETS_PATH)
+    for ind, article_url in enumerate(crawler_current.urls):
+        parser = ArticleParser(full_url=article_url, article_id=ind)
+        parser.parse()
