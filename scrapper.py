@@ -1,18 +1,22 @@
 """
 Crawler implementation
 """
-import article
+from bs4 import BeautifulSoup
+from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
+from time import sleep
+
 import datetime
 import json
 import os
 import random
 import re
 import requests
+import shutil
 
-from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH
-from constants import PROJECT_ROOT
-from time import sleep
+import article
+
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                         '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74'}
 
 
 class IncorrectURLError(Exception):
@@ -57,17 +61,14 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        soup_strings = article_bs.find_all(class_="block-content")
-        links = re.findall(r'(\"https://astravolga.ru/(\w+[-])+\w+/")', str(soup_strings))
+        soup_links = article_bs.find_all('a')
+        links = re.findall(r'(\"https://astravolga.ru/(\w+[-])+\w+/")', str(soup_links))
         return links
 
     def find_articles(self):
         """
         Finds articles
         """
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74'}
         for url in self.seed_urls:
             try:
                 response = requests.get(url, headers=headers)
@@ -80,13 +81,13 @@ class Crawler:
                 continue
             else:
                 links = self._extract_url(soup_menu_page)
-                articles_per_one_seed = 0
-                for link in links:
-                    if articles_per_one_seed >= self.max_articles_per_seed or len(self.urls) >= self.total_max_articles:
-                        continue
-                    else:
-                        articles_per_one_seed += 1
+                links = [link for link in links if link[0][1:-2] not in self.urls]
+                limit = min(len(links), self.max_articles_per_seed)
+                for link in links[:limit]:
+                    if len(self.urls) < self.total_max_articles:
                         self.urls.append(link[0][1:-2])
+                if len(self.urls) == self.total_max_articles:
+                    break
         return self.urls
 
     def get_search_urls(self):
@@ -107,38 +108,33 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         text_soup = article_soup.find('div', class_="entry-content").find_all('p')
-        text = ''
-        for par in text_soup:
-            if par.text:
-                text += par.text.strip() + '\n'
+        text = '\n'.join([par.text.strip() for par in text_soup if par.text.strip()])
         if " " in text:
             text = text.replace(" ", ' ')
-        self.article.text = text[:-1]
+        self.article.text = text
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
-        self.article.author = article_soup.find('div', class_="title-post").find(rel='author').text
-        self.article.date = self.unify_date_format(article_soup.find('div', class_="title-post").find('li').text)
+        try:
+            self.article.author = \
+                article_soup.find('div', class_="title-post").find(rel='author').text
+        except AttributeError:
+            self.article.author = 'NOT FOUND'
+        self.article.date = \
+            self.unify_date_format(article_soup.find('div', class_="title-post").find('li').text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        date = datetime.datetime(int(re.findall(r'\d{4}', date_str)[0]),
-                                 int(re.findall(r'\.(\d{2})\.', date_str)[0]),
-                                 int(re.findall(r'^\d{2}', date_str)[0]),
-                                 int(re.findall(r'(\d{1,2}):', date_str)[0]),
-                                 int(re.findall(r':(\d{1,2})', date_str)[0]))
+        date = datetime.datetime.strptime(date_str, "%d.%m.%Y, %H:%M")
         return date
 
     def parse(self):
         """
         Parses each article
         """
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74'}
         response = requests.get(self.article_url, headers=headers)
         if response:
             article_bs = BeautifulSoup(response.content, 'lxml')
@@ -152,12 +148,8 @@ def prepare_environment(base_path):
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        for root, dirs, files in os.walk(os.path.join(base_path, 'tmp', 'articles'), topdown=False):
-            if files:
-                for name in files:
-                    os.remove(os.path.join(root, name))
-    else:
-        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
+    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
 
 def validate_config(crawler_path):
@@ -167,7 +159,8 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         conf = json.load(file)
     if not isinstance(conf, dict) or 'base_urls' not in conf or \
-            'max_number_articles_to_get_from_one_seed' not in conf or 'total_articles_to_find_and_parse' not in conf:
+            'max_number_articles_to_get_from_one_seed' not in conf or\
+            'total_articles_to_find_and_parse' not in conf:
         raise UnknownConfigError
     if not isinstance(conf['base_urls'], list) or \
             not all([isinstance(seed_url, str) for seed_url in conf['base_urls']]):
@@ -178,9 +171,11 @@ def validate_config(crawler_path):
     if conf['total_articles_to_find_and_parse'] < 0:
         raise IncorrectNumberOfArticlesError
     if conf['max_number_articles_to_get_from_one_seed'] < 0 or \
-            conf['max_number_articles_to_get_from_one_seed'] > conf['total_articles_to_find_and_parse']:
+            conf['max_number_articles_to_get_from_one_seed'] > \
+            conf['total_articles_to_find_and_parse']:
         raise NumberOfArticlesOutOfRangeError
-    return conf['base_urls'], conf['total_articles_to_find_and_parse'], conf['max_number_articles_to_get_from_one_seed']
+    return conf['base_urls'], conf['total_articles_to_find_and_parse'],\
+        conf['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
