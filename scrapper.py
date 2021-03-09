@@ -116,22 +116,39 @@ class ArticleParser:
     @staticmethod
     def unify_date_format(date_str):
         """
-        Unifies date format
+        Unifies date format: strftime("%Y-%m-%d %H:%M:%S")
         """
-        pass
+        date = '-'.join(date_str.split('.')[::-1])
+        date_time = str(datetime.strptime(date, "%Y-%m-%d"))
+
+        return datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers=HEADERS)
+        if not response:
+            raise IncorrectURLError
+
+        article_soup = BeautifulSoup(response.content, features='lxml')
+        self._fill_article_with_text(article_soup)
+        self._fill_article_with_meta_information(article_soup)
+        self.article.save_raw()
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-
+    if os.path.exists(base_path):
+        for file in os.listdir(base_path):
+            os.remove(f'{base_path}\\{file}')
+    else:
+        try:
+            os.makedirs(base_path, mode=0o777)
+        except OSError as error:
+            raise UnknownConfigError from error
 
 def validate_config(crawler_path):
     """
