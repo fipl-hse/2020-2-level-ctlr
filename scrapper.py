@@ -92,7 +92,7 @@ class Crawler:
                 else:
                     self.urls.extend(found_links[:self.max_articles_per_seed])
 
-    def get_search_urls(self):
+    def get_search_urls(self, page_soup):
         """
         Returns seed_urls param
         """
@@ -136,12 +136,22 @@ class CrawlerRecursive(Crawler):
                     self.urls.extend(found_links)
                 else:
                     self.urls.extend(found_links[:self.max_articles_per_seed])
+                self.get_search_urls(main_page_soup)
 
-    def get_search_urls(self):
+    def get_search_urls(self, page_soup):
         """
         Returns seed_urls param
         """
-        return self.seed_urls
+        for tag_a_content in page_soup.find_all('a'):
+            get_url = tag_a_content.get('href')
+            if get_url:
+                re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
+                if re_url:
+                    if get_url == re_url[0][0] and get_url not in self.seed_urls:
+                        self.seed_urls.append(get_url)
+                        with open(os.path.join(PROJECT_ROOT, 'tmp', 'notparsed_links.txt'),
+                                  'w', encoding='utf-8') as file:
+                            file.write('\n'.join(self.seed_urls))
 
 
 class ArticleParser:
