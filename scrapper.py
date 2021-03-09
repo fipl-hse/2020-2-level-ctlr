@@ -2,10 +2,10 @@
 Crawler implementation
 """
 
-import article
-import json
 import requests
+import json
 from bs4 import BeautifulSoup
+import article
 from constants import CRAWLER_CONFIG_PATH
 
 headers = {
@@ -131,7 +131,7 @@ def validate_config(crawler_path):
         raise UnknownConfigError
 
     if not isinstance(config['base_urls'], list) or \
-            not (all(isinstance(url, str) for url in config['base_urls'])):
+            not all(isinstance(url, str) for url in config['base_urls']):
         raise IncorrectURLError
 
     if config['total_articles_to_find_and_parse'] < 0:
@@ -140,6 +140,7 @@ def validate_config(crawler_path):
     if config['max_number_articles_to_get_from_one_seed'] < 0 or \
             config['max_number_articles_to_get_from_one_seed'] > config['total_articles_to_find_and_parse']:
         raise NumberOfArticlesOutOfRangeError
+    return config.values()
 
 
 if __name__ == '__main__':
