@@ -1,6 +1,7 @@
 """
 Crawler implementation
 """
+import json
 import requests
 from time import sleep
 
@@ -27,7 +28,9 @@ class Crawler:
     Crawler implementation
     """
     def __init__(self, seed_urls: list, max_articles: int):
-        pass
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.url = []
 
     @staticmethod
     def _extract_url(article_bs):
@@ -37,6 +40,9 @@ class Crawler:
         """
         Finds articles
         """
+        url_list = []
+        for url in self.seed_urls:
+            response = requests.get(url, headers=headers)
         '''
         for url in self.seed_urls:
             sleep(5)
