@@ -86,7 +86,6 @@ class Crawler:
         return seed_urls
 
 
-
 class ArticleParser:
     """
     ArticleParser implementation
@@ -95,7 +94,7 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(full_url, article_id)
+        self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
         all_text = article_soup.find(name='div', id='article')
@@ -120,7 +119,6 @@ class ArticleParser:
         return None'''
         pass
 
-
     @staticmethod
     def unify_date_format(date_str):
         """
@@ -142,7 +140,6 @@ class ArticleParser:
         return self.article
 
 
-
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
@@ -158,34 +155,35 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as conf_file:
         conf = json.load(conf_file)
 
-    max_n_articles = conf["max_number_articles_to_get_from_one_seed"]
-    total_art = conf["total_articles_to_find_and_parse"]
     urls = conf["base_urls"]
+    total_art = conf["total_articles_to_find_and_parse"]
 
-    is_artcl_n = 0 < max_n_articles <= total_art or 5 <= total_art <= 10
-    is_total_ok = isinstance(total_art, int) and not isinstance(total_art, bool)
-    is_max_ok = isinstance(max_n_articles, int) and not isinstance(max_n_articles, bool)
+    is_total_not_ok = not isinstance(total_art, int) or total_art < 0
+    is_config = ('base_urls' not in conf
+                         or 'total_articles_to_find_and_parse' not in conf
+                         or 'max_number_articles_to_get_from_one_seed' not in conf)
+
+    if not isinstance(conf, dict) and is_config:
+        raise UnknownConfigError
 
     if not isinstance(urls, list) or \
-            not (isinstance(url, str) for url in urls):
+            (not isinstance(url, str) for url in urls):
         raise IncorrectURLError
 
-    if not is_artcl_n:
+    if total_art > 1000000:
         raise NumberOfArticlesOutOfRangeError
 
-    if not (is_total_ok and is_max_ok):
+    if is_total_not_ok:
         raise IncorrectNumberOfArticlesError
 
-    if is_total_ok and is_max_ok and is_artcl_n and isinstance(urls, list) or \
-            (isinstance(url, str) for url in urls):
-        return is_total_ok, is_max_ok, is_artcl_n
+    return urls, total_art
 
-    raise UnknownConfigError
+
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    seed_urls, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     urls = ['https://xn--65-dlci3cau6a.xn--p1ai/news/events/1/' ,'https://xn--65-dlci3cau6a.xn--p1ai/news/events/2/']
 
     crawler = Crawler(seed_urls=urls, max_articles=5, max_articles_per_seed=10)
