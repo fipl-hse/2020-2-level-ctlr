@@ -223,7 +223,7 @@ def validate_config(crawler_path: str) -> Iterable:
     Validates given config
     """
     with open(crawler_path) as file:
-        config: Dict[str, Union[str, int]] = json.load(file)
+        config: dict = json.load(file)
 
     Check = namedtuple('Check', ['status', 'error'])
 
