@@ -43,7 +43,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        pass
+
 
 
 class ArticleParser:
