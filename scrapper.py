@@ -54,7 +54,13 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        container = article_bs.find('div', attrs={
+            'class': 'news-container',
+            'id': 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'})
+        tags = container.find_all('a', id=re.compile('_articleLink'))
+        # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
+        # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
+        return [tag.attrs['href'] for tag in tags]
 
     def find_articles(self):
         """
@@ -64,17 +70,12 @@ class Crawler:
             response = requests.get(seed_url, headers=headers)
             sleep(random.randrange(2, 6))
             page_bs = BeautifulSoup(response.content, 'lxml')
-            container = page_bs.find('div', attrs={
-                'class': 'news-container',
-                'id': 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'})
-            tags = container.find_all('a', id=re.compile('_articleLink'))
-            # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
-            # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
-            for tag in range(self.max_articles_per_seed):
-                if len(self.urls) < self.max_articles:
-                    self.urls.append(tags[tag].attrs['href'])
-                else:
-                    break
+            extracted_url = self._extract_url(page_bs)
+            articles_we_need = self.max_articles - len(self.urls)
+            if self.max_articles_per_seed <= articles_we_need:
+                self.urls.extend(extracted_url[:self.max_articles_per_seed])
+            else:
+                self.urls.extend(extracted_url[:articles_we_need])
             if len(self.urls) == self.max_articles:
                 break
 
@@ -82,7 +83,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -171,7 +172,7 @@ if __name__ == '__main__':
     crawler.find_articles()
     prepare_environment(constants.PROJECT_ROOT)
 
-    for i, url in enumerate(crawler.urls):
+    for i, url in enumerate(crawler.get_search_urls()):
         parser = ArticleParser(full_url=url, article_id=i)
         article = parser.parse()
         article.save_raw()
