@@ -6,6 +6,7 @@ import json
 import os
 from time import sleep
 from bs4 import BeautifulSoup
+import re
 
 from constants import CRAWLER_CONFIG_PATH
 
@@ -37,7 +38,7 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
@@ -45,28 +46,39 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
-
+        return article_bs.findAll('a', attrs={'href': re.compile("/node/")})
 
     def find_articles(self):
+        """
+        Finds articles
+        """
 
-        lst_urls = []
         headers = {
             'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
         }
+
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
             sleep(random.randrange(3,5))
             page = BeautifulSoup(response.content, features='lxml')
-            page_links = self._extract_url(page)
-            lst_urls.extend(page_links)
+            links = self._extract_url(page)
+            for link in links:
+                link2 = re.findall(r'/node/\d{4}', str(links))
+
+
+            for link_url in link2:
+                code = 'http://kamtime.ru' + link_url
+                if code not in self.urls and len(self.urls) < max_articles:
+                    self.urls.append(code)
+
+            return self.urls
 
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
