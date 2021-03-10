@@ -170,11 +170,16 @@ def validate_config(crawler_path):
     return seed_urls, max_articles, max_articles_per_seed
 
 if __name__ == '__main__':
-    urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler_current = Crawler(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
-    crawler_current.find_articles()
+    import constants
 
-    prepare_environment(ASSETS_PATH)
-    for ind, article_url in enumerate(crawler_current.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind)
-        parser.parse()
+    seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    urls = crawler.find_articles()
+    prepare_environment(constants.ASSETS_PATH)
+    article_id = 0
+    for article_url in urls:
+        article_id += 1
+        parser = ArticleParser(article_url, article_id)
+        sleep(random.randint(2, 4))
+        article = parser.parse()
+        article.save_raw()
