@@ -66,7 +66,7 @@ class Crawler:
         """
         Finds articles
         """
-        for seed_url in self.seed_urls:
+        for seed_url in self.get_search_urls():
             response = requests.get(seed_url, headers=headers)
             sleep(random.randrange(2, 6))
             page_bs = BeautifulSoup(response.content, 'lxml')
