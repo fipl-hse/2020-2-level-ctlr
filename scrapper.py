@@ -103,22 +103,25 @@ def prepare_environment(base_path):
 
 def validate_config(crawler_path):
     with open(crawler_path) as config_file:
-        crawler = json.load(crawler_file)
+        crawler_conf = json.load(crawler_file)
 
-        if not isinstance(crawler, dict):
+        if not isinstance(crawler_conf, dict):
             raise UnknownConfigError
 
-        if not isinstance(crawler['base_urls'], list):
+        if not isinstance(crawler_conf['base_urls'], list):
             raise IncorrectURLError
 
-        if not all(isinstance(url, str) for url in crawler['base_urls']):
+        if not all(isinstance(url, str) for url in crawler_conf['base_urls']):
             raise IncorrectURLError
 
-        if not isinstance(crawler['total_articles_to_find_and_parse'], int):
+        if not isinstance(crawler_conf['total_articles_to_find_and_parse'], int):
             raise IncorrectNumberOfArticlesError
 
-        if config_file['total total_articles_to_find_and_parse'] > 100000:
+        if crawler_conf['total total_articles_to_find_and_parse'] > 100000:
             raise NumberOfArticlesOutOfRangeError
+
+        return crawler_conf['base_urls'], crawler_conf['total_articles_to_find_and_parse'], \
+            cr_config['max_number_articles_to_get_from_one_seed']
 
 
 
