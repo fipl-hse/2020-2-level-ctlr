@@ -1,7 +1,13 @@
 """
 Crawler implementation
 """
+import requests
+import json
+import os
+from time import sleep
+from bs4 import BeautifulSoup
 
+from constants import CRAWLER_CONFIG_PATH
 
 class IncorrectURLError(Exception):
     """
@@ -32,17 +38,29 @@ class Crawler:
     Crawler implementation
     """
     def __init__(self, seed_urls: list, max_articles: int):
-        pass
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
         pass
 
+
     def find_articles(self):
-        """
-        Finds articles
-        """
-        pass
+
+        lst_urls = []
+        headers = {
+            'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
+        }
+        for url in self.seed_urls:
+            response = requests.get(url, headers=headers)
+            sleep(random.randrange(3,5))
+            page = BeautifulSoup(response.content, features='lxml')
+            page_links = self._extract_url(page)
+            lst_urls.extend(page_links)
+
 
     def get_search_urls(self):
         """
@@ -62,6 +80,7 @@ class ArticleParser:
         pass
 
     def _fill_article_with_meta_information(self, article_soup):
+
         pass
 
     @staticmethod
@@ -72,9 +91,6 @@ class ArticleParser:
         pass
 
     def parse(self):
-        """
-        Parses each article
-        """
         pass
 
 
@@ -86,29 +102,25 @@ def prepare_environment(base_path):
 
 
 def validate_config(crawler_path):
-    """
-    Validates given config
-    """
-    pass
+    with open(crawler_path) as config_file:
+        crawler = json.load(crawler_file)
+
+        if not isinstance(crawler, dict):
+            raise UnknownConfigError
+
+        if not isinstance(crawler['base_urls'], list):
+            raise IncorrectURLError
+
+        if not all(isinstance(url, str) for url in crawler['base_urls']):
+            raise IncorrectURLError
+
+        if not isinstance(crawler['total_articles_to_find_and_parse'], int):
+            raise IncorrectNumberOfArticlesError
+
+        if config_file['total total_articles_to_find_and_parse'] > 100000:
+            raise NumberOfArticlesOutOfRangeError
+
 
 
 if __name__ == '__main__':
-    import requests
-    from time import sleep
-    import random
-
-    # use user-agent
-    headers = {
-        'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
-    }
-    response = requests.get('http://kamtime.ru/node/5244', headers=headers)
-
-    # add sleeps between requests
-    # sleep(random.randrange(3,6))
-
-    # go offline asap
-    # with open(file='text.html', mode='w') as f:
-    # f.write(response.text)
-
-    print(response.text)
-
+    pass
