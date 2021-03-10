@@ -7,6 +7,7 @@ from constants import CRAWLER_CONFIG_PATH
 import json
 from time import sleep
 import article
+# путь
 
 
 class IncorrectURLError(Exception):
@@ -37,15 +38,18 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int):
-        self.seed_urls = seed_urls
+    def __init__(self, seed_urls_: list, total_max_articles: int, max_articles_per_one_seed: int):
+        self.seed_urls_ = seed_urls_
         self.total_max_articles = total_max_articles
-        self.max_articles_per_seed = max_articles_per_seed
+        self.max_articles_per_one_seed = max_articles_per_one_seed
         self.urls = []
 
     @staticmethod
-    def _extract_url(article_bs): # тащит ссылки с рандомной страницы
-        pass
+    def _extract_url(article_bs, max_articles_per_one_seed, urls):
+        future_article_links_soup = article_bs.find_all(class_="grow_single")
+        future_article_links_soup = future_article_links_soup[0:max_articles_per_one_seed]
+        for future_article_link in future_article_links_soup:
+            urls.append(future_article_link.find('a').get('href'))
 
     def find_articles(self):
         """
@@ -54,16 +58,14 @@ class Crawler:
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
         }
-        for seed_url in self.seed_urls:
+        for seed_url in self.seed_urls_:
             response = requests.get(seed_url, headers=headers)
             sleep(5)
 
             if response.status_code == 200:
                 seed_url_soup = BeautifulSoup(response.content, features='lxml')
-                future_article_links_soup = seed_url_soup.find_all(class_="grow_single")
-                future_article_links_soup = future_article_links_soup[0:self.max_articles_per_seed]
-                for future_article_link in future_article_links_soup:
-                    self.urls.append(future_article_link.find('a').get('href'))
+                self._extract_url(article_bs=seed_url_soup, max_articles_per_one_seed=self.max_articles_per_one_seed,
+                                  urls=self.urls)
 
     def get_search_urls(self):
         """
@@ -118,7 +120,7 @@ class ArticleParser:
             article_bs = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_bs)
             self._fill_article_with_meta_information(article_bs)
-        self.article.save_raw() #self.article.save_raw() а не article.save_raw()
+        self.article.save_raw()
         return self.article
 
 
@@ -166,7 +168,8 @@ if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
     # step 2.1
-    crawler = Crawler(seed_urls=seed_urls, total_max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+    crawler = Crawler(seed_urls_=seed_urls, total_max_articles=max_articles,
+                      max_articles_per_one_seed=max_articles_per_seed)
 
     # step 2.2
     crawler.find_articles()
