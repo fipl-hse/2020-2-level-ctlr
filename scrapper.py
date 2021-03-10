@@ -133,7 +133,10 @@ def prepare_environment(base_path):
         for file in os.listdir(base_path):
             os.remove(f'{base_path}\\{file}')
     else:
-        os.makedirs(base_path, mode=0o777)
+        try:
+            os.makedirs(base_path, mode=0o777)
+        except OSError as error:
+            raise UnknownConfigError from error
 
 
 def validate_config(crawler_path):
