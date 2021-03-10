@@ -110,9 +110,9 @@ class CrawlerRecursive(Crawler):
                       'r', encoding='utf-8') as file:
                 results = json.load(file)
             if results['seed_urls']:
-                self.seed_urls.extend(results['seed_urls'])
+                self.seed_urls = results['seed_urls']
             if results['article_urls']:
-                self.urls.extend(results['article_urls'])
+                self.urls = results['article_urls']
         for url in self.get_search_urls():
             try:
                 response = requests.get(url, headers=headers)
@@ -134,7 +134,7 @@ class CrawlerRecursive(Crawler):
                     with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'),
                               'r', encoding='utf-8') as file:
                         results = json.load(file)
-                    results['seed_urls'].append(url)
+                    results['seed_urls'].remove(url)
                     results['article_urls'] = self.urls
                     with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'), 'w', encoding='utf-8') as file:
                         json.dump(results, file)
@@ -148,16 +148,25 @@ class CrawlerRecursive(Crawler):
         """
         for link in self.seed_urls:
             try:
+                if len(self.seed_urls) > 100:
+                    with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'),
+                              'r', encoding='utf-8') as file:
+                        results = json.load(file)
+                    results['seed_urls'] = self.seed_urls
+                    with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'), 'w',
+                              encoding='utf-8') as file:
+                        json.dump(results, file)
+                    break
                 response = requests.get(link, headers=headers)
                 if response.status_code == 200:
-                    sleep(random.randrange(3, 6))
+                    sleep(random.randrange(1, 2))
                     soup_page = BeautifulSoup(response.content, 'lxml')
                 else:
                     raise BadStatusCode
             except BadStatusCode:
                 continue
             else:
-                if link == 'https://astravolga.ru':
+                if link == 'https://astravolga.ru' and len(self.seed_urls) == 1:
                     for tag in soup_page.find_all(class_='menu-item menu-item-type-taxonomy'
                                                          ' menu-item-object-category'
                                                          ' menu-item-87549'):
@@ -260,4 +269,4 @@ if __name__ == '__main__':
         parser = ArticleParser(article_url=full_url, article_id=i)
         article_from_list = parser.parse()
         article_from_list.save_raw()
-        sleep(random.randrange(3, 6))
+        sleep(random.randrange(2, 5))
