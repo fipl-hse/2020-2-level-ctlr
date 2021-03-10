@@ -51,8 +51,8 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find('a')
-        return url_article.attrs['href']
+        url = article_bs.contents[1]
+        return url.get('href')
 
     def find_articles(self):
         """
