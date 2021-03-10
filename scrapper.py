@@ -5,10 +5,12 @@ Crawler implementation
 import json
 import datetime
 import os
+import shutil
 import requests
 from bs4 import BeautifulSoup
 import article
 from constants import CRAWLER_CONFIG_PATH
+from constants import ASSETS_PATH
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -121,14 +123,16 @@ class ArticleParser:
         self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
         self.article.save_raw()
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
+    if os.path.exists(ASSETS_PATH):
+        shutil.rmtree(os.path.dirname(ASSETS_PATH))
+    os.makedirs(ASSETS_PATH)
 
 
 def validate_config(crawler_path):
@@ -165,3 +169,7 @@ if __name__ == '__main__':
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls_ex, max_articles_ex, max_articles_per_seed_ex)
     crawler.find_articles()
+    prepare_environment(ASSETS_PATH)
+    for ind, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=article_url, article_id=ind)
+        parser.parse()
