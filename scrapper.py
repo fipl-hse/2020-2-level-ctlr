@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from random import randint
 from time import sleep
-# import re
+import re
 import requests
 from bs4 import BeautifulSoup
 import article
@@ -62,14 +62,23 @@ class Crawler:
         self.urls = []
 
     @staticmethod
-    def _extract_url(article_bs, urls):
-        pages_links = []
-        for tag_a_content in article_bs.find_all('div', class_='signature'):
-            link = tag_a_content.find('a').get('href')
-            if link and link not in urls:
-                pages_links.append('http://ks-yanao.ru/' + link)
-
-        return pages_links
+    def _extract_url(article_bs):
+        page_links = []
+        for tag_a_content in article_bs.find_all('a'):
+            get_url = tag_a_content.get('href')
+            if get_url:
+                re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
+                if re_url:
+                    if get_url == re_url[0][0] and get_url not in page_links:
+                        page_links.append('http://ks-yanao.ru' + get_url)
+        return page_links
+        # pages_links = []
+        # for tag_a_content in article_bs.find_all('div', class_='signature'):
+        #     link = tag_a_content.find('a').get('href')
+        #     if link and link not in urls:
+        #         pages_links.append('http://ks-yanao.ru/' + link)
+        #
+        # return pages_links
 
     def find_articles(self):
         """
@@ -92,66 +101,92 @@ class Crawler:
                 else:
                     self.urls.extend(found_links[:self.max_articles_per_seed])
 
-    def get_search_urls(self, page_soup):
+    def get_search_urls(self):
         """
         Returns seed_urls param
         """
         return self.seed_urls
 
 
-# class CrawlerRecursive(Crawler):
-#     """
-#     Recursive Crawler
-#     """
-#     @staticmethod
-#     def _extract_url(article_bs, urls):
-#         page_links = []
-#         for tag_a_content in article_bs.find_all('a'):
-#             get_url = tag_a_content.get('href')
-#             if get_url:
-#                 re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
-#                 if re_url:
-#                     if get_url == re_url[0][0] and get_url not in page_links:
-#                         page_links.append('http://ks-yanao.ru' + get_url)
-#
-#         return page_links
+class CrawlerRecursive(Crawler):
+    """
+    Recursive Crawler
+    """
 
-    # def find_articles(self):
-    #     """
-    #     Finds articles
-    #     """
-    #     for seed_url in self.seed_urls:
-    #         try:
-    #             response = requests.get(seed_url, headers=headers)
-    #             sleep(randint(2, 6))
-    #             if response.status_code:
-    #                 main_page_soup = BeautifulSoup(response.content, features='lxml')
-    #             else:
-    #                 raise IncorrectStatusCode
-    #         except IncorrectStatusCode:
-    #             continue
-    #         else:
-    #             found_links = self._extract_url(main_page_soup, urls=self.urls)
-    #             if len(found_links) < self.max_articles_per_seed:
-    #                 self.urls.extend(found_links)
-    #             else:
-    #                 self.urls.extend(found_links[:self.max_articles_per_seed])
-    #             self.get_search_urls(main_page_soup)
-    #
-    # def get_search_urls(self, page_soup):
-    #     """
-    #     Returns seed_urls param
-    #     """
-    #     for tag_a_content in page_soup.find_all('a'):
-    #         get_url = tag_a_content.get('href')
-    #         if get_url:
-    #             re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
-    #             if re_url:
-    #                 if get_url == re_url[0][0] and get_url not in self.seed_urls:
-    #                     self.seed_urls.append(get_url)
-    #                     with open(os.path.join(PROJECT_ROOT, 'tmp', 'notparsed_links.txt'),
-    #                               'w', encoding='utf-8') as file:
-    #                         file.write('\n'.join(self.seed_urls))
+    def find_articles(self):
+        """
+        Finds articles
+        """
+        if os.path.exists(os.path.join(PROJECT_ROOT, 'saved_urls.json')):
+            with open(os.path.join(PROJECT_ROOT, 'saved_urls.json'), encoding='utf-8') as file:
+                saved_urls = json.load(file)
+            if saved_urls['seed_urls']:
+                self.seed_urls = saved_urls['seed_urls']
+            if saved_urls['urls']:
+                self.urls = saved_urls['urls']
+            for seed_url in self.get_search_urls():
+                try:
+                    response = requests.get(seed_url, headers=headers)
+                    sleep(randint(2, 6))
+                    if response.status_code:
+                        page_soup = BeautifulSoup(response.content, features='lxml')
+                    else:
+                        raise IncorrectStatusCode
+                except IncorrectStatusCode:
+                    continue
+                else:
+                    found_links = self._extract_url(page_soup)
+                    new_links = [url for url in found_links if url not in self.urls]
+                    if len(new_links) < self.max_articles_per_seed and len(self.urls) < self.max_articles:
+                        self.urls.extend(new_links)
+                    else:
+                        self.urls.extend(new_links[:min(self.max_articles_per_seed, self.max_articles)])
+
+                    saved_urls['seed_urls'].remove(seed_url)
+                    saved_urls['urls'] = self.urls
+                    with open(os.path.join(PROJECT_ROOT, 'saved_urls.json'), 'w', encoding='utf-8') as file:
+                        json.dump(saved_urls, file)
+
+    def get_search_urls(self):
+        """
+        Returns seed_urls param
+        """
+        for seed_url in self.seed_urls:
+            try:
+                response = requests.get(seed_url, headers=headers)
+                sleep(randint(2, 6))
+                if response.status_code:
+                    page_soup = BeautifulSoup(response.content, features='lxml')
+                else:
+                    raise IncorrectStatusCode
+            except IncorrectStatusCode:
+                continue
+            else:
+                if seed_url == 'http://ks-yanao.ru':
+                    class_urls = page_soup.find('ul',
+                                                class_='panel-menu-list list-unstyled text-uppercase').find_all('a')
+                    for tag_a_content in class_urls:
+                        found_link = tag_a_content.get('href')
+                        if found_link not in self.seed_urls:
+                            self.seed_urls.append(found_link)
+                else:
+                    found_links = self._extract_url(page_soup)
+                    new_links = [link for link in found_links if link not in self.seed_urls]
+                    self.seed_urls.extend(new_links)
+        with open(os.path.join(PROJECT_ROOT, 'saved_urls.json'), encoding='utf-8') as file:
+            saved_urls = json.load(file)
+        saved_urls['seed_urls'] = self.seed_urls
+        with open(os.path.join(PROJECT_ROOT, 'saved_urls.json'), 'w', encoding='utf-8') as file:
+            json.dump(saved_urls, file)
+
+        # for tag_a_content in page_soup.find_all('a'):
+        #     get_url = tag_a_content.get('href')
+        #     if get_url:
+        #         re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
+        #         if re_url:
+        #             if get_url == re_url[0][0] and get_url not in self.seed_urls:
+        #                 self.seed_urls.append(get_url)
+        return self.seed_urls
 
 
 class ArticleParser:

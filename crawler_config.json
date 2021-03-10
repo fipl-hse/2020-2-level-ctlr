@@ -1,15 +1,5 @@
 {
-    "base_urls": ["http://ks-yanao.ru/novosti/",
-                  "http://ks-yanao.ru/vlast/",
-                  "http://ks-yanao.ru/ekonomika/",
-                  "http://ks-yanao.ru/obshchestvo/",
-                  "http://ks-yanao.ru/zhilye/",
-                  "http://ks-yanao.ru/proisshestviya/",
-                  "http://ks-yanao.ru/zdorove/",
-                  "http://ks-yanao.ru/kultura/",
-                  "http://ks-yanao.ru/obrazovanie/",
-                  "http://ks-yanao.ru/sport/",
-                  "http://ks-yanao.ru/koronovirus/"],
+    "base_urls": ["http://ks-yanao.ru"],
     "total_articles_to_find_and_parse": 100,
     "max_number_articles_to_get_from_one_seed": 100
 }
