@@ -139,15 +139,14 @@ def validate_config(crawler_path):
             or not all([isinstance(url, str) for url in crawler_config['base_urls']])):
         raise IncorrectURLError
 
-    if ('total_articles_to_find_and_parse' not in crawler_config or
-            not isinstance(crawler_config['total_articles_to_find_and_parse'], int)
-            or 'max_number_articles_to_get_from_one_seed' not in crawler_config
-            or not isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], int)):
-        raise IncorrectNumberOfArticlesError
-
-    if (crawler_config['max_number_articles_to_get_from_one_seed'] < 1
-            or crawler_config['total_articles_to_find_and_parse'] < 1):
+    if ('total_articles_to_find_and_parse' in crawler_config and
+            isinstance(crawler_config['total_articles_to_find_and_parse'], int)
+            and crawler_config['total_articles_to_find_and_parse'] > 101):
         raise NumberOfArticlesOutOfRangeError
+
+    if ('total_articles_to_find_and_parse' not in crawler_config
+            or 'max_number_articles_to_get_from_one_seed' not in crawler_config):
+        raise IncorrectNumberOfArticlesError
 
     return (crawler_config['base_urls'],
             crawler_config['total_articles_to_find_and_parse'],
