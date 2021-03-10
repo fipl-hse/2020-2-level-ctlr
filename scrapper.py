@@ -5,6 +5,9 @@ Crawler implementation
 import json
 import datetime
 import os
+from time import sleep
+import random
+import shutil
 import requests
 from bs4 import BeautifulSoup
 import article
@@ -65,12 +68,17 @@ class Crawler:
             response = requests.get(url, headers=headers)
             if not response:
                 raise IncorrectURLError
+            if response.status_code == 200:
+                sleep(random.randrange(2, 6))
             page_soup = BeautifulSoup(response.content, features='lxml')
             links = self._extract_url(page_soup)
-            if len(links) < self.max_articles_per_seed:
-                self.urls.extend(links)
-            else:
+            articles = self.max_articles - len(self.urls)
+            if self.max_articles_per_seed <= articles:
                 self.urls.extend(links[:self.max_articles_per_seed])
+            else:
+                self.urls.extend(links[:articles])
+            if len(self.urls) == self.max_articles:
+                break
 
     def get_search_urls(self):
         """
@@ -129,14 +137,10 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
-        for file in os.listdir(base_path):
-            os.remove(f'{base_path}\\{file}')
-    else:
-        try:
-            os.makedirs(base_path, mode=0o777)
-        except OSError as error:
-            raise UnknownConfigError from error
+    assets_path = os.path.join(base_path, 'tmp', 'articles')
+    if os.path.exists(assets_path):
+        shutil.rmtree(os.path.dirname(assets_path))
+    os.makedirs(assets_path)
 
 
 def validate_config(crawler_path):
