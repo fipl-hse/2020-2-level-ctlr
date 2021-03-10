@@ -72,13 +72,6 @@ class Crawler:
                     if get_url == re_url[0][0] and get_url not in page_links:
                         page_links.append('http://ks-yanao.ru' + get_url)
         return page_links
-        # pages_links = []
-        # for tag_a_content in article_bs.find_all('div', class_='signature'):
-        #     link = tag_a_content.find('a').get('href')
-        #     if link and link not in urls:
-        #         pages_links.append('http://ks-yanao.ru/' + link)
-        #
-        # return pages_links
 
     def find_articles(self):
         """
@@ -179,13 +172,6 @@ class CrawlerRecursive(Crawler):
         with open(os.path.join(PROJECT_ROOT, 'saved_urls.json'), 'w', encoding='utf-8') as file:
             json.dump(saved_urls, file)
 
-        # for tag_a_content in page_soup.find_all('a'):
-        #     get_url = tag_a_content.get('href')
-        #     if get_url:
-        #         re_url = re.findall(r'(/\w+/(\w+[-])+\w+\.html)', get_url)
-        #         if re_url:
-        #             if get_url == re_url[0][0] and get_url not in self.seed_urls:
-        #                 self.seed_urls.append(get_url)
         return self.seed_urls
 
 
@@ -200,7 +186,7 @@ class ArticleParser:
         self.article = article.Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find_all('p')
+        paragraphs_soup = article_soup.find('div', class_='element-detail').find_all('p')
         article_list = [paragraph.text.strip() for paragraph in paragraphs_soup if paragraph.text.strip()]
         article_str = ' '.join(article_list)
         self.article.text = article_str
@@ -283,13 +269,14 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    prepare_environment(PROJECT_ROOT)
-    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls_ex,
-                      max_articles=max_articles_ex,
-                      max_articles_per_seed=max_articles_per_seed_ex)
-    crawler.find_articles()
-    for art_id, art_url in enumerate(crawler.urls, 1):
-        parser = ArticleParser(full_url=art_url, article_id=art_id)
-        article_from_list = parser.parse()
-        sleep(randint(3, 5))
+    pass
+    # prepare_environment(PROJECT_ROOT)
+    # seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    # crawler = Crawler(seed_urls=seed_urls_ex,
+    #                   max_articles=max_articles_ex,
+    #                   max_articles_per_seed=max_articles_per_seed_ex)
+    # crawler.find_articles()
+    # for art_id, art_url in enumerate(crawler.urls, 1):
+    #     parser = ArticleParser(full_url=art_url, article_id=art_id)
+    #     article_from_list = parser.parse()
+    #     sleep(randint(3, 5))
