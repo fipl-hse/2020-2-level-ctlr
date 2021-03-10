@@ -65,7 +65,7 @@ class Crawler:
                 raise IncorrectURLError
             page_soup = BeautifulSoup(response.content, features='lxml')
             main_soup = page_soup.find('main', id='main')
-            articles_soup = main_soup.find_all('articles')
+            articles_soup = main_soup.find_all('article')
             for i in range(self.max_articles_per_seed):
                 if len(self.urls) < self.max_articles:
                     self.urls.append(self._extract_url(articles_soup[i]))
