@@ -75,7 +75,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -89,10 +89,22 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        article_text_list = []
+        text_soup = article_soup.find('div', class_='entry-content')
+        main_text = text_soup.fins_all('p')
+        for par in main_text:
+           article_text_list.append(par.text)
+        self.article.text = '\n'.join(article_text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        title = article_soup.find('h1')
+        self.article.title = title.text
+
+        date_soup = article_soup.find('div', class_='entry-meta')
+        date = re.findall(r'\d.{9}', str(date_soup))
+        self.article.date = date
+
+        self.article.author = 'AUTHOR NOT FOUND'
 
     @staticmethod
     def unify_date_format(date_str):
@@ -148,3 +160,7 @@ if __name__ == '__main__':
                       max_articles=max_articles_num,
                       max_articles_per_seed=max_articles_num)
     crawler.find_articles()
+
+    for id, url in enumerate(crawler.get_search_urls()):
+        parser = ArticleParser(full_url=url, article_id=id)
+        parser.parse()
