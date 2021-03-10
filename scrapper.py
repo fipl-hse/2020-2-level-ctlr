@@ -7,7 +7,9 @@ from constants import CRAWLER_CONFIG_PATH
 import json
 from time import sleep
 import article
-# путь
+import datetime
+import constants
+import os
 
 
 class IncorrectURLError(Exception):
@@ -55,11 +57,8 @@ class Crawler:
         """
         Finds articles
         """
-        headers = {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
-        }
         for seed_url in self.seed_urls_:
-            response = requests.get(seed_url, headers=headers)
+            response = requests.get(seed_url, headers=constants.headers)
             sleep(5)
 
             if response.status_code == 200:
@@ -97,7 +96,7 @@ class ArticleParser:
         self.article.title = title.text
 
         date = article_soup.find('p', class_="date-time")
-        self.article.date = date.text
+        self.article.date = self.unify_date_format(date.text)
 
         self.article.author = 'No author'
 
@@ -106,16 +105,30 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        month_dict = {'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 'мая': 5, 'июня': 6, 'июля': 7,
+                      'августа': 8, 'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12}
+
+        date, week_day, time = date_str.split(',')
+
+        day, month, year = date.split(' ')  # дата
+        day = int(day)
+        year = int(year)
+        for key, value in month_dict.items():
+            if month == key:
+                month = value
+
+        hour, minute = time.split(':')  # время
+        hour = int(hour)
+        minute = int(minute)
+
+        new_date = datetime.datetime(year, month, day, hour, minute)
+        return new_date
 
     def parse(self):
         """
         Parses each article
         """
-        headers = {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
-        }
-        response = requests.get(self.full_url, headers=headers)
+        response = requests.get(self.full_url, headers=constants.headers)
         if response.status_code == 200:
             article_bs = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_bs)
@@ -128,7 +141,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if not os.path.exists(constants.ASSETS_PATH):
+        os.makedirs(constants.ASSETS_PATH)
 
 
 def validate_config(crawler_path):
@@ -174,7 +188,7 @@ if __name__ == '__main__':
     # step 2.2
     crawler.find_articles()
 
-    # step 3.1, 3.2, 3.3, 4, 5
+    # step 3.1, 3.2, 3.3, 4, 5, 6, 7
     for url_id, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=url_id)
         parsed_article = parser.parse()
