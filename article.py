@@ -19,7 +19,7 @@ class Article:
 
         self.title = ''
         self.date = None
-        self.author = ''
+        self.author = None
         self.topics = []
         self.text = ''
 

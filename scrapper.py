@@ -2,6 +2,13 @@
 Crawler implementation
 """
 
+import requests
+import json
+from bs4 import BeautifulSoup
+import random
+from article import Article
+import os
+
 
 class IncorrectURLError(Exception):
     """
@@ -26,7 +33,8 @@ class Crawler:
     Crawler implementation
     """
     def __init__(self, seed_urls: list, max_articles: int):
-        pass
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
 
     @staticmethod
     def _extract_url(article_bs):
