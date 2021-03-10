@@ -2,6 +2,7 @@
 Crawler implementation
 """
 import json
+import os
 import time
 import random
 import shutil
@@ -10,14 +11,14 @@ import logging.config
 from json.decoder import JSONDecodeError
 from collections import namedtuple
 from datetime import datetime
-from typing import Set, List, Iterable, Iterator
+from typing import Set, List, Iterable, Iterator, Union, Dict, Tuple
 from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
 from requests import RequestException
 
-from constants import CRAWLER_CONFIG_PATH, HEADERS, COOKIES, ASSETS_PATH
+from constants import CRAWLER_CONFIG_PATH, HEADERS, COOKIES, ASSETS_PATH, CRAWLER_INTERIM
 from article import Article
 
 logging.config.fileConfig(fname='crawler_logging.ini', disable_existing_loggers=False)
@@ -73,6 +74,25 @@ class Crawler:
 
         return links
 
+    @staticmethod
+    def save_interim(**args) -> None:
+        interim: dict = {**args}
+
+        with open(CRAWLER_INTERIM, "w", encoding='utf-8') as file:
+            json.dump(interim,
+                      file,
+                      sort_keys=False,
+                      indent=4,
+                      ensure_ascii=False,
+                      separators=(',', ': '))
+
+    @staticmethod
+    def load_interim() -> Tuple[list, set, list]:
+        with open(CRAWLER_INTERIM, encoding='utf-8') as file:
+            status: dict = json.load(file)
+
+        return status['seed'], set(status['articles']), status.get('processed')
+
     def find_articles(self) -> None:
         """
         Finds articles
@@ -89,16 +109,19 @@ class Crawler:
 
                 soup = BeautifulSoup(response.text, 'lxml')
 
-                links = self._extract_url(soup)[:self.max_articles_per_seed]
+                seed_articles = self._extract_url(soup)[:self.max_articles_per_seed]
+                links = seed_articles[:self.max_articles - len(self.urls)]
 
-                self.urls.update(links[:self.max_articles - len(self.urls)])
+                self.urls.update(links)
+                self.save_interim(seed=url, articles=list(self.urls))
 
                 log.info("Seed page '%s' is processed.", url)
 
-                if len(self.urls) == self.max_articles:
-                    break
+                time.sleep(random.uniform(2, 4))
 
-                time.sleep(random.uniform(3, 5))
+                if len(self.urls) == self.max_articles:
+                    self.save_interim(seed=url, articles=list(self.urls), processed=[])
+                    break
 
     def get_search_urls(self) -> Iterator[str]:
         """
@@ -112,6 +135,13 @@ class CrawlerRecursive(Crawler):
     Recursive Crawler
     """
     def get_search_urls(self) -> Iterator[str]:
+        if os.path.exists(CRAWLER_INTERIM):
+            self.seed_urls[0], self.urls, processed = self.load_interim()
+
+            if processed is not None:
+                log.info('All seed_urls are processed.')
+                return
+
         try:
 
             while True:
@@ -121,7 +151,7 @@ class CrawlerRecursive(Crawler):
                 soup = BeautifulSoup(response.text, 'lxml')
                 next_page = soup.select_one('ul.pagination li:has(span.current) + li a')
 
-                self.seed_urls.append(next_page.get('href'))
+                self.seed_urls.append(next_page['href'])
                 yield self.seed_urls.pop(0)
 
         except RequestException as exc:
@@ -193,18 +223,20 @@ def validate_config(crawler_path: str) -> Iterable:
     Validates given config
     """
     with open(crawler_path) as file:
-        config: dict = json.load(file)
+        config: Dict[str, Union[str, int]] = json.load(file)
 
     Check = namedtuple('Check', ['status', 'error'])
 
     try:
-        is_correct_type_total_num = isinstance(config['total_articles_to_find_and_parse'], int)
+        total_num = config['total_articles_to_find_and_parse']
+
+        is_correct_total_num = isinstance(total_num, int)
         is_correct_url = all(isinstance(x, str) for x in config['base_urls'])
-        is_num_not_oor = is_correct_type_total_num and 0 < config['total_articles_to_find_and_parse'] <= 5000
+        is_num_not_oor = is_correct_total_num and 0 < total_num <= 100000
 
         checks = (
             Check(is_correct_url, IncorrectURLError),
-            Check(is_correct_type_total_num, IncorrectNumberOfArticlesError),
+            Check(is_correct_total_num, IncorrectNumberOfArticlesError),
             Check(is_num_not_oor, NumberOfArticlesOutOfRangeError),
         )
 
@@ -223,15 +255,24 @@ if __name__ == '__main__':
     urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = CrawlerRecursive(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
 
+    if not os.path.exists(ASSETS_PATH):
+        prepare_environment(ASSETS_PATH)
+
     crawler.find_articles()
+    seed, articles, parsed = crawler.load_interim()
 
-    prepare_environment(ASSETS_PATH)
-
-    for idx, article_url in enumerate(crawler.urls):
+    for idx, article_url in enumerate(sorted(crawler.urls)):
         parser = ArticleParser(full_url=article_url, article_id=idx)
-        time.sleep(random.uniform(3, 5))
-        parser.parse()
+        time.sleep(random.uniform(2, 4))
 
+        if article_url in parsed:
+            log.info("Article #%s '%s' is already processed. Skipping.", idx, article_url)
+            continue
+
+        parser.parse()
+        parsed.append(article_url)
+
+        crawler.save_interim(seed=seed, articles=list(articles), processed=parsed)
         log.info("Article #%s '%s' is processed.", idx, article_url)
 
     log.info("Total: %s articles.", len(crawler.urls))

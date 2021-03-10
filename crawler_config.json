@@ -2,6 +2,6 @@
     "base_urls": [
         "http://www.gazetaeao.ru/page/1/"
     ],
-    "total_articles_to_find_and_parse": 140,
-    "max_number_articles_to_get_from_one_seed": 28
+    "total_articles_to_find_and_parse": 35,
+    "max_number_articles_to_get_from_one_seed": 10
 }
