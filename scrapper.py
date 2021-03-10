@@ -95,7 +95,7 @@ class Crawler:
             except IncorrectStatusCode:
                 continue
             else:
-                found_links = self._extract_url(main_page_soup, urls=self.urls)
+                found_links = self._extract_url(main_page_soup)
                 if len(found_links) < self.max_articles_per_seed:
                     self.urls.extend(found_links)
                 else:
