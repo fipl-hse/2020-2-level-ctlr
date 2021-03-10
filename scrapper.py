@@ -11,7 +11,7 @@ import logging.config
 from json.decoder import JSONDecodeError
 from collections import namedtuple
 from datetime import datetime
-from typing import Set, List, Iterable, Iterator, Union, Dict, Tuple
+from typing import Set, List, Iterable, Iterator, Tuple
 from pathlib import Path
 
 import requests
