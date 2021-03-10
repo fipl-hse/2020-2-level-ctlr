@@ -172,7 +172,7 @@ if __name__ == '__main__':
     crawler.find_articles()
     prepare_environment(constants.PROJECT_ROOT)
 
-    for i, url in enumerate(crawler.get_search_urls()):
+    for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
         article = parser.parse()
         article.save_raw()
