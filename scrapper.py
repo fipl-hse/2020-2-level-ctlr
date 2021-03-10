@@ -1,23 +1,27 @@
 """
 Crawler implementation
 """
-import os
 import json
 import time
+import random
+import shutil
+import logging.config
 
 from json.decoder import JSONDecodeError
 from collections import namedtuple
 from datetime import datetime
-from random import randint
-from typing import Set, List
+from typing import Set, List, Iterable, Iterator
+from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
-import shutil
-from pathlib import Path
+from requests import RequestException
 
 from constants import CRAWLER_CONFIG_PATH, HEADERS, COOKIES, ASSETS_PATH
 from article import Article
+
+logging.config.fileConfig(fname='crawler_logging.ini', disable_existing_loggers=False)
+log = logging.getLogger(__name__)
 
 
 class IncorrectURLError(Exception):
@@ -60,7 +64,7 @@ class Crawler:
         self.urls = set()
 
     @staticmethod
-    def _extract_url(article_bs: BeautifulSoup):
+    def _extract_url(article_bs: BeautifulSoup) -> List[str]:
         """
         Extracts news urls from the seed page
         """
@@ -69,50 +73,60 @@ class Crawler:
 
         return links
 
-    def find_articles(self):
+    def find_articles(self) -> None:
         """
         Finds articles
         """
         with requests.Session() as session:
-            session.headers.update({**HEADERS, **COOKIES})
-
             for url in self.get_search_urls():
-                num_articles = min(self.max_articles_per_seed, self.max_articles)
 
-                response = session.get(url)
-
-                if not response:
-                    raise IncorrectURLError
+                try:
+                    response = session.get(url, headers=HEADERS, cookies=COOKIES)
+                    response.raise_for_status()
+                except RequestException as exc:
+                    log.exception("%s was encountered while getting seed_urls", exc)
+                    return
 
                 soup = BeautifulSoup(response.text, 'lxml')
-                links = Crawler._extract_url(soup)[:num_articles]
 
-                self.urls.add(*links)
+                links = self._extract_url(soup)[:self.max_articles_per_seed]
 
-                self.get_search_urls()
-                time.sleep(randint(3, 5))
+                self.urls.update(links[:self.max_articles - len(self.urls)])
 
-    def get_search_urls(self):
+                log.info("Seed page '%s' is processed.", url)
+
+                if len(self.urls) == self.max_articles:
+                    break
+
+                time.sleep(random.uniform(3, 5))
+
+    def get_search_urls(self) -> Iterator[str]:
         """
         Returns seed_urls param
         """
-        yield from self.seed_urls
+        yield self.seed_urls
 
 
 class CrawlerRecursive(Crawler):
     """
     Recursive Crawler
     """
-    def get_search_urls(self):
-        response = requests.get(self.seed_urls[0], headers=HEADERS, cookies=COOKIES)
+    def get_search_urls(self) -> Iterator[str]:
+        try:
 
-        soup = BeautifulSoup(response.text, 'lxml')
-        next_page = soup.select_one('ul.pagination li:nth-child(2) a')
+            while True:
+                response = requests.get(self.seed_urls[0], headers=HEADERS, cookies=COOKIES)
+                response.raise_for_status()
 
-        if next_page:
-            yield next_page['href']
+                soup = BeautifulSoup(response.text, 'lxml')
+                next_page = soup.select_one('ul.pagination li:has(span.current) + li a')
 
-        self.seed_urls[0] = response.url
+                self.seed_urls.append(next_page.get('href'))
+                yield self.seed_urls.pop(0)
+
+        except RequestException as exc:
+            log.exception("%s was encountered while getting seed_urls", exc)
+            return
 
 
 class ArticleParser:
@@ -123,45 +137,40 @@ class ArticleParser:
     full_url: str
     article_id: int
 
-    def __init__(self, full_url: str, article_id: int) -> None:
+    def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
         self.article = Article(full_url, article_id)
 
-    def _fill_article_with_text(self, article_soup):
-        soup = BeautifulSoup(article_soup, 'lxml')
+    def _fill_article_with_text(self, article_soup: BeautifulSoup) -> None:
+        self.article.text = '\n'.join([p.text for p in article_soup.select('.entry-content > p')])
 
-        self.article.text = '\n'.join([p.text for p in soup.select('.entry-content p.a')])
+    def _fill_article_with_meta_information(self, article_soup: BeautifulSoup) -> None:
+        self.article.title = article_soup.select_one('h1').text
+        self.article.author = article_soup.select_one('li.autor').text
 
-    def _fill_article_with_meta_information(self, article_soup):
-        soup = BeautifulSoup(article_soup, 'lxml')
-
-        self.article.title = soup.select_one('h1').text
-        self.article.author = soup.select_one('li.autor').text
-
-        date: str = soup.select_one('time.entry-date').attrs['datetime']
+        date: str = article_soup.select_one('time.entry-date').attrs['datetime']
         self.article.date = self.unify_date_format(date)
 
-        self.article.topics = [tag.text for tag in soup.select('a[rel^="category"]')]
-
-        views: str = soup.select_one('.entry-meta li:nth-last-child(2)').text.strip()
-        self.article.views = int(views)
+        self.article.topics = [tag.text for tag in article_soup.select('a[rel^="category"]')]
 
     @staticmethod
-    def unify_date_format(date_str):
+    def unify_date_format(date_str: str) -> datetime:
         """
         Unifies date format
         """
         return datetime.fromisoformat(date_str)
 
-    def parse(self):
+    def parse(self) -> None:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=HEADERS, cookies=COOKIES)
-
-        if not response:
-            raise IncorrectURLError
+        try:
+            response = requests.get(self.full_url, headers=HEADERS, cookies=COOKIES)
+            response.raise_for_status()
+        except RequestException as exc:
+            log.exception("%s was encountered while parsing the article", exc)
+            return
 
         soup = BeautifulSoup(response.text, features='lxml')
 
@@ -171,24 +180,15 @@ class ArticleParser:
         self.article.save_raw()
 
 
-def prepare_environment(base_path):
+def prepare_environment(base_path: str) -> None:
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     shutil.rmtree(base_path, ignore_errors=True)
     Path(base_path).mkdir(parents=True, exist_ok=True)
 
-    # if not os.path.exists(base_path):
-    #     os.makedirs(base_path)
 
-    # if not os.path.exists(os.path.join(PROJECT_ROOT, 'tmp', 'pages')):
-    #     os.makedirs(os.path.join(PROJECT_ROOT, 'tmp', 'pages'))
-    #
-    # if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-    #     os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
-
-
-def validate_config(crawler_path: str):
+def validate_config(crawler_path: str) -> Iterable:
     """
     Validates given config
     """
@@ -205,7 +205,7 @@ def validate_config(crawler_path: str):
         checks = (
             Check(is_correct_url, IncorrectURLError),
             Check(is_correct_type_total_num, IncorrectNumberOfArticlesError),
-            Check(is_num_not_oor, NumberOfArticlesOutOfRangeError)
+            Check(is_num_not_oor, NumberOfArticlesOutOfRangeError),
         )
 
         for check in checks:
@@ -214,8 +214,9 @@ def validate_config(crawler_path: str):
 
         return config.values()
 
-    except (JSONDecodeError, KeyError) as error:
-        raise UnknownConfigError from error
+    except (JSONDecodeError, KeyError) as exc:
+        log.exception("%s was encountered while validating crawler config.", exc)
+        raise UnknownConfigError from exc
 
 
 if __name__ == '__main__':
@@ -228,4 +229,9 @@ if __name__ == '__main__':
 
     for idx, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=idx)
+        time.sleep(random.uniform(3, 5))
         parser.parse()
+
+        log.info("Article #%s '%s' is processed.", idx, article_url)
+
+    log.info("Total: %s articles.", len(crawler.urls))

@@ -1,14 +1,7 @@
 {
     "base_urls": [
-        "http://www.gazetaeao.ru/page/1/",
-        "http://www.gazetaeao.ru/page/2/",
-        "http://www.gazetaeao.ru/page/3/",
-        "http://www.gazetaeao.ru/page/4/",
-        "http://www.gazetaeao.ru/page/5/",
-        "http://www.gazetaeao.ru/page/6/",
-        "http://www.gazetaeao.ru/page/7/",
-        "http://www.gazetaeao.ru/page/8/"
+        "http://www.gazetaeao.ru/page/1/"
     ],
-    "total_articles_to_find_and_parse": 200,
+    "total_articles_to_find_and_parse": 140,
     "max_number_articles_to_get_from_one_seed": 28
 }
