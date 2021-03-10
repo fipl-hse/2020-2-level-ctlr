@@ -269,14 +269,13 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
-    # prepare_environment(PROJECT_ROOT)
-    # seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    # crawler = Crawler(seed_urls=seed_urls_ex,
-    #                   max_articles=max_articles_ex,
-    #                   max_articles_per_seed=max_articles_per_seed_ex)
-    # crawler.find_articles()
-    # for art_id, art_url in enumerate(crawler.urls, 1):
-    #     parser = ArticleParser(full_url=art_url, article_id=art_id)
-    #     article_from_list = parser.parse()
-    #     sleep(randint(3, 5))
+    prepare_environment(PROJECT_ROOT)
+    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls_ex,
+                      max_articles=max_articles_ex,
+                      max_articles_per_seed=max_articles_per_seed_ex)
+    crawler.find_articles()
+    for art_id, art_url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(full_url=art_url, article_id=art_id)
+        article_from_list = parser.parse()
+        sleep(randint(3, 5))
