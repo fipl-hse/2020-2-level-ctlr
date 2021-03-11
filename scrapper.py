@@ -9,14 +9,14 @@ import os
 import shutil
 from bs4 import BeautifulSoup
 
+from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
-from article import Article
 
 headers = {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko)'
-                      ' Chrome/88.0.4324.190 Mobile Safari/537.36'
-    }
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  ' Chrome/88.0.4324.190 Mobile Safari/537.36'
+}
 
 
 class IncorrectURLError(Exception):
@@ -47,6 +47,7 @@ class Crawler:
     """
     Crawler implementation
     """
+
     def __init__(self, seed_urls: list, max_article: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_article = max_article
@@ -55,7 +56,8 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        url = article_bs
+        return url.find("a").get('href')
 
     def find_articles(self):
         """
@@ -63,16 +65,14 @@ class Crawler:
         """
         urls = []
         main_link = "http://www.kprfast.ru"
-        for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+        for link in self.seed_urls:
+            response = requests.get(link, headers=headers)
             sleep(5)
             print('made request')
             page_soup = BeautifulSoup(response.content, features='lxml')
             all_links = page_soup.find_all(class_="readmore")
-            for element in all_links:
-                link_href = element.find("a").get("href")
-                urls.append(link_href)
-            for link in urls:
+            for element in all_links[:max_articles_per_seed]:
+                link = self._extract_url(element)
                 self.urls.append(main_link + link)
         return []
 
@@ -80,13 +80,14 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
@@ -94,15 +95,15 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         article_text = []
-        name = article_soup.find('h2', itemprop='name')
         main_text = article_soup.find('div', itemprop='articleBody')
-        article_text.append(name.text)
         article_text.append(main_text.text)
         self.article.text = '\n'.join(article_text)
         return None
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h2', itemprop='name').text
+        self.article.author = article_soup.find('span', itemprop='name').text
+        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -122,6 +123,7 @@ class ArticleParser:
             print('Failed request')
         article_bs = BeautifulSoup(information.content, features="lxml")
         self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
         return self.article
 
 
@@ -156,14 +158,14 @@ def validate_config(crawler_path):
     if not check_urls or not check_url:
         raise IncorrectURLError
 
-    if not isinstance(all_articles, int) or not isinstance(max_number, int) or all_articles == 0\
+    if not isinstance(all_articles, int) or not isinstance(max_number, int) or all_articles == 0 \
             or isinstance(all_articles, bool) or isinstance(max_number, bool):
         check_number_of_articles = False
 
     if not check_number_of_articles:
         raise IncorrectNumberOfArticlesError
 
-    if all_articles < max_number or max_number < 0\
+    if all_articles < max_number or max_number < 0 \
             or all_articles > 1000 or all_articles < 0:
         check_range_of_articles = False
 
