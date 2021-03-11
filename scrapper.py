@@ -332,6 +332,7 @@ if __name__ == '__main__':
         i = 1
         while i <= articles_max:
             for article_url in articles_urls:
+                print(f'Article #{i}: {article_url} is processed')
                 parser = ArticleParser(full_url=article_url, article_id=i)
                 try:
                     article = parser.parse()
