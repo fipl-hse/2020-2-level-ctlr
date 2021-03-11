@@ -200,8 +200,11 @@ def validate_config(crawler_path):
         raise UnknownConfigError from exception
     if not all(good_response):
         raise IncorrectURLError
-    if not all((isinstance(config['total_articles_to_find_and_parse'], int),
-                isinstance(config['max_number_articles_to_get_from_one_seed'], int))):
+    # if not all((isinstance(config['total_articles_to_find_and_parse'], int),
+    #             isinstance(config['max_number_articles_to_get_from_one_seed'], int))):
+    if not isinstance(config['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+    if not isinstance(config['max_number_articles_to_get_from_one_seed'], int):
         raise IncorrectNumberOfArticlesError
     if not config['total_articles_to_find_and_parse'] < config['max_number_articles_to_get_from_one_seed']\
        * len(good_response):
