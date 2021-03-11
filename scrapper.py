@@ -52,17 +52,8 @@ class IncorrectURLError(Exception):
                 new_urls.append('http://tomsk-novosti.ru/' + url)
             return new_urls
 
-
-class NumberOfArticlesOutOfRangeError(Exception):
-    """
-    Custom error
-    """
-
-
-class IncorrectNumberOfArticlesError(Exception):
-    """
-    Custom error
-    """
+    def get_search_urls(self):
+        return self.find_articles()
 
 
 class Crawler:
@@ -137,20 +128,6 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    '''
-    headers = {'user-agent': {'Date': 'Mon, 22 Feb 2021 10:53:27 GMT', 'Server': 'Apache/2.4.18 (Ubuntu)',
-                              'Set-Cookie': 'Lmldq-siA=ijAbUD; expires=Tue, 23-Feb-2021 10:53:27 GMT; Max-Age=86400; path=/, JEBRIhOYuTk_S=kH8Tvdr5c2BV; expires=Tue, 23-Feb-2021 10:53:27 GMT; Max-Age=86400; path=/, XEJb-x=NwOV1b; expires=Tue, 23-Feb-2021 10:53:27 GMT; Max-Age=86400; path=/, KWcatUPxVb_=z%2AsnxrVEW1m.4; expires=Tue, 23-Feb-2021 10:53:27 GMT; Max-Age=86400; path=/',
-                              'Link': '<http://tomsk-novosti.ru/wp-json/>; rel="https://api.w.org/", <http://tomsk-novosti.ru/wp-json/wp/v2/posts/321365>; rel="alternate"; type="application/json", <http://tomsk-novosti.ru/?p=321365>; rel=shortlink',
-                              'Vary': 'Accept-Encoding', 'Content-Encoding': 'gzip', 'Content-Length': '15069',
-                              'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive',
-                              'Content-Type': 'text/html; charset=UTF-8'}
-               }
-    response = requests.get('http://tomsk-novosti.ru/chto-za-tresh-a-draki-net/', headers)
-    print('first response')
-    time.sleep(5)
-    response = requests.get('http://tomsk-novosti.ru/chto-za-tresh-a-draki-net/', headers)
-    print('second request')
-    '''
     pass
 
 test = Crawler(['http://tomsk-novosti.ru/chto-za-tresh-a-draki-net/', 'http://tomsk-novosti.ru/tsifrovaya-zrelost/'])
