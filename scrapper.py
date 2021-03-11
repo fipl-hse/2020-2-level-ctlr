@@ -1,6 +1,7 @@
 """
 Crawler implementation
 """
+import json
 
 
 class IncorrectURLError(Exception):
@@ -31,8 +32,11 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
@@ -89,7 +93,21 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        configuration = json.load(file)
+    if not isinstance(configuration, dict):
+        raise UnknownConfigError
+    if not isinstance(configuration['base_urls'], list):
+        raise IncorrectURLError
+    if not all(isinstance(url, str) for url in configuration['base_urls']):
+        raise IncorrectURLError
+    if not isinstance(configuration['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+    if configuration['total_articles_to_find_and_parse'] > 100:
+        raise NumberOfArticlesOutOfRangeError
+
+
+
 
 
 if __name__ == '__main__':
