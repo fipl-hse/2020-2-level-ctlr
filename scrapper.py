@@ -63,8 +63,7 @@ class Crawler:
 
             if response.status_code == 200:
                 seed_url_soup = BeautifulSoup(response.content, features='lxml')
-                self._extract_url(article_bs=seed_url_soup, max_articles_per_one_seed=self.max_articles_per_one_seed,
-                                  urls=self.urls)
+                self._extract_url(seed_url_soup, self.max_articles_per_one_seed, self.urls)
 
     def get_search_urls(self):
         """
