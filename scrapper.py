@@ -103,10 +103,17 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
 
-        self.article.author = article_soup.find('div', class_='news-tags').find('a').text
+        try:
+            self.article.author = article_soup.find('div', class_='news-tags').find('a').text
+            author_error = self.article.author.split('\n')
+            for element in author_error:
+                if element == 'Теги:':
+                    raise AttributeError
+        except AttributeError:
+            self.article.author = 'NOT FOUND'
 
         self.article.topics = article_soup.find('div', class_='article-details-left')\
-            .find('a', class_='article-section')
+            .find('a', class_='article-section').text
 
         date = article_soup.find('div', class_='article-details-left').find('a', class_='article-date').text
         self.article.date = self.unify_date_format(date)
