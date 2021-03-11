@@ -8,9 +8,6 @@ import os
 
 from constants import ASSETS_PATH
 
-# PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
-# ASSETS_PATH = os.path.join(PROJECT_ROOT, 'tmp', 'articles')
-
 
 def date_from_meta(date_txt):
     """

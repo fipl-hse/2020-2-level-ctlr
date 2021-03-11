@@ -15,18 +15,6 @@ import requests
 from article import Article
 import constants
 
-# PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
-#
-# ASSETS_PATH = os.path.join(PROJECT_ROOT, 'tmp', 'articles')
-# CRAWLER_CONFIG_PATH = os.path.join(PROJECT_ROOT, 'crawler_config.json')
-#
-# ARTIFACTS_ROOT = os.path.join(PROJECT_ROOT, 'tmp')
-# PAGES_ROOT = os.path.join(ARTIFACTS_ROOT, 'pages')
-#
-# TO_PARSE_URLS = os.path.join(ARTIFACTS_ROOT, 'to_parse_urls.txt')
-# SEEN_URLS = os.path.join(ARTIFACTS_ROOT, 'seen_urls.txt')
-# ARTICLE_URLS = os.path.join(ARTIFACTS_ROOT, 'article_urls.txt')
-
 
 class IncorrectURLError(Exception):
     """
@@ -99,7 +87,7 @@ class Crawler:
         while self.seed_urls:
             seed_url = self.seed_urls.pop()
             try:
-                soup = self.process_page(seed_url, article_id)
+                self.process_page(seed_url, article_id)
             except BadStatusCode:
                 continue
             else:
@@ -163,13 +151,13 @@ class CrawlerRecursive(Crawler):
         """
         Returns seed_urls param
         """
-        for i, link in enumerate(soup.find_all('a')):
+        for idx, link in enumerate(soup.find_all('a')):
             if link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/.+', link.get('href')):
                     if res[0] not in self.seen_urls:
                         self.seed_urls.append(res[0])
                         self.seen_urls.add(res[0])
-            if i % 10 == 0:
+            if idx % 10 == 0:
                 with open(constants.TO_PARSE_URLS, 'w', encoding='utf-8') as file:
                     file.write('\n'.join(self.seed_urls))
                 with open(constants.SEEN_URLS, 'w', encoding='utf-8') as file:
@@ -307,16 +295,16 @@ def validate_config(crawler_path):
     raise UnknownConfigError
 
 
-def load_previous_state(crawler):
+def load_previous_state(crawler_obj):
     if os.path.exists(constants.TO_PARSE_URLS):
-        crawler.seed_urls = open(constants.TO_PARSE_URLS).read().split('\n')
+        crawler_obj.seed_urls = open(constants.TO_PARSE_URLS).read().split('\n')
 
     if os.path.exists(constants.SEEN_URLS):
-        crawler.seen_urls = set(open(constants.SEEN_URLS).read().split('\n'))
+        crawler_obj.seen_urls = set(open(constants.SEEN_URLS).read().split('\n'))
 
     if os.path.exists(constants.ARTICLE_URLS):
-        crawler.urls = open(constants.ARTICLE_URLS).read().split('\n')
-    return crawler
+        crawler_obj.urls = open(constants.ARTICLE_URLS).read().split('\n')
+    return crawler_obj
 
 
 if __name__ == '__main__':
