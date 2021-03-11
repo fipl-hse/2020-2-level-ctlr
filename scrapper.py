@@ -70,9 +70,7 @@ class Crawler:
             if href := link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/'
                                      r'\d{4}/\d{2}/.+/$', href):
-                    if (not re.findall(r'https://www.zvezdaaltaya.ru/'
-                                       r'\d{4}/\d{2}/\d{2}/', res[0])
-                            and res[0] not in article_urls
+                    if (res[0] not in article_urls
                             and res[0] not in new_article_urls
                             and res[0] not in seen_urls):
                         new_article_urls.add(res[0])
