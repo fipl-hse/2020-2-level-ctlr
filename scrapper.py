@@ -1,13 +1,13 @@
 """
 Crawler implementation
 """
-from bs4 import BeautifulSoup
-from time import sleep
 import json
 import requests
 import os
 import shutil
 import random
+from time import sleep
+from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH, HEADERS, PROJECT_ROOT
 from article import Article
 
@@ -42,8 +42,8 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls, num_articles, max_articles, headers):
-        self.main_urls = seed_urls
+    def __init__(self, main_urls, num_articles, max_articles, headers):
+        self.main_urls = main_urls
         self.max_articles = max_articles
         self.num_articles = num_articles
         self.urls = []
@@ -68,9 +68,15 @@ class Crawler:
             for main_url in self.main_urls:
                 if len(self.urls) <= self.max_articles:
                     self.urls += Crawler._extract_url(main_url, self.headers)
-        except:
-            print(f"error occured")
-            return []
+        except IncorrectURLError:
+            print("incorrect url")
+        except NumberOfArticlesOutOfRangeError:
+            print("too many articles")
+        except IncorrectNumberOfArticlesError:
+            print("incorrect number of articles")
+        except UnknownConfigError:
+            print("error in configuration")
+            
         self.urls = self.urls[:self.max_articles + 1]
 
 
@@ -108,7 +114,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        RU_MONTH_VALUES = {
+        ru_months = {
             'января': 1,
             'февраля': 2,
             'марта': 3,
@@ -122,9 +128,9 @@ class ArticleParser:
             'ноября': 11,
             'декабря': 12,
         }
-        d = date_str.split()
-        d[1] = RU_MONTH_VALUES[d[1]]
-        return d
+        date = date_str.split()
+        date[1] = ru_months[date[1]]
+        return date
 
 
     def parse(self):
