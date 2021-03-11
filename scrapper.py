@@ -8,10 +8,10 @@ import os
 from time import sleep
 import random
 import shutil
+from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 import article
-from datetime import datetime, timedelta
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
 
@@ -73,10 +73,11 @@ class Crawler:
                 sleep(random.randrange(2, 6))
             page_soup = BeautifulSoup(response.content, features='lxml')
             article_soup = page_soup.find_all('div', class_='article-info')
-            for article_bs in article_soup[:max_articles_per_seed]:
+            for article_bs in article_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == max_articles:
-                    return self.urls
+                if len(self.urls) == self.max_articles:
+                    break
+        return self.urls
 
     def get_search_urls(self):
         """
@@ -145,13 +146,13 @@ class ArticleParser:
         else:
             for keys in months:
                 if keys in date_str[1]:
-                    a = str(months[keys])
-                    date_str[1] = a
+                    atr = str(months[keys])
+                    date_str[1] = atr
         date_str.append(date_str[2])
         date_str[2] = str(datetime.today().year)
         fin = ' '.join(date_str)
-        dt = datetime.strptime(fin, '%d %m %Y %H:%M')
-        return dt
+        dat = datetime.strptime(fin, '%d %m %Y %H:%M')
+        return dat
 
     def parse(self):
         """
@@ -207,8 +208,9 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
+                      max_articles_per_seed=max_articles_per_seed_ex)
     art = crawler.find_articles()
     print(art)
     prepare_environment(ASSETS_PATH)
