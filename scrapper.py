@@ -149,8 +149,8 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path, 'r', encoding='utf-8') as f:
-        initial_values = json.load(f)
+    with open(crawler_path, 'r', encoding='utf-8') as val_file:
+        initial_values = json.load(val_file)
 
     for base_url in initial_values["base_urls"]:
         if not isinstance(base_url, str):
