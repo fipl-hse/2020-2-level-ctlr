@@ -1,6 +1,16 @@
 """
 Crawler implementation
 """
+import json
+import os
+from time import sleep
+import datetime
+import random
+import shutil
+import requests
+from bs4 import BeautifulSoup
+import article
+from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
 
 
 class IncorrectURLError(Exception):
@@ -19,18 +29,27 @@ class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
-
+headers={
+        'user-agent':
+    'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 '
+    '(KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'}
 
 class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int,max_articles_per_seed:int):
+        self.seed_urls = seed_urls
+        self.total_max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        links_page=[]
+        for tag in article_bs.find_all(class_='next news'):
+            links_page.append(tag.find('a').get('href'))
+        return links_page
 
     def find_articles(self):
         """
