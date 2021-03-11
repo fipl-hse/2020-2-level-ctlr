@@ -119,20 +119,16 @@ class ArticleParser:
         """
         Parses each article
         """
-        try:
-            response = requests.get(self.full_url, headers=HEADERS)
-            response.raise_for_status()
-        except HTTPError as error:
-            print(error)
-        else:
+        response = requests.get(self.full_url, headers=HEADERS)
+        if response:
             article_bs = BeautifulSoup(response.content, 'lxml')
 
             self._fill_article_with_text(article_bs)
             self._fill_article_with_meta_information(article_bs)
 
-            self.article.save_raw()
+        self.article.save_raw()
 
-            return self.article
+        return self.article
 
 
 def prepare_environment(base_path):
