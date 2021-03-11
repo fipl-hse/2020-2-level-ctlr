@@ -58,9 +58,7 @@ class Crawler:
         # print(extracted)
         # print('          ',extracted)
         return list(filter(lambda x: x.startswith('/news/')
-                           and x not in seen
-                           # and any(map(lambda y: y.isdigit(), x))
-                           , extracted))
+                           and x not in seen, extracted))
 
     def find_articles(self):
         """
@@ -200,15 +198,18 @@ def validate_config(crawler_path):
         raise UnknownConfigError from exception
     if not all(good_response):
         raise IncorrectURLError
-    # if not all((isinstance(config['total_articles_to_find_and_parse'], int),
-    #             isinstance(config['max_number_articles_to_get_from_one_seed'], int))):
-    if not isinstance(config['total_articles_to_find_and_parse'], int):
-        raise IncorrectNumberOfArticlesError
-    if not isinstance(config['max_number_articles_to_get_from_one_seed'], int):
-        raise IncorrectNumberOfArticlesError
-    if not config['total_articles_to_find_and_parse'] < config['max_number_articles_to_get_from_one_seed']\
-       * len(good_response):
-        raise NumberOfArticlesOutOfRangeError
+    try:
+        if not isinstance(config['total_articles_to_find_and_parse'], int):
+            raise IncorrectNumberOfArticlesError
+        if not config['total_articles_to_find_and_parse'] > 1000:
+            raise NumberOfArticlesOutOfRangeError
+        if not isinstance(config['max_number_articles_to_get_from_one_seed'], int):
+            raise IncorrectNumberOfArticlesError
+        if not config['total_articles_to_find_and_parse'] < config['max_number_articles_to_get_from_one_seed']\
+           * len(good_response):
+            raise NumberOfArticlesOutOfRangeError
+    except KeyError as exception:
+        raise IncorrectNumberOfArticlesError from exception
     return config['base_urls'], config['total_articles_to_find_and_parse'], \
         config['max_number_articles_to_get_from_one_seed']
 
