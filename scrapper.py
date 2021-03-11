@@ -243,14 +243,18 @@ def validate_config(crawler_path):
         config = json.load(file)
 
     is_config_a_dict = isinstance(config, dict)
+
     has_config_attributes = (
-        'max_number_articles_to_get_from_one_seed' in config and
         'base_urls' in config and
         'total_articles_to_find_and_parse' in config
     )
 
     if not (is_config_a_dict and has_config_attributes):
         raise UnknownConfigError
+
+    if 'max_number_articles_to_get_from_one_seed' not in config:
+        config['max_number_articles_to_get_from_one_seed'] = \
+            config['total_articles_to_find_and_parse']
 
     is_base_urls_correct = (
             isinstance(config['base_urls'], list) and
