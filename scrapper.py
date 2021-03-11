@@ -2,11 +2,11 @@
 Crawler implementation
 """
 import json
-import requests
 import os
-import shutil
 import random
+import shutil
 from time import sleep
+import requests
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH, HEADERS, PROJECT_ROOT
 from article import Article
@@ -44,8 +44,8 @@ class Crawler:
     """
     def __init__(self, main_urls, num_articles, max_articles, headers):
         self.main_urls = main_urls
-        self.max_articles = max_articles
         self.num_articles = num_articles
+        self.max_articles = max_articles
         self.urls = []
         self.headers = headers
 
@@ -187,11 +187,11 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    max_articles, total_number, seed_urls = validate_config(CRAWLER_CONFIG_PATH)
+    max_num_articles, total_number, seed_urls = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls, total_number, max_articles, HEADERS)
+    crawler = Crawler(seed_urls, total_number, max_num_articles, HEADERS)
 
-    articles = crawler.find_articles()
+    crawler.find_articles()
 
     prepare_environment(PROJECT_ROOT)
 
