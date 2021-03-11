@@ -71,7 +71,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        return self.seed_urls_
+        return self.urls
 
 
 class ArticleParser:
