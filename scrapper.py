@@ -241,6 +241,7 @@ def validate_config(crawler_path):
     """
     with open(crawler_path) as file:
         config = json.load(file)
+        print(config)
 
     is_config_a_dict = isinstance(config, dict)
 
