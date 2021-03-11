@@ -6,10 +6,10 @@ import os
 import json
 from datetime import date
 import requests
+from random import randint
+from time import sleep as wait
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
-from time import sleep as wait
-from random import randint
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, LINKS_STORAGE, URL_START
 
@@ -76,7 +76,6 @@ class Crawler:
                 newfound = list(filter(lambda x: len(x) > 20, self._extract_url(article_bs, self.urls)))
                 print('    checked new url, found', len(newfound), 'articles')
                 self.urls.extend(newfound[:self.max_articles_per_seed])
-                # wait(10)
                 if len(self.urls) > self.total_max_articles:
                     break
             if len(self.urls) == old:
@@ -85,18 +84,26 @@ class Crawler:
 
             self.urls = self.urls[:self.total_max_articles]
 
+    def get_search_urls(self):
+        """
+        Returns seed_urls param
+        """
+        return self.urls
+
 
 class CrawlerRecursive(Crawler):
 
-    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int):
+    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int, to_wait=False):
         super().__init__(seed_urls, total_max_articles, max_articles_per_seed)
+        self.is_waiting = to_wait
 
     def find_articles(self):
         if self.get_backedup():
             print('backed up urls found, starting iteration')
         if not self.urls:
             for link in self.seed_urls:
-                # wait(randint(0, 10))
+                if self.is_waiting:
+                    wait(randint(0, 10))
                 article_bs = BeautifulSoup(requests.get(link, 'html.parser').text, 'html.parser')
                 newfound = self._extract_url(article_bs, self.urls)
                 self.urls.extend(newfound)
@@ -113,7 +120,8 @@ class CrawlerRecursive(Crawler):
         else:
             old = len(self.urls)
             for link in self.urls:
-                # wait(randint(0, 10))
+                if self.is_waiting:
+                    wait(randint(0, 10))
                 article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
                 newfound = self._extract_url(article_bs, self.urls)
                 newfound = [i for i in newfound if len(i) > 20
@@ -134,7 +142,7 @@ class CrawlerRecursive(Crawler):
     @staticmethod
     def verify_proceed():
         answer = input('Would you like to proceed? yes or no: ').strip()
-        return True if answer == 'yes' else False
+        return answer == 'yes'
 
     def get_backedup(self):
         try:
@@ -144,12 +152,6 @@ class CrawlerRecursive(Crawler):
                 return True
         except FileNotFoundError:
             return False
-
-    def get_search_urls(self):
-        """
-        Returns seed_urls param
-        """
-        return self.urls
 
 
 class ArticleParser:
