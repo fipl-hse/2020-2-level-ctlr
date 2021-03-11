@@ -172,8 +172,9 @@ def validate_config(crawler_path):
             or initial_values["max_number_articles_to_get_from_one_seed"] > 100:
         raise UnknownConfigError
 
-    return initial_values["base_urls"], initial_values["total_articles_to_find_and_parse"], \
-           initial_values["max_number_articles_to_get_from_one_seed"]
+    return (initial_values["base_urls"],
+            initial_values["total_articles_to_find_and_parse"],
+            initial_values["max_number_articles_to_get_from_one_seed"])
 
 
 if __name__ == '__main__':
