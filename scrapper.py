@@ -214,15 +214,12 @@ def validate_config(crawler_path):
         return config['base_urls'], config['total_articles_to_find_and_parse'], \
             config['max_number_articles_to_get_from_one_seed']
     except KeyError:
-        return config['base_urls'], config['total_articles_to_find_and_parse']
+        return config['base_urls'], config['total_articles_to_find_and_parse'], None
 
 
 if __name__ == '__main__':
-    params = validate_config(CRAWLER_CONFIG_PATH)
-    if len(params) == 3:
-        seedurls, max_articles, max_arts_per_seed = params
-    else:
-        seedurls, max_articles = params
+    seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    if not max_arts_per_seed:
         max_arts_per_seed = max_articles
     crawler = Crawler(seed_urls=seedurls,
                       total_max_articles=max_articles,
