@@ -273,8 +273,6 @@ def validate_config(crawler_path):
     )
 
     is_max_number_of_articles_correct = (
-            config['max_number_articles_to_get_from_one_seed'] <=
-            config['total_articles_to_find_and_parse'] and
             config['max_number_articles_to_get_from_one_seed'] <= 10000
     )
 
