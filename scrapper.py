@@ -76,7 +76,6 @@ class Crawler:
             new_urls = []
             for url in urls_sliced:
                 new_urls.append('https://восход65.рф' + url)
-            # print(new_urls)
             return new_urls
 
     def get_search_urls(self):
@@ -86,10 +85,6 @@ class Crawler:
         seed_urls = self.find_articles()
         return seed_urls
 
-
-'''crawler = Crawler(['https://xn--65-dlci3cau6a.xn--p1ai/news/events/1/' ,'https://xn--65-dlci3cau6a.xn--p1ai/news/events/2/'],
-                  5, 10)
-print(crawler.get_search_urls())'''
 
 class ArticleParser:
     """
@@ -119,9 +114,7 @@ class ArticleParser:
         date = date_tag[0].text
 
         author = 'NOT FOUND'
-        return None
-
-
+        #return None
 
 
 
@@ -131,7 +124,8 @@ class ArticleParser:
         Unifies date format
         """
 
-        return datetime.strptime(date_str, "%d.%m.%Y")
+        #return datetime.strptime(date_str, "%d.%m.%Y")
+        pass
 
 
     def parse(self):
@@ -145,8 +139,9 @@ class ArticleParser:
         article_bs = BeautifulSoup(page_content, features='lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
 
-        return self.article
+        #return self.article
 
 
 
@@ -193,7 +188,6 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     seed_urls,  max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    # urls = ['https://xn--65-dlci3cau6a.xn--p1ai/news/events/1/' ,'https://xn--65-dlci3cau6a.xn--p1ai/news/events/2/']
 
     crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
     urlss = crawler.find_articles()
@@ -202,4 +196,4 @@ if __name__ == '__main__':
     for id, url in enumerate(urlss):
         parser = ArticleParser(url, id+1)
         article = parser.parse()
-        article.save_raw()
+
