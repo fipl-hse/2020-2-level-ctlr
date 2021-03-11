@@ -323,7 +323,7 @@ if __name__ == '__main__':
     prepare_environment()
 
     try:
-        urls, articles, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+        urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
     except (
             IncorrectURLError,
             IncorrectNumberOfArticlesError,
@@ -334,16 +334,15 @@ if __name__ == '__main__':
     else:
         crawler = CrawlerRecursive(
             seed_urls=urls,
-            max_articles=articles,
+            max_articles=articles_max,
             max_articles_per_seed=articles_per_seed
         )
-
         crawler = load_previous_state(crawler)
         crawler.find_articles()
 
-        articles_urls = open(constants.ASSETS_PATH).read().split('\n')
+        articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
         i = 1
-        while i <= 100:
+        while i <= articles_max:
             for article_url in articles_urls:
                 parser = ArticleParser(full_url=article_url, article_id=i)
                 try:
