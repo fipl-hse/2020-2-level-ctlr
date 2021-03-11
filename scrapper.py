@@ -11,10 +11,9 @@ from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
-
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
-     'Chrome/89.0.4389.82 Safari/537.36'}
+                  'Chrome/89.0.4389.82 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -143,14 +142,15 @@ def validate_config(crawler_path):
     if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
 
-    return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse']
+    return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse'], \
+           crawler_config['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    urls, max_articles = validate_config(CRAWLER_CONFIG_PATH)
+    urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles)
+    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles,max_articles_per_seed=articles_per_seed)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for i, url in enumerate(crawler.urls):
