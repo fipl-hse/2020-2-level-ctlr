@@ -68,6 +68,7 @@ class Crawler:
             for main_url in self.main_urls:
                 if len(self.urls) <= self.max_articles:
                     self.urls += Crawler._extract_url(main_url, self.headers)
+            self.urls = self.urls[:self.max_articles + 1]
         except IncorrectURLError:
             print("incorrect url")
         except NumberOfArticlesOutOfRangeError:
@@ -75,8 +76,7 @@ class Crawler:
         except IncorrectNumberOfArticlesError:
             print("incorrect number of articles")
         except UnknownConfigError:
-            print("error in configuration") 
-        self.urls = self.urls[:self.max_articles + 1]
+            print("error in configuration")
 
 
     def get_search_urls(self):
