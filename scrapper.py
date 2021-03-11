@@ -8,7 +8,9 @@ import json
 from time import sleep
 import article
 import datetime
-import constants
+from constants import PROJECT_ROOT
+from constants import ASSETS_PATH
+from constants import headers
 import os
 
 
@@ -58,7 +60,7 @@ class Crawler:
         Finds articles
         """
         for seed_url in self.seed_urls_:
-            response = requests.get(seed_url, headers=constants.headers)
+            response = requests.get(seed_url, headers=headers)
             sleep(5)
 
             if response.status_code == 200:
@@ -98,7 +100,7 @@ class ArticleParser:
         date = article_soup.find('p', class_="date-time")
         self.article.date = self.unify_date_format(date.text)
 
-        self.article.author = 'No author'
+        self.article.author = 'NOT FOUND'
 
     @staticmethod
     def unify_date_format(date_str):
@@ -128,7 +130,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=constants.headers)
+        response = requests.get(self.full_url, headers=headers)
         if response.status_code == 200:
             article_bs = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_bs)
@@ -141,8 +143,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(constants.ASSETS_PATH):
-        os.makedirs(constants.ASSETS_PATH)
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -177,6 +179,7 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
+    prepare_environment(ASSETS_PATH)
 
     # step 1
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
@@ -190,6 +193,6 @@ if __name__ == '__main__':
 
     # step 3.1, 3.2, 3.3, 4, 5, 6, 7
     for url_id, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=url_id)
+        parser = ArticleParser(full_url=url, article_id=url_id + 1)
         parsed_article = parser.parse()
         sleep(5)
