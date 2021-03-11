@@ -11,6 +11,7 @@ import shutil
 import requests
 from bs4 import BeautifulSoup
 import article
+from datetime import datetime, timedelta
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
 
@@ -71,14 +72,11 @@ class Crawler:
             if response.status_code == 200:
                 sleep(random.randrange(2, 6))
             page_soup = BeautifulSoup(response.content, features='lxml')
-            links = self._extract_url(page_soup)
-            articles = self.max_articles - len(self.urls)
-            if self.max_articles_per_seed <= articles:
-                self.urls.extend(links[:self.max_articles_per_seed])
-            else:
-                self.urls.extend(links[:articles])
-            if len(self.urls) == self.max_articles:
-                break
+            article_soup = page_soup.find_all('div', class_='article-info')
+            for article_bs in article_soup[:max_articles_per_seed]:
+                self.urls.append(self._extract_url(article_bs))
+                if len(self.urls) == max_articles:
+                    return self.urls
 
     def get_search_urls(self):
         """
@@ -109,7 +107,7 @@ class ArticleParser:
         self.article.topics = article_soup.find('div', class_='article-details-left')\
             .find('a', class_='article-section')
 
-        date = article_soup.find('div', class_='article-details-left').find('a', class_='article-date')
+        date = article_soup.find('div', class_='article-details-left').find('a', class_='article-date').text
         self.article.date = self.unify_date_format(date)
 
     @staticmethod
@@ -117,7 +115,43 @@ class ArticleParser:
         """
         Unifies date format
         """
-        return datetime.datetime.strftime(date_str, '%d.%m.%Y')
+        months = {'января': 1,
+                  'февраля': 2,
+                  'марта': 3,
+                  'апреля': 4,
+                  'мая': 5,
+                  'июня': 6,
+                  'июля': 7,
+                  'августа': 8,
+                  'сентября': 9,
+                  'октября': 10,
+                  'ноября': 11,
+                  'декабря': 12}
+
+        date_str = date_str.split(' ')
+        if not date_str[0].isdigit():
+            today = datetime.today()
+            day = str(today.day)
+            month = str(today.month)
+            yest = datetime.now() - timedelta(days=1)
+            day1 = str(yest.day)
+            month1 = str(yest.month)
+            arr = {'Вчера': day1 + ' ' + month1 + ' ', 'Сегодня': day + ' ' + month + ' '}
+            for key in arr:
+                if date_str[0] == key:
+                    date_str[0] = arr[key]
+            date_str = date_str[0] + date_str[-1]
+            date_str = date_str.split(' ')
+        else:
+            for keys in months:
+                if keys in date_str[1]:
+                    a = str(months[keys])
+                    date_str[1] = a
+        date_str.append(date_str[2])
+        date_str[2] = str(datetime.today().year)
+        fin = ' '.join(date_str)
+        dt = datetime.strptime(fin, '%d %m %Y %H:%M')
+        return dt
 
     def parse(self):
         """
@@ -173,9 +207,10 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls_ex, max_articles_ex, max_articles_per_seed_ex)
-    crawler.find_articles()
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    art = crawler.find_articles()
+    print(art)
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind)
