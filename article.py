@@ -46,7 +46,6 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
     @staticmethod
     def from_meta_json(json_path: str):
         """
@@ -94,7 +93,6 @@ class Article:
             'author': self.author,
             'topics': self.topics
         }
-    
     def _date_to_text(self):
         """
         Converts datetime object to text
