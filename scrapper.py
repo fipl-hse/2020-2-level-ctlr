@@ -51,8 +51,6 @@ class Crawler:
     @staticmethod
     def _extract_url(article_bs, seen):
         extracted = list({link['href'] for link in article_bs.find_all('a', href=True)})
-        # print(extracted)
-        # print('          ',extracted)
         return list(filter(lambda x: x.startswith('/news/')
                            and x not in seen, extracted))
 
@@ -101,7 +99,11 @@ class CrawlerRecursive(Crawler):
         for link in pool:
             if self.is_waiting:
                 wait(randint(0, 10))
-            article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
+            try:
+                article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
+            except requests.exceptions.ConnectionError:
+                wait(10)
+                article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             newfound = [i for i in newfound if len(i) > 20
                         and not any(map(lambda y: y.isupper(), i))]
@@ -162,7 +164,9 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         try:
             text = article_soup.find('div', {'class': 'text letter', 'itemprop': 'articleBody'}).text.strip()
-            self.article.text = text
+            text = [i for i in text.split('\n') if 'Фото:' not in i and 'Автор:' not in i
+                    and '© фото:' not in i and 'Источник:' not in i]
+            self.article.text = '\n'.join(text).strip()
         except AttributeError:
             print('    unable to parse', self.full_url)
 
@@ -216,7 +220,6 @@ class ArticleParser:
         """
         Parses each article
         """
-        # print(self.full_url)
         self.article.url = self.full_url
         self.article.article_id = self.article_id
         html = requests.get(self.full_url, 'html.parser').text
