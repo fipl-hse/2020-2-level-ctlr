@@ -1,13 +1,16 @@
-from bs4 import BeautifulSoup
-from time import sleep
-import json, requests, os, shutil, random
-
-from constants import CRAWLER_CONFIG_PATH, HEADERS, PROJECT_ROOT
-from article import Article
-
 """
 Crawler implementation
 """
+from bs4 import BeautifulSoup
+from time import sleep
+import json
+import requests
+import os
+import shutil
+import random
+from constants import CRAWLER_CONFIG_PATH, HEADERS, PROJECT_ROOT
+from article import Article
+
 
 class IncorrectURLError(Exception):
     """
@@ -191,4 +194,3 @@ if __name__ == '__main__':
         article = parser.parse()
         article.save_raw()
         sleep(random.randrange(1, 5))
-
