@@ -46,7 +46,11 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f02215b930433f3ab3fb70891d05699e4fcd068e
     @staticmethod
     def from_meta_json(json_path: str):
         """
@@ -59,7 +63,7 @@ class Article:
         article_id = meta.get('id', None)
         article = Article(url, article_id)
         article.title = meta.get('url', '')
-        article.date = Article.date_from_meta(meta.get('date', None))
+        article.date = date_from_meta(meta.get('date', None))
         article.author = meta.get('author', None)
         article.topics = meta.get('topics', None)
 
@@ -94,13 +98,22 @@ class Article:
             'author': self.author,
             'topics': self.topics
         }
+<<<<<<< HEAD
 
     def date_to_text(self):
+=======
+    
+    def _date_to_text(self):
+>>>>>>> f02215b930433f3ab3fb70891d05699e4fcd068e
         """
         Converts datetime object to text
         """
         return self.date.strftime("%Y-%m-%d %H:%M:%S")
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f02215b930433f3ab3fb70891d05699e4fcd068e
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article
