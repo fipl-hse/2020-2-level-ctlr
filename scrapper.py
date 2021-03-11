@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from time import sleep
 import random
 
+import article
 from article import Article
 from constants import PROJECT_ROOT
 from constants import ASSETS_PATH
@@ -97,25 +98,19 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        all_text = article_soup.find(name='div', id="article")
-        return all_text.text
+        self.article.text = article_soup.find(name='div', id="article").text
 
 
     def _fill_article_with_meta_information(self, article_soup):
 
         all_text = article_soup.find(name='div', id="article")
         categ_tag = all_text.find_all(name='p', class_="news-category")
-        category = categ_tag[0].text
+        self.article.topics = categ_tag[0].text
 
         h1_tag = all_text.find_all(name="h1")
-        title = h1_tag[0].text
+        self.article.title = h1_tag[0].text
 
-        date_tag = all_text.find_all(name='p', class_="date")
-        date = date_tag[0].text
-
-        author = 'NOT FOUND'
         #return None
-
 
 
     @staticmethod
@@ -123,8 +118,6 @@ class ArticleParser:
         """
         Unifies date format
         """
-
-        #return datetime.strptime(date_str, "%d.%m.%Y")
         pass
 
 
@@ -140,8 +133,6 @@ class ArticleParser:
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
         self.article.save_raw()
-
-        #return self.article
 
 
 
@@ -195,5 +186,7 @@ if __name__ == '__main__':
 
     for id, url in enumerate(urlss):
         parser = ArticleParser(url, id+1)
-        article = parser.parse()
+        parser.parse()
+
+
 
