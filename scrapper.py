@@ -4,13 +4,18 @@ Crawler implementation
 import json
 import os
 import requests
+import random
+import shutil
 
 from datetime import datetime
 from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import HEADERS
+from constants import ASSETS_PATH
+from constants import PROJECT_ROOT
 from urllib.parse import urlparse
+from time import sleep
 
 
 class IncorrectURLError(Exception):
@@ -130,9 +135,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.isdir(base_path):
-        os.makedirs(base_path)
-
+    if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
+        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
+    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
 def validate_config(crawler_path):
     """
@@ -168,14 +173,14 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     #YOUR CODE HERE
-    try:
-        seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-        crawler = Crawler(seed_urls=seed_urls,
-                          max_articles=max_articles,
-                          max_articles_per_seed=max_articles_per_seed)
-        crawler.find_articles()
-
-        for i, url in enumerate(crawler.urls):
-            parser = ArticleParser(full_url=url, article_id=i)
-    except (IncorrectURLError, IncorrectNumberOfArticlesError, NumberOfArticlesOutOfRangeError, UnknownConfigError):
-        exit(1)
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls,
+                      max_articles=max_articles,
+                      max_articles_per_seed=max_articles_per_seed)
+    crawler.find_articles()
+    prepare_environment(PROJECT_ROOT)
+    for i, url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url, article_id=i)
+        sleep(random.randint(2, 5))
+        articles = parser.parse()
+        articles.save_raw()
