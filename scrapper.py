@@ -1,58 +1,59 @@
 from bs4 import BeautifulSoup
-import json, requests
-from constants import CRAWLER_CONFIG_PATH
+from time import sleep
+import json, requests, os, shutil, random
+
+from constants import CRAWLER_CONFIG_PATH, HEADERS, PROJECT_ROOT
+from article import Article
 
 """
 Crawler implementation
 """
 
-
 class IncorrectURLError(Exception):
     """
     Custom error
     """
-    print("Got incorrect url")
 
 
 class NumberOfArticlesOutOfRangeError(Exception):
     """
     Custom error
     """
-    print("Gut too many articles to download")
+
 
 
 class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
-    print("Got incorrect number of articles")
 
 
 class UnknownConfigError(Exception):
     """
     Most general error
     """
-    print("Got incorrect value in config or no value")
+
 
 
 class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls, num_articles, max_articles):
+    def __init__(self, seed_urls, num_articles, max_articles, headers):
         self.main_urls = seed_urls
         self.max_articles = max_articles
         self.num_articles = num_articles
         self.urls = []
+        self.headers = headers
 
     @staticmethod
-    def _extract_url(article_bs):
+    def _extract_url(article_bs, headers):
         urls = []
-        headers = {'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) '
-                                 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Mobile Safari/537.36'}
+
         req = requests.get(article_bs, headers)
         main_article = BeautifulSoup(req.content, 'html.parser')
-        for link in main_article.find_all("a"):
+        main_news = main_article.find(class_="main-news")
+        for link in main_news.find_all("a"):
             urls.append(link.get("href"))
         return urls
 
@@ -63,18 +64,18 @@ class Crawler:
         try:
             for main_url in self.main_urls:
                 if len(self.urls) <= self.max_articles:
-                    self.urls += Crawler._extract_url(main_url)
+                    self.urls += Crawler._extract_url(main_url, self.headers)
         except:
             print(f"error occured")
             return []
-        return self.urls[:self.max_articles + 1]
+        self.urls = self.urls[:self.max_articles + 1]
 
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.main_urls
 
 
 class ArticleParser:
@@ -84,32 +85,67 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
+        self.article = Article(self.full_url, self.article_id)
+
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        text_from_soup = article_soup.find(class_="video-show").find_all("p")
+        clean_text = [str(sent)[3:-4] for sent in text_from_soup]
+        self.article.text = " ".join(clean_text)
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.author = "NOT FOUND"
+        self.article.title = article_soup.find("h1").text
+        date = article_soup.find(class_="date-time").text.split(",")[0]
+        self.article.date = ArticleParser.unify_date_format(date)
+        self.article.topics = [i.text for i in article_soup.find(class_ = "tags").find_all("a")]
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        RU_MONTH_VALUES = {
+            'января': 1,
+            'февраля': 2,
+            'марта': 3,
+            'апреля': 4,
+            'мая': 5,
+            'июня': 6,
+            'июля': 7,
+            'августа': 8,
+            'сентября': 9,
+            'октября': 10,
+            'ноября': 11,
+            'декабря': 12,
+        }
+        d = date_str.split()
+        d[1] = RU_MONTH_VALUES[d[1]]
+        return d
+
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers=HEADERS)
+        if not response:
+            raise IncorrectURLError
+
+        article_bs = BeautifulSoup(response.content, 'lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    assets_path = os.path.join(base_path, 'tmp', 'articles')
+    if os.path.exists(assets_path):
+        shutil.rmtree(os.path.dirname(assets_path))
+    os.makedirs(assets_path)
 
 
 def validate_config(crawler_path):
@@ -141,13 +177,18 @@ def validate_config(crawler_path):
     return conf['max_number_articles_to_get_from_one_seed'], conf['total_articles_to_find_and_parse'], conf["base_urls"]
 
 
-max_articles, total_number, seed_urls = validate_config(CRAWLER_CONFIG_PATH)
-crawler = Crawler(max_articles, total_number, seed_urls)
-
-#crawler.get_search_urls()
-print(crawler.find_articles())
-
-
 if __name__ == '__main__':
-    # YOUR CODE HERE
-    pass
+    max_articles, total_number, seed_urls = validate_config(CRAWLER_CONFIG_PATH)
+
+    crawler = Crawler(seed_urls, total_number, max_articles, HEADERS)
+
+    articles = crawler.find_articles()
+
+    prepare_environment(PROJECT_ROOT)
+
+    for art_index, art_url in enumerate(crawler.urls, start=1):
+        parser = ArticleParser(art_url, art_index)
+        article = parser.parse()
+        article.save_raw()
+        sleep(random.randrange(1, 5))
+
