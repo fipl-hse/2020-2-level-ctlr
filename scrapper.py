@@ -8,7 +8,6 @@ import json
 from time import sleep
 import article
 import datetime
-from constants import PROJECT_ROOT
 from constants import ASSETS_PATH
 from constants import headers
 import os
