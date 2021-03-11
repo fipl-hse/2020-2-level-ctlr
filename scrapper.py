@@ -241,7 +241,6 @@ def validate_config(crawler_path):
     """
     with open(crawler_path) as file:
         config = json.load(file)
-        print(config)
 
     is_config_a_dict = isinstance(config, dict)
 
@@ -313,34 +312,34 @@ def load_previous_state(crawler_obj):
 if __name__ == '__main__':
     prepare_environment()
 
-    # try:
-    urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
-    # except (
-    #         IncorrectURLError,
-    #         IncorrectNumberOfArticlesError,
-    #         NumberOfArticlesOutOfRangeError,
-    #         UnknownConfigError
-    # ) as error:
-    #     print(f'{error} occurred')
-    # else:
-    crawler = CrawlerRecursive(
-        seed_urls=urls,
-        max_articles=articles_max,
-        max_articles_per_seed=articles_per_seed
-    )
-    crawler = load_previous_state(crawler)
-    crawler.find_articles()
+    try:
+        urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    except (
+            IncorrectURLError,
+            IncorrectNumberOfArticlesError,
+            NumberOfArticlesOutOfRangeError,
+            UnknownConfigError
+    ) as error:
+        print(f'{error} occurred')
+    else:
+        crawler = CrawlerRecursive(
+            seed_urls=urls,
+            max_articles=articles_max,
+            max_articles_per_seed=articles_per_seed
+        )
+        crawler = load_previous_state(crawler)
+        crawler.find_articles()
 
-    articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
-    i = 1
-    while i <= articles_max:
-        for article_url in articles_urls:
-            print(f'Article #{i}: {article_url} is processed')
-            parser = ArticleParser(full_url=article_url, article_id=i)
-            try:
-                article = parser.parse()
-            except BadStatusCode:
-                continue
-            else:
-                article.save_raw()
-                i += 1
+        articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
+        i = 1
+        while i <= articles_max:
+            for article_url in articles_urls:
+                print(f'Article #{i}: {article_url} is processed')
+                parser = ArticleParser(full_url=article_url, article_id=i)
+                try:
+                    article = parser.parse()
+                except BadStatusCode:
+                    continue
+                else:
+                    article.save_raw()
+                    i += 1
