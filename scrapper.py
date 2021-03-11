@@ -147,28 +147,22 @@ def validate_config(crawler_path):
         with open(crawler_path, 'r', encoding='utf-8') as config:
             params = json.load(config)
 
-        seed_urls = params.get('base_urls')
-        max_articles = params.get('total_articles_to_find_and_parse')
-        max_articles_per_seed = params.get('max_number_articles_to_get_from_one_seed')
-
-        if not isinstance(seed_urls, list):
+        if 'base_urls' not in params or not isinstance(params['base_urls'], list) or \
+                not all([isinstance(link, str) for link in params['base_urls']]):
             raise IncorrectURLError
-        for url in seed_urls:
-            if not isinstance(url, str) or not url.startswith('http'):
-                raise IncorrectURLError
 
-        if not isinstance(max_articles, int) or max_articles < 0:
+        if 'max_number_articles_to_get_from_one_seed' not in params or \
+                not isinstance(params['max_number_articles_to_get_from_one_seed'], int) or \
+                'total_articles_to_find_and_parse' not in params or \
+                not isinstance(params['total_articles_to_find_and_parse'], int):
             raise IncorrectNumberOfArticlesError
 
-        if not isinstance(max_articles_per_seed, int) or max_articles_per_seed > max_articles:
+        if 'total_articles_to_find_and_parse' in params and \
+                isinstance(params['total_articles_to_find_and_parse'], int) and \
+                params['total_articles_to_find_and_parse'] > 100:
             raise NumberOfArticlesOutOfRangeError
 
-    except(IncorrectURLError, IncorrectNumberOfArticlesError, NumberOfArticlesOutOfRangeError) as error:
-        raise error
-    except:
-        raise UnknownConfigError
-    else:
-        return seed_urls, max_articles, max_articles_per_seed
+        return params['base_urls'], params['total_articles_to_find_and_parse'], params['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
@@ -181,6 +175,6 @@ if __name__ == '__main__':
     prepare_environment(PROJECT_ROOT)
     for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
-        sleep(random.randint(2, 5))
         articles = parser.parse()
         articles.save_raw()
+        sleep(random.randint(2, 5))
