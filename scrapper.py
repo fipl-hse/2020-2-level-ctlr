@@ -101,12 +101,12 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find("div", class_="leading-0").text
+        self.article.text = article_soup.find("div", class_="item-page").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('div', class_="page-header").find('h2').find('a').text.strip()
-        self.article.views = article_soup.find('div', class_="hits").find('meta').text
-        self.article.date = self.unify_date_format(article_soup.find('div', class_="create").find('time').text)
+        self.article.title = article_soup.find('div', class_="page-header").find('h2').text
+        self.article.views = article_soup.find('dd', class_="hits").find('meta').text
+        self.article.date = self.unify_date_format(article_soup.find('dd', class_="create").find('time').text)
         self.article.author = 'NOT FOUND'
 
     @staticmethod
@@ -173,6 +173,7 @@ if __name__ == '__main__':
                       max_articles=max_articles,
                       max_articles_per_seed=max_articles_per_seed)
     crawler.find_articles()
+
     prepare_environment(ASSETS_PATH)
     for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
