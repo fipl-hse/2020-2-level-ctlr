@@ -73,7 +73,7 @@ class Crawler:
             try:
                 response = requests.get(seed_url, headers=headers)
             except HTTPError:
-                print('Something wrong the URL...')
+                print('something wrong the url...')
                 continue
             page_soup = BeautifulSoup(response.content, 'lxml')
             extracted_urls = self._extract_url(page_soup)
