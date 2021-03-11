@@ -3,6 +3,9 @@
 
 # Target score for pipeline.py:
 0
+<<<<<<< HEAD
 
 # Skip pipeline checks:
 1
+=======
+>>>>>>> 0e94ca054fe9afb1c747171e476d9e744a48f1af

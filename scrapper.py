@@ -29,6 +29,16 @@ class IncorrectNumberOfArticlesError(Exception):
     Custom error
     """
 
+<<<<<<< HEAD
+=======
+
+class UnknownConfigError(Exception):
+    """
+    Most general error
+    """
+
+
+>>>>>>> 0e94ca054fe9afb1c747171e476d9e744a48f1af
 class Crawler:
     """
     Crawler implementation
