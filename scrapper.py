@@ -189,4 +189,4 @@ if __name__ == '__main__':
     for article_id_number, article_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(full_url=article_url, article_id=article_id_number)
         parser.parse()
-        sleep(randrange(2, 5))
+        sleep(randrange(3, 5))
