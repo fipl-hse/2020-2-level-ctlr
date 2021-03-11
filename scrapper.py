@@ -156,4 +156,3 @@ if __name__ == '__main__':
     for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
         parser.parse()
-
