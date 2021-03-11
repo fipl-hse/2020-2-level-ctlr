@@ -3,6 +3,7 @@ Crawler implementation
 """
 import json
 import os
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -86,6 +87,10 @@ class Crawler:
         return seed_urls
 
 
+'''crawler = Crawler(['https://xn--65-dlci3cau6a.xn--p1ai/news/events/1/' ,'https://xn--65-dlci3cau6a.xn--p1ai/news/events/2/'],
+                  5, 10)
+print(crawler.get_search_urls())'''
+
 class ArticleParser:
     """
     ArticleParser implementation
@@ -97,34 +102,37 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        all_text = article_soup.find(name='div', id='article')
-        text = str(all_text)
-        return text
+        all_text = article_soup.find(name='div', id="article")
+        return all_text.text
+
 
     def _fill_article_with_meta_information(self, article_soup):
-        '''categ_tag = self._fill_article_with_text(article_soup).find_all(name='p', class_='news-category')
+
+        all_text = article_soup.find(name='div', id="article")
+        categ_tag = all_text.find_all(name='p', class_="news-category")
         category = categ_tag[0].text
 
-        h1_tag = self._fill_article_with_text(article_soup).find_all(name='h1')
+        h1_tag = all_text.find_all(name="h1")
         title = h1_tag[0].text
 
-        date_tag = self._fill_article_with_text(article_soup).find_all(name='p', class_='date')
+        date_tag = all_text.find_all(name='p', class_="date")
         date = date_tag[0].text
 
-        em_tag = self._fill_article_with_text(article_soup).find_all(name='em')
-        if len(em_tag) == 1:
-            author = em_tag[0].text
-        else:
-            author = 'NOT FOUND'
-        return None'''
-        pass
+        author = 'NOT FOUND'
+        return None
+
+
+
+
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+
+        return datetime.strptime(date_str, "%d.%m.%Y")
+
 
     def parse(self):
         """
@@ -136,8 +144,10 @@ class ArticleParser:
         page_content = response.content
         article_bs = BeautifulSoup(page_content, features='lxml')
         self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
 
         return self.article
+
 
 
 def prepare_environment(base_path):
@@ -153,45 +163,43 @@ def validate_config(crawler_path):
     Validates given config
     """
     with open(crawler_path, 'r', encoding='utf-8') as conf_file:
-        conf = json.load(conf_file)
+        config = json.load(conf_file)
 
-    urls = conf["base_urls"]
-    total_art = conf["total_articles_to_find_and_parse"]
+    is_config_not_ok = ('base_urls' not in config
+                         or 'total_articles_to_find_and_parse' not in config
+                         or 'max_number_articles_to_get_from_one_seed' not in config)
 
-    is_total_not_ok = not isinstance(total_art, int) or total_art < 0
-    is_config = ('base_urls' not in conf
-                         or 'total_articles_to_find_and_parse' not in conf
-                         or 'max_number_articles_to_get_from_one_seed' not in conf)
+    are_urls_not_ok = (not isinstance(config['base_urls'], list)
+                       or not all([isinstance(url, str) for url in config['base_urls']]))
 
-    if not isinstance(conf, dict) and is_config:
+    is_num_not_ok = (not isinstance(config['total_articles_to_find_and_parse'], int)
+                                 or config['total_articles_to_find_and_parse'] < 0)
+
+    if not isinstance(config, dict) and is_config_not_ok:
         raise UnknownConfigError
 
-    if not isinstance(urls, list) or \
-            (not isinstance(url, str) for url in urls):
+    if are_urls_not_ok:
         raise IncorrectURLError
 
-    if total_art > 1000000:
-        raise NumberOfArticlesOutOfRangeError
-
-    if is_total_not_ok:
+    if is_num_not_ok:
         raise IncorrectNumberOfArticlesError
 
-    return urls, total_art
+    if config['total_articles_to_find_and_parse'] > 100:
+        raise NumberOfArticlesOutOfRangeError
 
-
+    return config.values()
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    urls = ['https://xn--65-dlci3cau6a.xn--p1ai/news/events/1/' ,'https://xn--65-dlci3cau6a.xn--p1ai/news/events/2/']
+    seed_urls,  max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    # urls = ['https://xn--65-dlci3cau6a.xn--p1ai/news/events/1/' ,'https://xn--65-dlci3cau6a.xn--p1ai/news/events/2/']
 
-    crawler = Crawler(seed_urls=urls, max_articles=5, max_articles_per_seed=10)
-    urls = crawler.find_articles()
+    crawler = Crawler(seed_urls=seed_urls, max_articles=max_articles, max_articles_per_seed=max_articles_per_seed)
+    urlss = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
-    article_id = 0
-    for article_url in urls:
-        article_id += 1
-        parser = ArticleParser(article_url, article_id)
+
+    for id, url in enumerate(urlss):
+        parser = ArticleParser(url, id+1)
         article = parser.parse()
         article.save_raw()
