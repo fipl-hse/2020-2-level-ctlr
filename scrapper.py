@@ -217,9 +217,9 @@ class ArticleParser:
         article_page = Crawler.get_page(self.article.url)
         soup = BeautifulSoup(article_page, 'html.parser')
 
-        with open(os.path.join(constants.ASSETS_PATH, f'{self.article.article_id}_page.html'),
-                  'w', encoding='utf-8') as file:
-            file.write(article_page)
+        # with open(os.path.join(constants.ASSETS_PATH, f'{self.article.article_id}_page.html'),
+        #           'w', encoding='utf-8') as file:
+        #     file.write(article_page)
 
         self._fill_article_with_meta_information(soup)
         self._fill_article_with_text(soup)
