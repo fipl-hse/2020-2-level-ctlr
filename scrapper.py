@@ -2,17 +2,19 @@
 Crawler implementation
 """
 import json
-import re
-import requests
 import os
-from article import Article
-from bs4 import BeautifulSoup
+import re
 import datetime
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 from time import sleep
+import requests
+from bs4 import BeautifulSoup
+from article import Article
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
+
 
 headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'}
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+     'Chrome/89.0.4389.82 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -52,15 +54,14 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find('h2', class_="entry-title").find('a')
-        url_article.attrs['href']
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
         Finds articles
         """
-        for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+        for s_url in self.seed_urls:
+            response = requests.get(s_url, headers=headers)
             sleep(5)
             if not response:
                 raise IncorrectURLError
@@ -130,8 +131,8 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         crawler_config = json.load(file)
 
-    for url in crawler_config['base_urls']:
-        if not re.match('https://', url):
+    for base_url in crawler_config['base_urls']:
+        if not re.match('https://', base_url):
             raise IncorrectURLError
 
     if 'total_articles_to_find_and_parse' in crawler_config and \
@@ -147,9 +148,9 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    urls, max_articles = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles, max_articles_per_seed=articles_per_seed)
+    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for i, url in enumerate(crawler.urls):
