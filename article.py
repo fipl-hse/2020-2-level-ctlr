@@ -98,7 +98,6 @@ class Article:
         Converts datetime object to text
         """
         return self.date.strftime("%Y-%m-%d %H:%M:%S")
-    
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article
