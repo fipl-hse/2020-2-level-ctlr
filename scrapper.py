@@ -132,6 +132,11 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
 
+    unknown = ('base_urls' not in config or 'total_articles_to_find_and_parse' not in config
+               or 'max_number_articles_to_get_from_one_seed' not in config)
+    if not isinstance(config, dict) and unknown:
+        raise UnknownConfigError
+
     if not isinstance(config['base_urls'], list) or \
             not all(isinstance(url, str) for url in config['base_urls']):
         raise IncorrectURLError
@@ -146,19 +151,16 @@ def validate_config(crawler_path):
             'total_articles_to_find_and_parse' not in config or \
             not isinstance(config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
-
     return config.values()
-
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
-    crawler.find_articles()
+    article = crawler.find_articles()
+    print(article)
     prepare_environment(ASSETS_PATH)
-
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind)
         article = parser.parse()
