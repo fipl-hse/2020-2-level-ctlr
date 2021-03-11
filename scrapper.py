@@ -182,7 +182,7 @@ class ArticleParser:
                 author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip()
                 author = author.split('\n')[0][9:].strip()
             else:
-                author = ''
+                author = 'Not found'
             self.article.author = author
             when = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[1]
             self.article.date = self.unify_date_format(when)
