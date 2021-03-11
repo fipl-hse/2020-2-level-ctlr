@@ -58,20 +58,17 @@ class Crawler:
         """
         Finds articles
         """
-        self.get_search_urls()
+        raw_urls = []
         for url in self.seed_urls:
             response = requests.get(url, headers=HEADERS)
-            if not response:
-                raise IncorrectURLError
-            page_soup = BeautifulSoup(response.content, features='lxml')
-            articles_soup = page_soup.find_all('article')
-            for i in range(self.max_articles_per_seed):
-                if len(self.urls) < self.max_articles:
-                    self.urls.append(self._extract_url(articles_soup[i]))
-                else:
-                    break
-            if len(self.urls) == self.max_articles:
-                break
+            print('Making a request...')
+            sleep(random.randrange(2, 5))
+            articles_page = BeautifulSoup(response.content, 'lxml')
+            links = self._extract_url(articles_page)
+            raw_urls.extend(links)
+        for url in raw_urls:
+            self.urls.append(url[1:-1])
+        return self.urls
 
     def get_search_urls(self):
         """
