@@ -11,9 +11,7 @@ from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 # from time import sleep as wait
 from article import Article
-
-CRAWLER_CONFIG_PATH = 'crawler_config.json'
-NEWLINES_RE = re.compile(r"\n{2,}")  # two or more "\n" characters
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 
 class IncorrectURLError(Exception):
@@ -109,7 +107,6 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         try:
             text = article_soup.find('div', {'class': 'text letter', 'itemprop': 'articleBody'}).text.strip()
-            # text = NEWLINES_RE.split(all_text)  # regex splitting
             self.article.text = text
         except AttributeError:
             print('    unable to parse', self.full_url)
@@ -218,6 +215,7 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
+    prepare_environment(ASSETS_PATH)
     seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     if not max_arts_per_seed:
         max_arts_per_seed = max_articles
