@@ -8,6 +8,7 @@ from datetime import datetime
 from random import randint
 from time import sleep
 import re
+import shutil
 import requests
 from bs4 import BeautifulSoup
 import article
@@ -230,9 +231,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
-
+    if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
+        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
+    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
 def validate_config(crawler_path):
     """
