@@ -3,7 +3,6 @@ Crawler implementation
 """
 
 import os
-import re
 import json
 from datetime import date
 import requests
