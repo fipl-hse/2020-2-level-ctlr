@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from requests import HTTPError
 import article
-from constants import PROJECT_ROOT, CRAWLER_CONFIG_PATH
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -139,9 +139,10 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
-    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    else:
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -177,7 +178,7 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    prepare_environment(PROJECT_ROOT)
+    prepare_environment(ASSETS_PATH)
 
     seed_urls_list, max_num_articles, max_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
