@@ -75,8 +75,7 @@ class Crawler:
         except IncorrectNumberOfArticlesError:
             print("incorrect number of articles")
         except UnknownConfigError:
-            print("error in configuration")
-            
+            print("error in configuration") 
         self.urls = self.urls[:self.max_articles + 1]
 
 
