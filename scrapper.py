@@ -201,21 +201,29 @@ def validate_config(crawler_path):
     try:
         if not isinstance(config['total_articles_to_find_and_parse'], int):
             raise IncorrectNumberOfArticlesError
-        if not config['total_articles_to_find_and_parse'] > 1000:
+        if config['total_articles_to_find_and_parse'] > 1000:
             raise NumberOfArticlesOutOfRangeError
-        if not isinstance(config['max_number_articles_to_get_from_one_seed'], int):
-            raise IncorrectNumberOfArticlesError
-        if not config['total_articles_to_find_and_parse'] < config['max_number_articles_to_get_from_one_seed']\
-           * len(good_response):
-            raise NumberOfArticlesOutOfRangeError
+        # if not isinstance(config['max_number_articles_to_get_from_one_seed'], int):
+        #     raise IncorrectNumberOfArticlesError
+        # if not config['total_articles_to_find_and_parse'] < config['max_number_articles_to_get_from_one_seed']\
+        #    * len(good_response):
+        #     raise NumberOfArticlesOutOfRangeError
     except KeyError as exception:
         raise IncorrectNumberOfArticlesError from exception
-    return config['base_urls'], config['total_articles_to_find_and_parse'], \
-        config['max_number_articles_to_get_from_one_seed']
+    try:
+        return config['base_urls'], config['total_articles_to_find_and_parse'], \
+            config['max_number_articles_to_get_from_one_seed']
+    except KeyError:
+        return config['base_urls'], config['total_articles_to_find_and_parse']
 
 
 if __name__ == '__main__':
-    seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    params = validate_config(CRAWLER_CONFIG_PATH)
+    if len(params) == 3:
+        seedurls, max_articles, max_arts_per_seed = params
+    else:
+        seedurls, max_articles = params
+        max_arts_per_seed = max_articles
     crawler = Crawler(seed_urls=seedurls,
                       total_max_articles=max_articles,
                       max_articles_per_seed=max_arts_per_seed)
