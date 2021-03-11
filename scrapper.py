@@ -187,8 +187,8 @@ class ArticleParser:
         self.article = article.Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find('div', class_='element-detail').find_all('p')
-        article_list = [paragraph.text.strip() for paragraph in paragraphs_soup if paragraph.text.strip()]
+        paragraphs_soup = article_soup.find('div', class_='element-detail')
+        article_list = [paragraph.strip() for paragraph in paragraphs_soup.text.split('\n') if paragraph.strip()]
         article_str = ' '.join(article_list)
         self.article.text = article_str
 
@@ -235,6 +235,7 @@ def prepare_environment(base_path):
         shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
     os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
 
+
 def validate_config(crawler_path):
     """
     Validates given config
@@ -271,12 +272,12 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     prepare_environment(PROJECT_ROOT)
-    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls_ex,
-                      max_articles=max_articles_ex,
-                      max_articles_per_seed=max_articles_per_seed_ex)
-    crawler.find_articles()
-    for art_id, art_url in enumerate(crawler.urls, 1):
-        parser = ArticleParser(full_url=art_url, article_id=art_id)
-        article_from_list = parser.parse()
-        sleep(randint(3, 5))
+    # seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    # crawler = Crawler(seed_urls=seed_urls_ex,
+    #                   max_articles=max_articles_ex,
+    #                   max_articles_per_seed=max_articles_per_seed_ex)
+    # crawler.find_articles()
+    # for art_id, art_url in enumerate(crawler.urls, 1):
+    #     parser = ArticleParser(full_url=art_url, article_id=art_id)
+    #     article_from_list = parser.parse()
+    #     sleep(randint(3, 5))
