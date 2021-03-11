@@ -108,6 +108,7 @@ class ArticleParser:
                       'августа': 8, 'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12}
 
         date, week_day, time = date_str.split(',')
+        del week_day
 
         day, month, year = date.split(' ')  # дата
         day = int(day)
