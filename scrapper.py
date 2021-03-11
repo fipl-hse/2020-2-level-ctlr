@@ -138,19 +138,32 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path, 'r', encoding='utf-8') as config:
-        params = json.load(config)
+    try:
+        with open(crawler_path, 'r', encoding='utf-8') as config:
+            params = json.load(config)
 
-    if 'base_urls' not in params or not all([isinstance(url, str) for url in params['base_urls']]):
-        raise IncorrectURLError
+        seed_urls = params.get('base_urls')
+        max_articles = params.get('total_articles_to_find_and_parse')
+        max_articles_per_seed = params.get('max_number_articles_to_get_from_one_seed')
 
-    if params['total_articles_to_find_and_parse'] > 100:
-        raise NumberOfArticlesOutOfRangeError
+        if not isinstance(seed_urls, list):
+            raise IncorrectURLError
+        for url in seed_urls:
+            if not isinstance(url, str) or not url.startswith('http'):
+                raise IncorrectURLError
 
-    if not isinstance(params['total_articles_to_find_and_parse'], int):
-        raise IncorrectNumberOfArticlesError
+        if not isinstance(max_articles, int) or max_articles < 0:
+            raise IncorrectNumberOfArticlesError
 
-    return params['base_urls'], params['total_articles_to_find_and_parse'], params['total_articles_to_find_and_parse']
+        if not isinstance(max_articles_per_seed, int) or max_articles_per_seed > max_articles:
+            raise NumberOfArticlesOutOfRangeError
+
+    except(IncorrectURLError, IncorrectNumberOfArticlesError, NumberOfArticlesOutOfRangeError) as error:
+        raise error
+    except:
+        raise UnknownConfigError
+    else:
+        return seed_urls, max_articles, max_articles_per_seed
 
 
 if __name__ == '__main__':
