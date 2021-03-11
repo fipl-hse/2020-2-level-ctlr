@@ -5,9 +5,9 @@ Crawler implementation
 import os
 import json
 from datetime import date
-import requests
 from random import randint
 from time import sleep as wait
+import requests
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 from article import Article
@@ -97,20 +97,23 @@ class CrawlerRecursive(Crawler):
         super().__init__(seed_urls, total_max_articles, max_articles_per_seed)
         self.is_waiting = to_wait
 
+    def _crawl(self, pool: list):
+        for link in pool:
+            if self.is_waiting:
+                wait(randint(0, 10))
+            article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
+            newfound = self._extract_url(article_bs, self.urls)
+            newfound = [i for i in newfound if len(i) > 20
+                        and not any(map(lambda y: y.isupper(), i))]
+            return newfound
+
     def find_articles(self):
         if self.get_backedup():
             print('backed up urls found, starting iteration')
         if not self.urls:
-            for link in self.seed_urls:
-                if self.is_waiting:
-                    wait(randint(0, 10))
-                article_bs = BeautifulSoup(requests.get(link, 'html.parser').text, 'html.parser')
-                newfound = self._extract_url(article_bs, self.urls)
-                self.urls.extend(newfound)
-                self.urls = [i for i in self.urls if len(i) > 20
-                             and not any(map(lambda y: y.isupper(), i))]
-                with open('links/url_backup.txt', 'w', encoding='utf-8') as file:
-                    file.write('\n'.join(self.urls))
+            self.urls = self._crawl(self.seed_urls)
+            with open('links/url_backup.txt', 'w', encoding='utf-8') as file:
+                file.write('\n'.join(self.urls))
             print(f'Scraped {len(self.urls)} from seed')
             if self.verify_proceed():
                 print('starting recursive scraping')
@@ -118,21 +121,14 @@ class CrawlerRecursive(Crawler):
             else:
                 print(f'recursive crawling finished with {len(self.urls)} urls.')
         else:
-            old = len(self.urls)
-            for link in self.urls:
-                if self.is_waiting:
-                    wait(randint(0, 10))
-                article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
-                newfound = self._extract_url(article_bs, self.urls)
-                newfound = [i for i in newfound if len(i) > 20
-                            and not any(map(lambda y: y.isupper(), i))]
-                self.urls.extend(newfound)
-            with open('links/url_backup.txt', 'a', encoding='utf-8') as file:
-                file.write('\n'.join(self.urls))
-            if len(self.urls) == old:
+            newfound = self._crawl(self.urls)
+            if not newfound:
                 print(f'there are no unseen links found\nrecursive crawling finished with {len(self.urls)} urls.')
             else:
-                print(f'found {len(self.urls) - old} new urls')
+                self.urls.extend(newfound)
+                with open('links/url_backup.txt', 'a', encoding='utf-8') as file:
+                    file.write('\n'.join(newfound))
+                print(f'found {len(newfound)} new urls')
                 if self.verify_proceed():
                     print('starting new iteration')
                     self.find_articles()
