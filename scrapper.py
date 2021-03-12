@@ -172,10 +172,10 @@ class ArticleParser:
         paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
         could_be_author = paragraphs.find_all('p')[-1].text
         if res := paragraphs.find('p', {'class': 'has-text-align-right'}):
-            self.article.author = res.text.title()
+            self.article.author = res.text
         elif len(could_be_author.split()) == 2\
                 and all(name.isalpha() for name in could_be_author.split()):
-            self.article.author = could_be_author.title()
+            self.article.author = could_be_author
         else:
             self.article.author = 'NOT FOUND'
 
