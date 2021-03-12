@@ -46,13 +46,16 @@ class BadStatusCode(Exception):
     """
 
 
+class BadArticle(Exception):
+    """
+    Custom Error
+    """
+
+
 class Crawler:
     """
     Crawler implementation
     """
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                             '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'}
-
     def __init__(self,
                  seed_urls: list,
                  max_articles: int = None,
@@ -98,25 +101,11 @@ class Crawler:
                 if article_id >= self.max_articles:
                     break
 
-    @staticmethod
-    def get_page(url):
-        """
-        Returns requests page
-        """
-        response = requests.get(url, headers=Crawler.headers)
-        response.encoding = 'utf-8'
-        if response.status_code == 200:
-            page = response.text
-        else:
-            raise BadStatusCode
-        sleep(randint(3, 10))
-        return page
-
     def process_page(self, url, article_id):
         """
         Processes page and get artcle urls
         """
-        page = self.get_page(url)
+        page = get_page(url)
         with open(os.path.join(constants.PAGES_ROOT, f'{article_id}.html'),
                   'w', encoding='utf-8') as file:
             file.write(page)
@@ -173,14 +162,26 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        for paragraph in article_soup.find_all('p')[:-3]:
+        paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
+        for paragraph in paragraphs.find_all('p'):
             self.article.text += paragraph.text + ' '
+
+        if not self.article.text:
+            raise BadArticle
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = re.sub(r' - Звезда Алтая', '', article_soup.find('title').text)
         date_str = article_soup.find('span', {'class': 'mg-blog-date'}).text.strip()
         self.article.date = self.unify_date_format(date_str)
-        self.article.author = article_soup.find('h4', {'class': 'media-heading'}).find('a').text
+
+        paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
+        if res := paragraphs.find('p', {'class': 'has-text-align-right'}):
+            self.article.author = res.text.title()
+        elif len(paragraphs.find_all('p')[-1].text.split()) == 2:
+            self.article.author = paragraphs.find_all('p')[-1].text.title()
+        else:
+            self.article.author = article_soup.find(
+                'h4', {'class': 'media-heading'}).find('a').text.title()
 
     @staticmethod
     def unify_date_format(date_str):
@@ -212,16 +213,30 @@ class ArticleParser:
         """
         Parses each article
         """
-        article_page = Crawler.get_page(self.article.url)
+        article_page = get_page(self.article.url)
         soup = BeautifulSoup(article_page, 'html.parser')
 
         # with open(os.path.join(constants.ASSETS_PATH, f'{self.article.article_id}_page.html'),
         #           'w', encoding='utf-8') as file:
         #     file.write(article_page)
 
-        self._fill_article_with_meta_information(soup)
         self._fill_article_with_text(soup)
+        self._fill_article_with_meta_information(soup)
         return self.article
+
+
+def get_page(url):
+    """
+    Returns requests page
+    """
+    response = requests.get(url, headers=constants.HEADERS)
+    response.encoding = 'utf-8'
+    if response.status_code == 200:
+        page = response.text
+    else:
+        raise BadStatusCode
+    sleep(randint(3, 10))
+    return page
 
 
 def prepare_environment():
@@ -310,36 +325,38 @@ def load_previous_state(crawler_obj):
 
 
 if __name__ == '__main__':
-    prepare_environment()
+    # prepare_environment()
+    #
+    # try:
+    #     urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    # except (
+    #         IncorrectURLError,
+    #         IncorrectNumberOfArticlesError,
+    #         NumberOfArticlesOutOfRangeError,
+    #         UnknownConfigError
+    # ) as error:
+    #     print(f'{error} occurred')
+    # else:
+    #     crawler = CrawlerRecursive(
+    #         seed_urls=urls,
+    #         max_articles=articles_max,
+    #         max_articles_per_seed=articles_per_seed
+    #     )
+    #     crawler = load_previous_state(crawler)
+    #     crawler.find_articles()
 
-    try:
-        urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
-    except (
-            IncorrectURLError,
-            IncorrectNumberOfArticlesError,
-            NumberOfArticlesOutOfRangeError,
-            UnknownConfigError
-    ) as error:
-        print(f'{error} occurred')
-    else:
-        crawler = CrawlerRecursive(
-            seed_urls=urls,
-            max_articles=articles_max,
-            max_articles_per_seed=articles_per_seed
-        )
-        crawler = load_previous_state(crawler)
-        crawler.find_articles()
+    articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
+    i = 1
 
-        articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
-        i = 1
-        while i <= articles_max:
-            for article_url in articles_urls:
-                print(f'Article #{i}: {article_url} is processed')
-                parser = ArticleParser(full_url=article_url, article_id=i)
-                try:
-                    article = parser.parse()
-                except BadStatusCode:
-                    continue
-                else:
-                    article.save_raw()
-                    i += 1
+    for article_url in articles_urls:
+        print(f'Article #{i}: {article_url} is processed')
+        parser = ArticleParser(full_url=article_url, article_id=i)
+        try:
+            article = parser.parse()
+        except (BadStatusCode, BadArticle):
+            continue
+        else:
+            article.save_raw()
+            i += 1
+        if i > 10:
+            break
