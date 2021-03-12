@@ -1,3 +1,5 @@
+set -ex
+
 echo "Stage: Downloading articles"
 
 python config/config_param_changer.py

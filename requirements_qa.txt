@@ -1,0 +1,4 @@
+<<<<<<< HEAD
+=======
+pylint==2.6.0
+>>>>>>> upstream/main
