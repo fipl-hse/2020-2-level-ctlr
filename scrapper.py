@@ -1,9 +1,16 @@
 """
 Crawler implementation
 """
+import requests
 import json
+from time import sleep
+import random
+from bs4 import BeautifulSoup
+import re
 
-
+headers = {
+            'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'
+        }
 class IncorrectURLError(Exception):
     """
     Custom error
@@ -40,19 +47,32 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        url_article = article_bs.find('div', class_='entry-title').find('a')
+        link = url_article.attrs['href']
+        return 'https://севернаяправда.рф/' + link
 
     def find_articles(self):
         """
         Finds articles
         """
-        pass
+        for urls in self.seed_urls:
+            response = requests.get(urls, headers=headers)
+            sleep(random.randrange(3, 6))
+            if not response:
+                raise IncorrectURLError
+            soup = BeautifulSoup(response.content, features='lxml')
+            links = self._extract_url(soup)
+            if len(links) < self.max_articles_per_seed:
+                self.urls.extend(links)
+            else:
+                self.urls.extend(links[:self.max_articles_per_seed])
+
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -105,6 +125,7 @@ def validate_config(crawler_path):
         raise IncorrectNumberOfArticlesError
     if configuration['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
+
 
 
 
