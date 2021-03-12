@@ -4,6 +4,7 @@ Crawler implementation
 import requests
 import json
 import os
+import shutil
 import datetime
 from article import Article
 from time import sleep
@@ -92,7 +93,7 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         article_text_list = []
         text_soup = article_soup.find('div', class_='entry-content')
-        main_text = text_soup.fins_all('p')
+        main_text = text_soup.find_all('p')
         for par in main_text:
             article_text_list.append(par.text)
         self.article.text = '\n'.join(article_text_list)
@@ -165,7 +166,7 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment(ASSETS_PATH)
+    prepare_environment(PROJECT_ROOT)
 
     urls_list, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
