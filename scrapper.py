@@ -68,7 +68,7 @@ class Crawler:
                 response.raise_for_status()
 
                 seed_soup = BeautifulSoup(response.content, 'lxml')
-                articles = seed_soup.find_all('h2', class_='entry-title')  # list of 10
+                articles = seed_soup.find_all('h2', class_='entry-title')
 
                 for article_number in range(self.max_articles_per_seed):
                     article_soup = articles[article_number]
@@ -76,6 +76,7 @@ class Crawler:
 
                     if len(self.urls) == self.max_articles:
                         break
+
                 if len(self.urls) == self.max_articles:
                     break
         except HTTPError as error:
@@ -135,7 +136,7 @@ class ArticleParser:
 
             self._fill_article_with_text(article_bs)
             self._fill_article_with_meta_information(article_bs)
-            self.article.save_raw()
+
             return self.article
 
 
@@ -187,4 +188,5 @@ if __name__ == '__main__':
     for article_id_number, article_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(full_url=article_url, article_id=article_id_number)
         article_parsed = parser.parse()
+        article_parsed.save_raw()
         sleep(randrange(3, 5))
