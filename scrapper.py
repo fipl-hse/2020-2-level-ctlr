@@ -68,8 +68,13 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        article_urls = set(open(constants.ARTICLE_URLS, encoding='utf-8').read().split('\n'))
-        seen_urls = set(open(constants.SEEN_URLS, encoding='utf-8').read().split('\n'))
+        if os.path.exists(constants.ARTICLE_URLS):
+            article_urls = set(open(constants.ARTICLE_URLS, encoding='utf-8').read().split('\n'))
+            seen_urls = set(open(constants.SEEN_URLS, encoding='utf-8').read().split('\n'))
+        else:
+            article_urls = set()
+            seen_urls = set()
+
         for link in article_bs.find_all('a'):
             if href := link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/'
