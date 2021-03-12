@@ -189,4 +189,4 @@ if __name__ == '__main__':
         parser = ArticleParser(full_url=article_url, article_id=article_id_number)
         article_parsed = parser.parse()
         article_parsed.save_raw()
-        sleep(randrange(2, 4))
+        sleep(randrange(3, 5))
