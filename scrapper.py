@@ -64,7 +64,7 @@ class Crawler:
         self.max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.seen_urls = set()
-        self.urls = []  # articles urls
+        self.urls = set()  # articles urls
 
     @staticmethod
     def _extract_url(article_bs):
@@ -79,7 +79,7 @@ class Crawler:
         if article_urls:
             with open(constants.ARTICLE_URLS, 'w', encoding='utf-8') as file:
                 file.write('\n'.join(article_urls) + '\n')
-        return list(article_urls)  # todo
+        return article_urls
 
     def find_articles(self):
         """
@@ -94,7 +94,7 @@ class Crawler:
                 continue
             else:
                 if len(self.urls) > self.max_articles:
-                    self.urls = self.urls[:self.max_articles]
+                    self.urls = list(self.urls)[:self.max_articles]
                     break
                 article_id += 1
                 if article_id >= self.max_articles:
@@ -106,7 +106,7 @@ class Crawler:
         """
         page = get_page(url)
         soup = BeautifulSoup(page, 'html.parser')
-        self.urls = self._extract_url(soup, self.urls, self.seen_urls)
+        self.urls = self._extract_url(soup)
         return soup
 
 
@@ -132,7 +132,7 @@ class CrawlerRecursive(Crawler):
             else:
                 self.seed_urls = self.get_search_urls(soup)
                 article_id += 1
-        self.urls = self.urls[:self.max_articles]
+        self.urls = list(self.urls)[:self.max_articles]
 
     def get_search_urls(self, soup):
         """
@@ -159,7 +159,7 @@ class CrawlerRecursive(Crawler):
             self.seen_urls = set(open(constants.SEEN_URLS).read().split('\n'))
 
         if os.path.exists(constants.ARTICLE_URLS):
-            self.urls = open(constants.ARTICLE_URLS).read().split('\n')
+            self.urls = set(open(constants.ARTICLE_URLS).read().split('\n'))
 
 
 class ArticleParser:
