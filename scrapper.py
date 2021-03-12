@@ -152,8 +152,7 @@ def validate_config(crawler_path):
     """
     with open(crawler_path, 'r', encoding='utf-8') as file:
         crawler = json.load(file)
-
-    url_pattern = 'https://'
+    url_pattern = 'http://'
 
     for url in crawler['base_urls']:
         if not isinstance(url, str) or url_pattern not in url:
@@ -161,8 +160,11 @@ def validate_config(crawler_path):
 
     try:
         max_articles = crawler['total_articles_to_find_and_parse']
-        if not isinstance(max_articles, int) or max_articles > 100:
+        if not isinstance(max_articles, int):
+            raise IncorrectNumberOfArticlesError
+        if max_articles > 100:
             raise NumberOfArticlesOutOfRangeError
+
     except KeyError as error:
         raise UnknownConfigError from error
 
@@ -170,6 +172,7 @@ def validate_config(crawler_path):
         max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
         if not isinstance(max_articles_per_seed, int):
             raise IncorrectNumberOfArticlesError
+
     except KeyError as error:
         raise UnknownConfigError from error
 
