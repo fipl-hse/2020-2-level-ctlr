@@ -56,14 +56,12 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url = article_bs
-        return url.find("a").get('href')
+        return article_bs.find("a").get('href')
 
     def find_articles(self):
         """
         Finds articles
         """
-        urls = []
         main_link = "http://www.kprfast.ru"
         for link in self.seed_urls:
             response = requests.get(link, headers=headers)
@@ -101,7 +99,7 @@ class ArticleParser:
         return None
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h2', itemprop='name').text
+        self.article.title = article_soup.find('a', itemprop='url').text.strip()
         self.article.author = article_soup.find('span', itemprop='name').text
         return None
 
