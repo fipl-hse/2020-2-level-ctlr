@@ -4,6 +4,7 @@ Crawler implementation
 import json
 import os
 from datetime import datetime
+import re
 
 import requests
 from bs4 import BeautifulSoup
@@ -109,6 +110,7 @@ class ArticleParser:
 
         h1_tag = all_text.find_all(name="h1")
         self.article.title = h1_tag[0].text
+        self.article.title = re.sub(' ', ' ', self.article.title)
 
         #return None
 
@@ -130,6 +132,7 @@ class ArticleParser:
         response = requests.get(self.full_url, headers=headers)
         page_content = response.content
         article_bs = BeautifulSoup(page_content, features='lxml')
+
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
         self.article.save_raw()
