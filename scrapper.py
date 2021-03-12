@@ -50,24 +50,25 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        links = []
+        links_one_page = []
         articles = article_bs.find_all(class_ = "pb-caption")
         for one_article in articles:
-            links.extend(re.findall(r'/article/[\w+_]+[\w]+/', str(one_article)))
-        for index, link in enumerate(links):
-            links[index] = 'https://ugra-news.ru' + link
-        return links
+            links_one_page.extend(re.findall(r'/article/[\w+_]+[\w]+/', str(one_article)))
+        for index, link in enumerate(links_one_page):
+            links_one_page[index] = 'https://ugra-news.ru' + link
+        return links_one_page[:7]
 
     def find_articles(self):
         """
         Finds articles
         """
-
+        links = []
         for one_url in self.seed_urls:
-            response = requests.get(one_url, headers=HEADERS)
-            article_bs = BeautifulSoup(response.content, features='lxml')
-            links = self._extract_url(article_bs)
-            self.all_urls.extend(links)
+            while len(links) < self.total_max_articles:
+                response = requests.get(one_url, headers=HEADERS)
+                article_bs = BeautifulSoup(response.content, features='lxml')
+                links = self._extract_url(article_bs)
+                self.all_urls.extend(links)
 
         return self.all_urls
 
@@ -114,7 +115,6 @@ class ArticleParser:
         """
         Parses each article
         """
-        print(self.full_url)
         response = requests.get(self.full_url, headers=HEADERS)
         article_bs = BeautifulSoup(response.content, features='lxml')
         self._fill_article_with_text(article_bs)
@@ -162,7 +162,6 @@ if __name__ == '__main__':
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for i, url in enumerate(crawler.all_urls):
-        parser = ArticleParser(full_url=url, article_id=i)
+        parser = ArticleParser(full_url=url, article_id=i+1)
         article = parser.parse()
-        print(article.author, article.title, article.text)
         article.save_raw()
