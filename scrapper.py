@@ -111,7 +111,6 @@ class ArticleParser:
                     raise AttributeError
         except AttributeError:
             self.article.author = 'NOT FOUND'
-        print(self.article.author)
 
         self.article.topics = article_soup.find('div', class_='article-details-left')\
             .find('a', class_='article-section').text
