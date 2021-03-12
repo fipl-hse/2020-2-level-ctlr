@@ -5,7 +5,6 @@ import json
 import os
 import re
 import datetime
-import shutil
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
@@ -66,8 +65,10 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            links = self._extract_url(article_bs)
-            self.urls.extend(links)
+            links = article_bs.find_all('div', {'class': 'entry-summary'})
+            urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
+            for index in range(urls_number):
+                self.urls.append('https://kostroma.news/' + self._extract_url(article_bs=links[index]))
 
         return self.urls
 
@@ -92,7 +93,7 @@ class ArticleParser:
         self.article.text = article_soup.find(name='div', class_="entry-content").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h2', class_='entry-title').text.strip()
+        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
         self.article.author = 'NOT FOUND'
         for topic in article_soup.find_all('a', rel="tag"):
             self.article.topics.append(topic.text)
@@ -103,8 +104,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        date = datetime.datetime.strptime(date_str, "%d.%m.%Y, %H:%M")
-        return date
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
@@ -121,9 +121,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
-    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+
 
 def validate_config(crawler_path):
     """
@@ -150,11 +150,12 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
+    prepare_environment(ASSETS_PATH)
     urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles,max_articles_per_seed=articles_per_seed)
+    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles, max_articles_per_seed=articles_per_seed)
     crawler.find_articles()
-    prepare_environment(ASSETS_PATH)
+
     for i, url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url, article_id=i)
         parser.parse()
