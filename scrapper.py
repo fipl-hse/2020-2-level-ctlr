@@ -65,10 +65,9 @@ class Crawler:
             for link in links:
                 link2 = re.findall(r'/node/\d{4}', str(links))
 
-
             for link_url in link2:
                 code = 'http://kamtime.ru' + link_url
-                if code not in self.urls and len(self.urls) < max_articles:
+                if code not in self.urls and len(self.urls) < self.max_articles:
                     self.urls.append(code)
 
             return self.urls
@@ -86,7 +85,10 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.article = Article(full_url, article_id)
+
 
     def _fill_article_with_text(self, article_soup):
         pass
@@ -110,12 +112,14 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
     with open(crawler_path) as config_file:
-        crawler_conf = json.load(crawler_file)
+        crawler_conf = json.load(config_file)
 
         if not isinstance(crawler_conf, dict):
             raise UnknownConfigError
@@ -133,7 +137,7 @@ def validate_config(crawler_path):
             raise NumberOfArticlesOutOfRangeError
 
         return crawler_conf['base_urls'], crawler_conf['total_articles_to_find_and_parse'], \
-            cr_config['max_number_articles_to_get_from_one_seed']
+            crawler_conf['max_number_articles_to_get_from_one_seed']
 
 
 
