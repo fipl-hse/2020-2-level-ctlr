@@ -96,7 +96,7 @@ class ArticleParser:
             self.article.text += paragraph.text.strip() + ''
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text.strip()
+        self.article.title = article_soup.find('h1').text
         return None
 
     @staticmethod
