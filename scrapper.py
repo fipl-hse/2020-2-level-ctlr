@@ -139,19 +139,15 @@ class ArticleParser:
         date_str = date_str.split(' ')
         if not date_str[0].isdigit():
             today = datetime.today()
-            day = str(today.day)
-            month = str(today.month)
             yest = datetime.now() - timedelta(days=1)
-            day1 = str(yest.day)
-            month1 = str(yest.month)
-            hour = str(today.hour)
-            minut = str(today.minute)
-            arr = {'Вчера': day1 + ' ' + month1 + ' ', 'Сегодня': day + ' ' + month + ' ', 'Только': day + ' ' + month}
+            arr = {'Вчера': str(yest.day) + ' ' + str(yest.month) + ' ',
+                   'Сегодня': str(today.day) + ' ' + str(today.month) + ' ',
+                   'Только': str(today.day) + ' ' + str(today.month)}
             for key in arr:
                 if date_str[0] == key:
                     date_str[0] = arr[key]
             if date_str == 'что':
-                date_str = str(date_str[0] + ' ' + str(hour + ':' + minut))
+                date_str = str(date_str[0] + ' ' + str(str(today.hour) + ':' + str(today.minute)))
             else:
                 date_str = date_str[0] + date_str[-1]
             date_str = date_str.split(' ')
