@@ -11,7 +11,7 @@ import shutil
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-import article
+from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
 
@@ -93,18 +93,18 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = article.Article(full_url, article_id)
+        self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find_all('p')
+        paragraphs_soup = article_soup.find('div', class_='news-content').find_all('p')
         for parag in paragraphs_soup:
-            self.article.text += parag.text.strip() + ''
+            self.article.text += parag.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
 
         try:
-            self.article.author = article_soup.find('div', class_='news-tags').find('a').text
+            self.article.author = article_soup.find('div', class_='news-tags').text
             author_error = self.article.author.split('\n')
             for element in author_error:
                 if element == 'Теги:':
@@ -144,11 +144,16 @@ class ArticleParser:
             yest = datetime.now() - timedelta(days=1)
             day1 = str(yest.day)
             month1 = str(yest.month)
-            arr = {'Вчера': day1 + ' ' + month1 + ' ', 'Сегодня': day + ' ' + month + ' '}
+            hour = str(today.hour)
+            minut = str(today.minute)
+            arr = {'Вчера': day1 + ' ' + month1 + ' ', 'Сегодня': day + ' ' + month + ' ', 'Только': day + ' ' + month}
             for key in arr:
                 if date_str[0] == key:
                     date_str[0] = arr[key]
-            date_str = date_str[0] + date_str[-1]
+            if date_str == 'что':
+                date_str = str(date_str[0] + ' ' + str(hour + ':' + minut))
+            else:
+                date_str = date_str[0] + date_str[-1]
             date_str = date_str.split(' ')
         else:
             for keys in months:
@@ -222,7 +227,7 @@ if __name__ == '__main__':
     print(art)
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind)
+        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
         article = parser.parse()
         article.save_raw()
         sleep((random.randrange(2, 6)))
