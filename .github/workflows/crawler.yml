@@ -77,14 +77,14 @@ jobs:
         chmod +x config/run-lint.sh
         config/run-lint.sh
 
-        
-  
+
+
   checking-crawler-config:
     name: Crawler checks config
     needs: [ code-style ]
     runs-on: ubuntu-latest
     timeout-minutes: 1
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
@@ -120,7 +120,7 @@ jobs:
     needs: [ code-style ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
@@ -159,7 +159,7 @@ jobs:
         path: |
           tmp/articles
         retention-days: 40
-  
+
   checking-articles-dataset:
     name: Validate dataset
     needs: [ checking-crawler-config, collecting-articles-from-internet ]
@@ -207,7 +207,7 @@ jobs:
         else
           echo "Skipping stage"
         fi
-  
+
   milestone-1-crawler-is-working:
     name: Crawler is accepted!
     needs: [ checking-articles-dataset ]
@@ -240,7 +240,7 @@ jobs:
     needs: milestone-2-pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 1
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
@@ -272,7 +272,9 @@ jobs:
         TARGET_SCORE=$(head -5 target_score.txt | tail -1)
         if [[ ${TARGET_SCORE} != 0 ]]; then
           mkdir -p tmp/articles
-          mv *_meta.json tmp/articles
+          if [[ ${TARGET_SCORE} != 4 ]]; then
+            mv *_meta.json tmp/articles
+          fi
           mv *_raw.txt tmp/articles
           python -m unittest config/raw_dataset_test.py
         else
@@ -316,7 +318,9 @@ jobs:
         TARGET_SCORE=$(head -5 target_score.txt | tail -1)
         if [[ ${TARGET_SCORE} != 0 ]]; then
           mkdir -p tmp/articles
-          mv *_meta.json tmp/articles
+          if [[ ${TARGET_SCORE} != 4 ]]; then
+            mv *_meta.json tmp/articles
+          fi
           mv *_raw.txt tmp/articles
           chmod +x config/reference-text-preprocess.sh
           config/reference-text-preprocess.sh
@@ -362,7 +366,9 @@ jobs:
         TARGET_SCORE=$(head -5 target_score.txt | tail -1)
         if [[ ${TARGET_SCORE} != 0 ]]; then
           mkdir -p tmp/articles
-          mv *_meta.json tmp/articles
+          if [[ ${TARGET_SCORE} != 4 ]]; then
+            mv *_meta.json tmp/articles
+          fi
           mv *_raw.txt tmp/articles
           python pipeline.py
           ls -la tmp/articles
@@ -377,7 +383,7 @@ jobs:
         path: |
           tmp/articles
         retention-days: 40
-  
+
   checking-student-processing-works-for-student-dataset:
     name: Validate final dataset
     needs: run-student-processing
@@ -415,7 +421,9 @@ jobs:
         TARGET_SCORE=$(head -5 target_score.txt | tail -1)
         if [[ ${TARGET_SCORE} != 0 ]]; then
           mkdir -p tmp/articles
-          mv *_meta.json tmp/articles
+          if [[ ${TARGET_SCORE} != 4 ]]; then
+            mv *_meta.json tmp/articles
+          fi
           mv *_raw.txt tmp/articles
           mv *_processed.txt tmp/articles
           chmod +x config/student-text-preprocess.sh
@@ -426,10 +434,10 @@ jobs:
 
   milestone-2-pipeline-is-working:
     name: Pipeline is accepted!
-    needs: [ 
+    needs: [
       checking-raw-dataset-before-running-pipeline,
-      checking-student-processing-works-for-admin-dataset, 
-      checking-student-processing-works-for-student-dataset 
+      checking-student-processing-works-for-admin-dataset,
+      checking-student-processing-works-for-student-dataset
     ]
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -437,4 +445,8 @@ jobs:
     steps:
     - name: Congratulations
       run: |
+        TARGET_SCORE=$(head -5 target_score.txt | tail -1)
+        if [[ ${TARGET_SCORE} == 10 ]]; then
+          python pos_freq_pipeline.py
+        fi
         echo "Your solution is accepted! Proceed to further tasks from your lecturer."
