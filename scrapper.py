@@ -10,6 +10,11 @@ import re
 
 from constants import CRAWLER_CONFIG_PATH
 
+headers = {
+            'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
+        }
+
+
 class IncorrectURLError(Exception):
     """
     Custom error
@@ -52,10 +57,6 @@ class Crawler:
         """
         Finds articles
         """
-
-        headers = {
-            'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
-        }
 
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
@@ -118,28 +119,31 @@ def prepare_environment(base_path):
 
 
 def validate_config(crawler_path):
-    with open(crawler_path) as config_file:
-        crawler_conf = json.load(config_file)
+    with open(crawler_path, 'r', encoding='utf-8') as config_file:
+        config = json.load(config_file)
 
-        if not isinstance(crawler_conf, dict):
-            raise UnknownConfigError
+    if not isinstance(config, dict):
+        raise UnknownConfigError
 
-        if not isinstance(crawler_conf['base_urls'], list):
-            raise IncorrectURLError
+    if not isinstance(config['base_urls'], list) or \
+            not all(isinstance(url, str) for url in config['base_urls']):
+        raise IncorrectURLError
 
-        if not all(isinstance(url, str) for url in crawler_conf['base_urls']):
-            raise IncorrectURLError
+    if 'total_articles_to_find_and_parse' in config and \
+            isinstance(config['total_articles_to_find_and_parse'], int) and \
+            config['total_articles_to_find_and_parse'] > 100:
+        raise NumberOfArticlesOutOfRangeError
 
-        if not isinstance(crawler_conf['total_articles_to_find_and_parse'], int):
-            raise IncorrectNumberOfArticlesError
+    if 'max_number_articles_to_get_from_one_seed' not in config or \
+            not isinstance(config['max_number_articles_to_get_from_one_seed'], int) or \
+            'total_articles_to_find_and_parse' not in config or \
+            not isinstance(config['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
 
-        if crawler_conf['total total_articles_to_find_and_parse'] > 100000:
-            raise NumberOfArticlesOutOfRangeError
-
-        return crawler_conf['base_urls'], crawler_conf['total_articles_to_find_and_parse'], \
-            crawler_conf['max_number_articles_to_get_from_one_seed']
-
+    return config.values()
 
 
 if __name__ == '__main__':
-    pass
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+
