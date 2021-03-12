@@ -90,8 +90,7 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         article_text = article_soup.find(name='div', class_ = "js-pict-titles").text
-        article_text = re.sub(r'\s+', '', article_text)
-        self.article.text = article_text
+        self.article.text = article_text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find(name='h1').text
