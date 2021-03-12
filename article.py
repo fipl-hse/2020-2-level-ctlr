@@ -92,8 +92,7 @@ class Article:
             'title': self.title,
             'date': self._date_to_text(),
             'author': self.author,
-            'topics': self.topics
-        }
+            'topics': self.topics}
     
     def _date_to_text(self):
         """
