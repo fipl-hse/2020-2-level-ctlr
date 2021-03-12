@@ -91,7 +91,7 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         text_soup = article_soup.find_all('p')
         text = ''
-        for element in text_soup[:-4]:
+        for element in text_soup[:4]:
             text += element.text
         return text.strip()
 
