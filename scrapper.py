@@ -194,6 +194,6 @@ if __name__ == '__main__':
 
     for art_index, art_url in enumerate(crawler.urls, start=1):
         parser = ArticleParser(art_url, art_index)
-        article = parser.parse()
-        article.save_raw()
+        article_parsed = parser.parse()
+        article_parsed.save_raw()
         sleep(random.randrange(1, 5))
