@@ -3,7 +3,6 @@ Crawler implementation
 """
 import json
 from time import sleep
-import random
 import datetime
 import os
 import requests
@@ -12,32 +11,38 @@ from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-           'Chrome/89.0.4389.82 Safari/537.36'}
+                         'Chrome/89.0.4389.82 Safari/537.36'}
+
 
 class IncorrectURLError(Exception):
     """
     Custom error
     """
 
+
 class NumberOfArticlesOutOfRangeError(Exception):
     """
     Custom error
     """
+
 
 class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
 
+
 class UnknownConfigError(Exception):
     """
     Most general error
     """
 
+
 class Crawler:
     """
     Crawler implementation
     """
+
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
@@ -46,8 +51,8 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url = article_bs.contents[1]
-        return url.get('href')
+        url = article_bs.find('div', class_='itis').find('a')
+        return 'http://www.sormovich.nnov.ru/' + url.attrs['href']
 
     def find_articles(self):
         """
@@ -55,11 +60,11 @@ class Crawler:
         """
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
-            sleep(random.randint(3, 7))
+            sleep(7)
             if not response:
                 raise IncorrectURLError
             page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('div', class_='article-info')
+            article_soup = page_soup.find_all('div', class_='itis')
             for article_bs in article_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
@@ -72,10 +77,12 @@ class Crawler:
         """
         return self.seed_urls
 
+
 class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
@@ -87,14 +94,14 @@ class ArticleParser:
             self.article.text += par.text.strip() + ''
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_="entry-title").text
+        self.article.title = article_soup.find('h1', class_="post").text
 
-        for topic in article_soup.find_all('a', rel="tag"):
+        for topic in article_soup.find_all('a', class_='foot_links'):
             self.article.topics.append(topic.text)
 
-        self.article.author = article_soup.find('div', class_="author").find('a').text
+        self.article.author = 'NOT FOUND'
 
-        date = self.unify_date_format(article_soup.find('time', class_="article-date").text)
+        date = self.unify_date_format(article_soup.find('p', class_="go").text)
         self.article.date = date
 
     @staticmethod
@@ -125,6 +132,7 @@ def prepare_environment(base_path):
     if not os.path.exists(base_path):
         os.makedirs(base_path)
 
+
 def validate_config(crawler_path):
     """
     Validates given config
@@ -153,16 +161,16 @@ def validate_config(crawler_path):
         raise IncorrectNumberOfArticlesError
     return config.values()
 
+
 if __name__ == '__main__':
     # YOUR CODE HERE
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
-    article = crawler.find_articles()
-    print(article)
+    crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind)
         article = parser.parse()
         article.save_raw()
-        sleep((random.randrange(2, 6)))
+        sleep(7)
