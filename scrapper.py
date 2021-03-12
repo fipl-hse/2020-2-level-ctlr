@@ -126,12 +126,10 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers)
-        if not response:
-            raise IncorrectURLError
-        article_soup = BeautifulSoup(response.content, features='lxml')
-        self.article.text += self._fill_article_with_text(article_soup)
-        self._fill_article_with_meta_information(article_soup)
+        article_bs = BeautifulSoup(requests.get(self.article_url, headers=headers).content, 'lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
         return self.article
 
 
