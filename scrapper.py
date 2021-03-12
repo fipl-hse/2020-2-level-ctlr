@@ -89,7 +89,7 @@ class Crawler:
         while self.seed_urls:
             seed_url = self.seed_urls.pop()
             try:
-                self.process_page(seed_url, article_id)
+                self._process_page(seed_url)
             except BadStatusCode:
                 continue
             else:
@@ -100,14 +100,11 @@ class Crawler:
                 if article_id >= self.max_articles:
                     break
 
-    def process_page(self, url, article_id):
+    def _process_page(self, url):
         """
         Processes page and get article urls
         """
         page = get_page(url)
-        with open(os.path.join(constants.PAGES_ROOT, f'{article_id}.html'),
-                  'w', encoding='utf-8') as file:
-            file.write(page)
         soup = BeautifulSoup(page, 'html.parser')
         self.urls = self._extract_url(soup, self.urls, self.seen_urls)
         return soup
@@ -117,6 +114,9 @@ class CrawlerRecursive(Crawler):
     """
     Recursive Crawler implementation
     """
+    def __init__(self, seed_urls, max_articles, max_articles_per_seed):
+        super().__init__(seed_urls, max_articles, max_articles_per_seed)
+        self._load_previous_state()
 
     def find_articles(self):
         """
@@ -126,7 +126,7 @@ class CrawlerRecursive(Crawler):
         while len(self.urls) < self.max_articles and self.seed_urls:
             seed_url = self.seed_urls.pop()
             try:
-                soup = self.process_page(seed_url, article_id)
+                soup = self._process_page(seed_url)
             except BadStatusCode:
                 continue
             else:
@@ -151,12 +151,24 @@ class CrawlerRecursive(Crawler):
                     file.write('\n'.join(self.seen_urls))
         return self.seed_urls
 
+    def _load_previous_state(self):
+        if os.path.exists(constants.TO_PARSE_URLS):
+            self.seed_urls = open(constants.TO_PARSE_URLS).read().split('\n')
+
+        if os.path.exists(constants.SEEN_URLS):
+            self.seen_urls = set(open(constants.SEEN_URLS).read().split('\n'))
+
+        if os.path.exists(constants.ARTICLE_URLS):
+            self.urls = open(constants.ARTICLE_URLS).read().split('\n')
+
 
 class ArticleParser:
     """
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
+        self.full_url = full_url
+        self.article_id = article_id
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
@@ -168,7 +180,7 @@ class ArticleParser:
             raise BadArticle
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = re.sub(r' - Звезда Алтая', '', article_soup.find('title').text)
+        self.article.title = article_soup.find('h1', {'class': 'title single'}).text.strip()
         date_str = article_soup.find('span', {'class': 'mg-blog-date'}).text.strip()
         self.article.date = self.unify_date_format(date_str)
 
@@ -213,11 +225,6 @@ class ArticleParser:
         """
         article_page = get_page(self.article.url)
         soup = BeautifulSoup(article_page, 'html.parser')
-
-        # with open(os.path.join(constants.ASSETS_PATH, f'{self.article.article_id}_page.html'),
-        #           'w', encoding='utf-8') as file:
-        #     file.write(article_page)
-
         self._fill_article_with_text(soup)
         self._fill_article_with_meta_information(soup)
         return self.article
@@ -241,9 +248,6 @@ def prepare_environment():
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(constants.PAGES_ROOT):
-        os.makedirs(constants.PAGES_ROOT)
-
     if not os.path.exists(constants.ASSETS_PATH):
         os.makedirs(constants.ASSETS_PATH)
 
@@ -271,7 +275,7 @@ def validate_config(crawler_path):
 
     is_base_urls_correct = (
             isinstance(config['base_urls'], list) and
-            all([isinstance(seed_url, str) for seed_url in config['base_urls']])
+            all(re.match(r'https://www.zvezdaaltaya.ru/.*', url) for url in config['base_urls'])
     )
 
     if isinstance(config['total_articles_to_find_and_parse'], int):
@@ -305,56 +309,36 @@ def validate_config(crawler_path):
             is_max_number_of_articles_int,
             is_max_number_of_articles_correct
     )):
-        return config.values()
+        return (config['base_urls'],
+                config['total_articles_to_find_and_parse'],
+                config['max_number_articles_to_get_from_one_seed'])
 
     raise UnknownConfigError
-
-
-def load_previous_state(crawler_obj):
-    if os.path.exists(constants.TO_PARSE_URLS):
-        crawler_obj.seed_urls = open(constants.TO_PARSE_URLS).read().split('\n')
-
-    if os.path.exists(constants.SEEN_URLS):
-        crawler_obj.seen_urls = set(open(constants.SEEN_URLS).read().split('\n'))
-
-    if os.path.exists(constants.ARTICLE_URLS):
-        crawler_obj.urls = open(constants.ARTICLE_URLS).read().split('\n')
-    return crawler_obj
 
 
 if __name__ == '__main__':
     prepare_environment()
 
-    try:
-        urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
-    except (
-            IncorrectURLError,
-            IncorrectNumberOfArticlesError,
-            NumberOfArticlesOutOfRangeError,
-            UnknownConfigError
-    ) as error:
-        print(f'{error} occurred')
-    else:
-        crawler = CrawlerRecursive(
-            seed_urls=urls,
-            max_articles=articles_max,
-            max_articles_per_seed=articles_per_seed
-        )
-        crawler = load_previous_state(crawler)
-        crawler.find_articles()
+    urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    crawler = CrawlerRecursive(
+        seed_urls=urls,
+        max_articles=articles_max,
+        max_articles_per_seed=articles_per_seed
+    )
+    crawler.find_articles()
 
-        articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
-        i = 1
+    articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
+    i = 1
 
-        for article_url in articles_urls:
-            print(f'Article #{i}: {article_url} is processed')
-            parser = ArticleParser(full_url=article_url, article_id=i)
-            try:
-                article = parser.parse()
-            except (BadStatusCode, BadArticle):
-                continue
-            else:
-                article.save_raw()
-                i += 1
-            if i > articles_max:
-                break
+    for article_url in articles_urls:
+        print(f'Article #{i}: {article_url} is processed')
+        parser = ArticleParser(full_url=article_url, article_id=i)
+        try:
+            article = parser.parse()
+        except (BadStatusCode, BadArticle):
+            continue
+        else:
+            article.save_raw()
+            i += 1
+        if i > articles_max:
+            break
