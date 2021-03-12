@@ -100,6 +100,8 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         self.article.text = article_soup.find(name='div', id="article").text
+        self.article.text = re.sub(' ', ' ', self.article.text)
+        self.article.text = re.sub('­', ' ', self.article.text)
 
 
     def _fill_article_with_meta_information(self, article_soup):
@@ -113,7 +115,6 @@ class ArticleParser:
         self.article.title = re.sub(' ', ' ', self.article.title)
 
         #return None
-
 
     @staticmethod
     def unify_date_format(date_str):
