@@ -68,19 +68,17 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs, article_urls, seen_urls):
-        new_article_urls = set()
+        article_urls = set(article_urls)  # todo
         for link in article_bs.find_all('a'):
             if href := link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/'
                                      r'\d{4}/\d{2}/.+/$', href):
-                    if (res[0] not in article_urls
-                            and res[0] not in new_article_urls
-                            and res[0] not in seen_urls):
-                        new_article_urls.add(res[0])
-        if new_article_urls:
-            with open(constants.ARTICLE_URLS, 'a', encoding='utf-8') as file:
-                file.write('\n'.join(new_article_urls) + '\n')
-        return new_article_urls
+                    if res[0] not in seen_urls:
+                        article_urls.add(res[0])
+        if article_urls:
+            with open(constants.ARTICLE_URLS, 'w', encoding='utf-8') as file:
+                file.write('\n'.join(article_urls) + '\n')
+        return list(article_urls)  # todo
 
     def find_articles(self):
         """
@@ -110,8 +108,7 @@ class Crawler:
                   'w', encoding='utf-8') as file:
             file.write(page)
         soup = BeautifulSoup(page, 'html.parser')
-        article_urls = self._extract_url(soup, self.urls, self.seen_urls)
-        self.urls.extend(article_urls)
+        self.urls = self._extract_url(soup, self.urls, self.seen_urls)
         return soup
 
 
