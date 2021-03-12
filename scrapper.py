@@ -96,7 +96,7 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = article.Article(url=full_url, article_id=str(article_id))
+        self.article = article.Article(url=full_url, article_id=article_id)
 
     def _fill_article_with_text(self, article_soup):
         self.article.text = article_soup.find('div', class_='entry entry-content').text.strip()
