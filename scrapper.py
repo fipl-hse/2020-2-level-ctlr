@@ -4,6 +4,7 @@ Crawler implementation
 import requests
 import json
 import os
+import datetime
 from article import Article
 from time import sleep
 from random import randint
@@ -93,7 +94,7 @@ class ArticleParser:
         text_soup = article_soup.find('div', class_='entry-content')
         main_text = text_soup.fins_all('p')
         for par in main_text:
-           article_text_list.append(par.text)
+            article_text_list.append(par.text)
         self.article.text = '\n'.join(article_text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
@@ -102,7 +103,7 @@ class ArticleParser:
 
         date_soup = article_soup.find('div', class_='entry-meta')
         date = re.findall(r'\d.{9}', str(date_soup))
-        self.article.date = date
+        self.article.date = self.unify_date_format(date.text)
 
         self.article.author = 'AUTHOR NOT FOUND'
 
@@ -111,20 +112,28 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        return datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers=headers)
+        if response:
+            article_soup = BeautifulSoup(response.content, features='lxml')
+            self._fill_article_with_text(article_soup)
+            self._fill_article_with_meta_information(article_soup)
+        self.article.save_raw()
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -145,7 +154,7 @@ def validate_config(crawler_path):
         raise NumberOfArticlesOutOfRangeError
 
     if (not isinstance(crawler_config['total_articles_to_find_and_parse'], int)
-            or'total_articles_to_find_and_parse' not in crawler_config
+            or 'total_articles_to_find_and_parse' not in crawler_config
             or 'max_number_articles_to_get_from_one_seed' not in crawler_config):
         raise IncorrectNumberOfArticlesError
 
@@ -155,7 +164,10 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
+    prepare_environment(ASSETS_PATH)
+
     urls_list, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+
     crawler = Crawler(seed_urls=urls_list,
                       max_articles=max_articles_num,
                       max_articles_per_seed=max_articles_num)
