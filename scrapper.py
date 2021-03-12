@@ -53,7 +53,7 @@ class Crawler:
     @staticmethod
     def _extract_url(article_bs):
         article_link = article_bs.find('h2', {'itemprop': 'name'}).find('a').get('href')
-        return(article_link)
+        print(article_link)
 
     def find_articles(self):
         """
@@ -95,7 +95,7 @@ class ArticleParser:
                 self.article.text += par.text.strip() + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('dev',class_='page-header').find('h2').text
+        self.article.title = article_soup.find('div',class_='page-header').find('h2').text
         self.article.views = article_soup.find('dd', class_="hits").find('meta').text
         self.article.date = self.unify_date_format(article_soup.find('dd', class_="create").find('time').text)
         self.article.author = 'NOT FOUND'
@@ -146,7 +146,7 @@ def validate_config(crawler_path):
         if not isinstance(max_articles, int) or max_articles < 0:
             raise IncorrectNumberOfArticlesError
 
-        if not isinstance(max_articles_per_seed, int) or max_articles_per_seed > max_articles:
+        if max_articles_per_seed > 100:
             raise NumberOfArticlesOutOfRangeError
 
     except(IncorrectURLError, IncorrectNumberOfArticlesError, NumberOfArticlesOutOfRangeError) as error:
