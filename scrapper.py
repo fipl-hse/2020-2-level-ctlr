@@ -158,11 +158,10 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
-        for paragraph in paragraphs.find_all('p'):
-            self.article.text += paragraph.text + ' '
-
-        if not self.article.text:
+        if paragraphs := article_soup.find('div', {'class': 'mg-blog-post-box'}):
+            for paragraph in paragraphs.find_all('p'):
+                self.article.text += paragraph.text + ' '
+        else:
             raise BadArticle
 
     def _fill_article_with_meta_information(self, article_soup):
