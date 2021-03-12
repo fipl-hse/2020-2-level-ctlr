@@ -161,6 +161,6 @@ if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
 
     for ind, article_url in enumerate(urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind)
+        parser = ArticleParser(full_url=article_url, article_id=ind+1)
         article = parser.parse()
         parser.parse()
