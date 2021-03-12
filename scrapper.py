@@ -1,18 +1,19 @@
 """
 Crawler implementation
 """
-import requests
 import json
-from bs4 import BeautifulSoup
-from time import sleep
-import random
-from article import Article
 import os
+import random
+from time import sleep
+import requests
+from bs4 import BeautifulSoup
+from article import Article
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                   'Chrome/88.0.4324.190 Safari/537.36'
 }
+
 
 class IncorrectURLError(Exception):
     """
@@ -83,6 +84,7 @@ class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
