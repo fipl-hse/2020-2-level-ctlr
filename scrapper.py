@@ -11,7 +11,8 @@ from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import HEADERS
 from constants import ASSETS_PATH
-from urllib.parse import urlparse
+from time import sleep
+import random
 
 
 class IncorrectURLError(Exception):
@@ -51,37 +52,24 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        articles = article_bs.find_all('div', {'itemprop': 'blogPost'})
-        current_seed_links = []
-        for blog_tag in articles:
-            article_name_tag = blog_tag.find('h2', {'itemprop': 'name'})
-            article_link = article_name_tag.a
-            current_seed_links.append(article_link.attrs['href'])
-        return current_seed_links
+        article_link = article_bs.find('h2', {'itemprop': 'name'}).find('a').get('href')
+        return(article_link)
 
     def find_articles(self):
         """
         Finds articles
         """
         for url in self.seed_urls:
-            url_parsed = urlparse(url)
-            url_scheme, url_domain = url_parsed.scheme, url_parsed.netloc
-            url_base = '{}://{}'.format(url_scheme, url_domain)
-
+            sleep(random.randint(2, 8))
             response = requests.get(url, headers=HEADERS)
-            if response:
-                content = response.text
-                links = self._extract_url(BeautifulSoup(content, 'html.parser'))
-                full_links = []
-
-                for link in links:
-                    if link.startswith('/'):
-                        full_links.append(url_base + link)
-                    else:
-                        full_links.append(link)
-
-                self.urls.extend(full_links[:max_articles_per_seed])
-        assert len(self.urls) >= self.total_max_articles
+            if not response:
+                continue
+            link = BeautifulSoup(response.content, features='lxml')
+            articles_soup = link.find_all('li')
+            for article_bs in articles_soup[:max_articles_per_seed]:
+                self.urls.append(self._extract_url(article_bs))
+                if len(self.urls) == max_articles:
+                    return self.urls
 
 
     def get_search_urls(self):
@@ -101,10 +89,13 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find("div", class_="item-page").text
+        article_text = article_soup.find_all('p')
+        for par in article_text:
+            if 'class' not in par.attrs:
+                self.article.text += par.text.strip() + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('div', class_="page-header").find('h2').text
+        self.article.title = article_soup.find('dev',class_='page-header').find('h2').text
         self.article.views = article_soup.find('dd', class_="hits").find('meta').text
         self.article.date = self.unify_date_format(article_soup.find('dd', class_="create").find('time').text)
         self.article.author = 'NOT FOUND'
