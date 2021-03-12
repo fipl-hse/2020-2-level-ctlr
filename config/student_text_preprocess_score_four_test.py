@@ -11,7 +11,7 @@ class StudentTextPreprocessTest(unittest.TestCase):
         for article in os.listdir(ASSETS_PATH):
             if article.endswith("_processed.txt"):
                 with open(os.path.join(ASSETS_PATH, article), "r", encoding="utf-8") as txt:
-                    self.articles[int(article[0])] = txt.read()
+                    self.articles[int(article[:-8])] = txt.read()
 
     def test_tagging_format_tokens_format(self):
         for article_id, article_text in self.articles.items():
