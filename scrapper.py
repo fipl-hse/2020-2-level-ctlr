@@ -163,15 +163,15 @@ def validate_config(crawler_path):
         max_articles = crawler['total_articles_to_find_and_parse']
         if not isinstance(max_articles, int) or max_articles > 100:
             raise NumberOfArticlesOutOfRangeError
-    except KeyError:
-        raise UnknownConfigError
+    except KeyError as error:
+        raise UnknownConfigError from error
 
     try:
         max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
         if not isinstance(max_articles_per_seed, int):
             raise IncorrectNumberOfArticlesError
-    except KeyError:
-        raise UnknownConfigError
+    except KeyError as error:
+        raise UnknownConfigError from error
 
     seed_urls = crawler['base_urls']
     return seed_urls, max_articles, max_articles_per_seed
