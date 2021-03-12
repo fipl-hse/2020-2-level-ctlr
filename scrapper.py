@@ -20,7 +20,6 @@ class IncorrectNumberOfArticlesError(Exception):
     Custom error
     """
 
-
 class Crawler:
     """
     Crawler implementation
