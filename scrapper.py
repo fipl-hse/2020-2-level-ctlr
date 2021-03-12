@@ -2,13 +2,16 @@
 Crawler implementation
 """
 import json
-import re
-import requests
 import random
-from article import Article
-from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH
+import re
 from time import sleep
+
+import requests
+from bs4 import BeautifulSoup
+
+from article import Article
+from constants import CRAWLER_CONFIG_PATH
+
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'}
 
 class IncorrectURLError(Exception):
@@ -54,16 +57,28 @@ class Crawler:
         Finds articles
         """
         raw_urls_list = []
+        total_counter = 0
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
             print('Making a request...')
             sleep_interval = random.randrange(2, 5)
             sleep(sleep_interval)
-            text = response.text
-            link_sample = re.compile(r'<h3><a href="/\d{6}.+"')
-            raw_urls_list.extend(re.findall(link_sample, text))
-        for url in raw_urls_list:
-            self.urls.append(url.replace('<h3><a href="', 'https://www.infpol.ru')[:-1])
+            article_bs = BeautifulSoup(response.content, features='lxml')
+            link_sample = re.compile(r'/\d{6}.+')
+            per_seed_counter = 0
+            for link_container in article_bs.find_all(name='a'):
+                link_itself = link_container.get('href')
+                if re.match(link_sample, str(link_itself)) and str(link_itself) not in raw_urls_list:
+                    raw_urls_list.append(link_itself)
+                    total_counter += 1
+                    per_seed_counter += 1
+                    if self.total_max_articles == total_counter or self.max_articles_per_seed == per_seed_counter:
+                        break
+            if self.total_max_articles == total_counter:
+                break
+        for link in raw_urls_list:
+            self.urls.append('https://www.infpol.ru' + link)
+
 
 
     def get_search_urls(self):
@@ -84,12 +99,15 @@ class ArticleParser:
         pass
 
     def _fill_article_with_text(self, article_soup):
-        article_bs = article_soup
-        self.article.text = article_bs.find(name='div', class_='content')
-        return None
+        self.article.text = article_soup.find(name='div', class_='content')
+        print(self.article.text)
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find(name='h1').text
+        self.article.date = article_soup.find(name='time', class_='js-time').text
+        self.article.author = article_soup.find(class_='author').text
+        self.article.topics = []
+        self.article.text = '\n'.join(abstract.text for abstract in article_soup.find_all(name='p'))
 
     @staticmethod
     def unify_date_format(date_str):
@@ -107,11 +125,9 @@ class ArticleParser:
         if response.status_code == 200:
             print('Request is OK')
         article_bs = BeautifulSoup(response.content, features='lxml')
-        self.article.title = article_bs.find(name='h1').text
-        self.article.date = article_bs.find(name='time', class_='js-time').text
-        self.article.author = article_bs.find(class_='author').text[6:]
-        self.article.topics = []
-        self.article.text = article_bs.find(name='div', class_='content').text
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        article.save_raw()
         return self.article
 
 
@@ -153,9 +169,9 @@ if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     example = Crawler(seed_urls, max_articles, max_articles_per_seed)
     example.find_articles()
-    print()
+
     for url in example.urls:
-        parser = ArticleParser(url, some_id) #where to take id
+        parser = ArticleParser(url, 1) #where to take id
         article = parser.parse()
         article.save_raw()
 
