@@ -2,4 +2,4 @@
   "https://ugra-news.ru/rubrics/society/?PAGEN=page-3", "https://ugra-news.ru/rubrics/society/?PAGEN=page-4",
   "https://ugra-news.ru/rubrics/society/?PAGEN=page-5", "https://ugra-news.ru/rubrics/society/?PAGEN=page-6"],
   "total_articles_to_find_and_parse": 7,
-  "max_number_articles_to_get_from_one_seed": 100}
+  "max_number_articles_to_get_from_one_seed": 7}

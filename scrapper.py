@@ -56,7 +56,7 @@ class Crawler:
             links_one_page.extend(re.findall(r'/article/[\w+_]+[\w]+/', str(one_article)))
         for index, link in enumerate(links_one_page):
             links_one_page[index] = 'https://ugra-news.ru' + link
-        return links_one_page[:7]
+        return links_one_page
 
     def find_articles(self):
         """
@@ -67,7 +67,7 @@ class Crawler:
             while len(links) < self.total_max_articles:
                 response = requests.get(one_url, headers=HEADERS)
                 article_bs = BeautifulSoup(response.content, features='lxml')
-                links = self._extract_url(article_bs)
+                links = self._extract_url(article_bs)[:self.max_articles_per_seed]
                 self.all_urls.extend(links)
 
         return self.all_urls
