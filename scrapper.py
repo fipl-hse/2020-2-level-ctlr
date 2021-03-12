@@ -104,13 +104,14 @@ class ArticleParser:
         self.article.title = article_soup.find('h1').text
 
         try:
-            self.article.author = article_soup.find('div', class_='news-tags').text
+            self.article.author = article_soup.find('div', class_='news-tags').text.strip()
             author_error = self.article.author.split('\n')
             for element in author_error:
                 if element == 'Теги:':
                     raise AttributeError
         except AttributeError:
             self.article.author = 'NOT FOUND'
+        print(self.article.author)
 
         self.article.topics = article_soup.find('div', class_='article-details-left')\
             .find('a', class_='article-section').text
