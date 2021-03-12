@@ -184,9 +184,9 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    max_num_articles, total_number, seed_urls = validate_config(CRAWLER_CONFIG_PATH)
+    _max_num_articles, _total_number, _seed_urls = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls, max_num_articles)
+    crawler = Crawler(_seed_urls, _max_num_articles)
 
     crawler.find_articles()
 
