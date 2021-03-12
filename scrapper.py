@@ -56,6 +56,12 @@ class IncorrectURLError(Exception):
         return self.find_articles()
 
 
+class UnknownConfigError(Exception):
+    """
+    Most general error
+    """
+
+
 class Crawler:
     """
     Crawler implementation
