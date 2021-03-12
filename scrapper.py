@@ -1,19 +1,16 @@
 """
 Crawler implementation
 """
+from datetime import datetime
 import json
 import os
-from datetime import datetime
-import requests
+import shutil
+
 from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
+import requests
+
 from article import Article
-
-
-HEADERS = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/88.0.4324.41 YaBrowser/21.2.0.1099 Yowser/2.5 Safari/537.36 '
-        }
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, HEADERS
 
 
 class IncorrectURLError(Exception):
@@ -79,9 +76,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        default_url = self.seed_urls[0]
-        for i in range(2, 13):
-            self.seed_urls.append(f'{default_url}/page/{i}')
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -95,9 +90,11 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         article_texts = article_soup.find_all('p')
+        collected_text = []
         for par in article_texts:
             if 'class' not in par.attrs:
-                self.article.text += par.text.strip() + ' '
+                collected_text.append(par.text.strip())
+        self.article.text = ' '.join(collected_text)
 
     def _fill_article_with_meta_information(self, article_soup):
         # find title
@@ -114,15 +111,15 @@ class ArticleParser:
         date_art = self.unify_date_format(article_soup.find('time', class_="entry-date published").text)
         self.article.date = date_art
 
+    def _save_article(self):
+        self.article.save_raw()
+
     @staticmethod
     def unify_date_format(date_str):
         """
-        Unifies date format: strftime("%Y-%m-%d %H:%M:%S")
+        Unifies date format: "%Y-%m-%d %H:%M:%S"
         """
-        date = '-'.join(date_str.split('.')[::-1])
-        date_time = str(datetime.strptime(date, "%Y-%m-%d"))
-
-        return datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+        return datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
@@ -135,21 +132,18 @@ class ArticleParser:
         article_soup = BeautifulSoup(response.content, features='lxml')
         self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
-        self.article.save_raw()
+        self._save_article()
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
-        for file in os.listdir(base_path):
-            os.remove(f'{base_path}\\{file}')
-    else:
-        try:
-            os.makedirs(base_path, mode=0o777)
-        except OSError as error:
-            raise UnknownConfigError from error
+    shutil.rmtree(base_path, ignore_errors=True)
+    try:
+        os.makedirs(base_path, mode=0o777)
+    except OSError as error:
+        raise UnknownConfigError from error
 
 
 def validate_config(crawler_path):
@@ -159,24 +153,27 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         crawler = json.load(file)
 
-    if 'base_urls' not in crawler or not isinstance(crawler['base_urls'], list) or\
-            not all([isinstance(url, str) for url in crawler['base_urls']]):
-        raise IncorrectURLError
+    url_pattern = 'https://'
 
-    if 'total_articles_to_find_and_parse' in crawler and \
-            isinstance(crawler['total_articles_to_find_and_parse'], int) and \
-            crawler['total_articles_to_find_and_parse'] > 100:
-        raise NumberOfArticlesOutOfRangeError
+    for url in crawler['base_urls']:
+        if not isinstance(url, str) or url_pattern not in url:
+            raise IncorrectURLError
 
-    if 'max_number_articles_to_get_from_one_seed' not in crawler or\
-            not isinstance(crawler['max_number_articles_to_get_from_one_seed'], int) or\
-            'total_articles_to_find_and_parse' not in crawler or\
-            not isinstance(crawler['total_articles_to_find_and_parse'], int):
-        raise IncorrectNumberOfArticlesError
+    try:
+        max_articles = crawler['total_articles_to_find_and_parse']
+        if not isinstance(max_articles, int) or max_articles > 100:
+            raise NumberOfArticlesOutOfRangeError
+    except KeyError:
+        raise UnknownConfigError
+
+    try:
+        max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
+        if not isinstance(max_articles_per_seed, int):
+            raise IncorrectNumberOfArticlesError
+    except KeyError:
+        raise UnknownConfigError
 
     seed_urls = crawler['base_urls']
-    max_articles = crawler['total_articles_to_find_and_parse']
-    max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
     return seed_urls, max_articles, max_articles_per_seed
 
 
@@ -188,5 +185,5 @@ if __name__ == '__main__':
 
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler_current.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind)
+        parser = ArticleParser(full_url=article_url, article_id=ind+1)
         parser.parse()
