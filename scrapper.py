@@ -86,43 +86,6 @@ class Crawler:
         Finds articles
         """
         article_id = 1
-        while self.seed_urls:
-            seed_url = self.seed_urls.pop()
-            try:
-                self._process_page(seed_url)
-            except BadStatusCode:
-                continue
-            else:
-                if len(self.urls) > self.max_articles:
-                    self.urls = list(self.urls)[:self.max_articles]
-                    break
-                article_id += 1
-                if article_id >= self.max_articles:
-                    break
-
-    def _process_page(self, url):
-        """
-        Processes page and get article urls
-        """
-        page = get_page(url)
-        soup = BeautifulSoup(page, 'html.parser')
-        self.urls = self._extract_url(soup)
-        return soup
-
-
-class CrawlerRecursive(Crawler):
-    """
-    Recursive Crawler implementation
-    """
-    def __init__(self, seed_urls, max_articles, max_articles_per_seed):
-        super().__init__(seed_urls, max_articles, max_articles_per_seed)
-        self._load_previous_state()
-
-    def find_articles(self):
-        """
-        Finds articles
-        """
-        article_id = 1
         while len(self.urls) < self.max_articles and self.seed_urls:
             seed_url = self.seed_urls.pop()
             try:
@@ -150,6 +113,24 @@ class CrawlerRecursive(Crawler):
                 with open(constants.SEEN_URLS, 'w', encoding='utf-8') as file:
                     file.write('\n'.join(self.seen_urls))
         return self.seed_urls
+
+    def _process_page(self, url):
+        """
+        Processes page and get article urls
+        """
+        page = get_page(url)
+        soup = BeautifulSoup(page, 'html.parser')
+        self.urls = self._extract_url(soup)
+        return soup
+
+
+class CrawlerRecursive(Crawler):
+    """
+    Recursive Crawler implementation
+    """
+    def __init__(self, seed_urls, max_articles, max_articles_per_seed):
+        super().__init__(seed_urls, max_articles, max_articles_per_seed)
+        self._load_previous_state()
 
     def _load_previous_state(self):
         if os.path.exists(constants.TO_PARSE_URLS):
