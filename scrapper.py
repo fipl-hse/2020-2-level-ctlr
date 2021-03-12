@@ -1,13 +1,16 @@
 """
 Crawler implementation
 """
+import datetime
 import json
 import os
 import random
 import shutil
 from time import sleep
+
 import requests
 from bs4 import BeautifulSoup
+
 from constants import CRAWLER_CONFIG_PATH, HEADERS, PROJECT_ROOT
 from article import Article
 
@@ -42,20 +45,16 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, main_urls, num_articles, max_articles, headers):
-        self.main_urls = main_urls
-        self.num_articles = num_articles
+    def __init__(self, seed_urls: list, max_articles: int):
+        self.seed_urls = seed_urls
         self.max_articles = max_articles
         self.urls = []
-        self.headers = headers
 
     @staticmethod
-    def _extract_url(article_bs, headers):
+    def _extract_url(article):
         urls = []
 
-        req = requests.get(article_bs, headers)
-        main_article = BeautifulSoup(req.content, 'html.parser')
-        main_news = main_article.find(class_="main-news")
+        main_news = article.find(class_="main-news")
         for link in main_news.find_all("a"):
             urls.append(link.get("href"))
         return urls
@@ -65,9 +64,12 @@ class Crawler:
         Finds articles
         """
         try:
-            for main_url in self.main_urls:
+            for main_url in self.seed_urls:
                 if len(self.urls) <= self.max_articles:
-                    self.urls += Crawler._extract_url(main_url, self.headers)
+                    req = requests.get(main_url, HEADERS)
+                    article = BeautifulSoup(req.content, 'html.parser')
+                    self.urls += Crawler._extract_url(article)
+
             self.urls = self.urls[:self.max_articles + 1]
         except IncorrectURLError:
             print("incorrect url")
@@ -83,7 +85,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        return self.main_urls
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -98,7 +100,7 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         text_from_soup = article_soup.find(class_="video-show").find_all("p")
-        clean_text = [str(sent)[3:-4] for sent in text_from_soup]
+        clean_text = [sent.text for sent in text_from_soup]
         self.article.text = " ".join(clean_text)
 
     def _fill_article_with_meta_information(self, article_soup):
@@ -129,6 +131,7 @@ class ArticleParser:
         }
         date = date_str.split()
         date[1] = ru_months[date[1]]
+        date = datetime.datetime(int(date[2]), int(date[1]), int(date[0]))
         return date
 
 
@@ -167,7 +170,8 @@ def validate_config(crawler_path):
         raise UnknownConfigError
 
     if not isinstance(conf['base_urls'], list) or \
-            not all([isinstance(seed_url, str) for seed_url in conf['base_urls']]):
+            not all([isinstance(seed_url, str) for seed_url in conf['base_urls']]) or\
+            not all(['https://' in seed_url for seed_url in conf["base_urls"]]):
         raise IncorrectURLError
 
     if not isinstance(conf['total_articles_to_find_and_parse'], int):
@@ -182,7 +186,7 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     max_num_articles, total_number, seed_urls = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls, total_number, max_num_articles, HEADERS)
+    crawler = Crawler(seed_urls, max_num_articles)
 
     crawler.find_articles()
 
