@@ -34,6 +34,12 @@ headers={
     'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'}
 
+class UnknownConfigError(Exception):
+    """
+    Most general error
+    """
+
+
 class Crawler:
     """
     Crawler implementation
