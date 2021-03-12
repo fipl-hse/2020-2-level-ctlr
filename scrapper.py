@@ -4,11 +4,13 @@ Crawler implementation
 import requests
 import json
 import os
+import random
 from time import sleep
 from bs4 import BeautifulSoup
 import re
+from article import Article
 
-from constants import CRAWLER_CONFIG_PATH
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 headers = {
             'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
@@ -90,9 +92,14 @@ class ArticleParser:
         self.article_id = article_id
         self.article = Article(full_url, article_id)
 
-
     def _fill_article_with_text(self, article_soup):
-        pass
+        art = article_soup.find_all('p')
+        clear_art = ''
+        for text in art:
+           clear_art += text.text.strip()
+
+        self.article = clear_art
+
 
     def _fill_article_with_meta_information(self, article_soup):
 
@@ -106,7 +113,14 @@ class ArticleParser:
         pass
 
     def parse(self):
-        pass
+        response = requests.get(self.full_url, headers = headers)
+
+        article_bs = BeautifulSoup(response.content, 'lxml')
+
+        self._fill_article_with_text(article_bs)
+
+        return self.article
+
 
 
 def prepare_environment(base_path):
@@ -146,4 +160,11 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    article = crawler.find_articles()
+
+    for ind, url in enumerate(article):
+        parser = ArticleParser(url, ind)
+        article = parser.parse()
+
+
 
