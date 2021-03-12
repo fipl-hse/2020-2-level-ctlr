@@ -1,3 +1,5 @@
+set -ex
+
 echo "Stage 2B: Reference text preprocessing"
 echo "Starting tests for admin dataset"
 
@@ -10,11 +12,11 @@ elif [[ ${TARGET_SCORE} == 6 ]]; then
   python -m unittest config/reference_text_preprocess_test.py
 elif [[ ${TARGET_SCORE} == 8 ]]; then
   echo "Running score eight checks"
-  # python -m unittest config/reference_text_preprocess_score_eight_test.py
+  python -m unittest config/reference_text_preprocess_score_eight_test.py
   echo "TBD: later"
 else
   echo "Running score ten checks"
-  # python -m unittest config/reference_text_preprocess_score_eight_test.py
+  python -m unittest config/reference_text_preprocess_score_eight_test.py
   echo "TODO: check for PosFrequencyPipeline"
   echo "TBD: later"
 fi
