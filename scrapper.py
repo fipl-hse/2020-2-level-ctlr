@@ -1,11 +1,12 @@
 """
 Crawler implementation
 """
-from bs4 import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 from time import sleep
 import json
 import requests
+import re
 
 
 headers = {
@@ -40,10 +41,11 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed:int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
-        self.url = []
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
@@ -56,11 +58,14 @@ class Crawler:
         url_list = []
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
-        '''
-        for url in self.seed_urls:
             sleep(5)
-            print('made requests')
-        '''
+            print('Requesting')
+
+            soup_page = BeautifulSoup(response.content, features='lxml')
+            all_urls = soup_page.find_all(class_="articles-list-item-title")
+            url_list.append(all_urls)
+        return url_list
+
 
     def get_search_urls(self):
         """
@@ -107,29 +112,27 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path, 'r') as file:
-        crawler = json.load(file)
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        crawler_config = json.load(file)
 
-    all_urls = crawler.get('base_urls')
-    articles_to_find_and_parse = crawler.get('total_articles_to_find_and_parse')
-    articles = type(articles_to_find_and_parse, int)
-    max_number_of_articles = crawler.get('max_number_articles_to_get_from_one_seed')
-    max_number_of_art = type(max_number_of_articles, int)
+    all_urls = crawler_config["base_urls"]
+    articles = crawler_config["total_articles_to_find_and_parse"]
+    max_number_of_articles = crawler_config["max_number_articles_to_get_from_one_seed"]
 
     for url in all_urls:
-        if url[:8] != 'https://':
-            raise IncorrectURLError
+        if url[:8] == "https://":
+            print('Ok')
+        raise IncorrectURLError
 
     if not isinstance(articles, int)\
-            or not isinstance(max_number_of_art, int):
+            or not isinstance(max_number_of_articles, int):
         raise IncorrectNumberOfArticlesError
 
-
-    if articles < max_number_of_art\
-            or max_number_of_art > 100:
+    if articles < max_number_of_articles\
+            or max_number_of_articles > 100:
         raise NumberOfArticlesOutOfRangeError
 
-
+    return all_urls, articles
 
 if __name__ == '__main__':
     # YOUR CODE HERE
