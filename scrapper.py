@@ -170,13 +170,14 @@ class ArticleParser:
         self.article.date = self.unify_date_format(date_str)
 
         paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
+        could_be_author = paragraphs.find_all('p')[-1].text
         if res := paragraphs.find('p', {'class': 'has-text-align-right'}):
             self.article.author = res.text.title()
-        elif len(paragraphs.find_all('p')[-1].text.split()) == 2:
-            self.article.author = paragraphs.find_all('p')[-1].text.title()
+        elif len(could_be_author.split()) == 2\
+                and all(name.isalpha() for name in could_be_author.split()):
+            self.article.author = could_be_author.title()
         else:
-            self.article.author = article_soup.find(
-                'h4', {'class': 'media-heading'}).find('a').text.title()
+            self.article.author = 'NOT FOUND'
 
     @staticmethod
     def unify_date_format(date_str):
