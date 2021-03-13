@@ -70,7 +70,7 @@ class Crawler:
             page_links = []
             for article in articles:
                 seed_url = self._extract_url(article)
-                page_links.append(seed_url)
+                self.urls.append(seed_url)
 
     def get_search_urls(self):
         """
