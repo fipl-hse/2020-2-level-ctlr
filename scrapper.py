@@ -51,20 +51,20 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url = article_bs.find('div', class_='itis').find('a')
-        return 'http://www.sormovich.nnov.ru/' + url.attrs['href']
+        return article_bs.findALL('a', attrs={'href'})
 
     def find_articles(self):
         """
         Finds articles
         """
+
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
-            sleep(7)
+            sleep(5)
             if not response:
                 raise IncorrectURLError
-            page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('div', class_='itis')
+            article_bs = BeautifulSoup(response.content, features='lxml')
+            article_soup = article_bs.find_all('div', class_='itis')
             for article_bs in article_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
@@ -94,23 +94,21 @@ class ArticleParser:
             self.article.text += par.text.strip() + ''
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_="post").text
+        self.article.title = article_soup.find('h1', class_='title').text.strip()
 
-        for topic in article_soup.find_all('a', class_='foot_links'):
+        for topic in article_soup.find_all('a', class_='foot-links'):
             self.article.topics.append(topic.text)
 
         self.article.author = 'NOT FOUND'
 
-        date = self.unify_date_format(article_soup.find('p', class_="go").text)
-        self.article.date = date
+        self.article.date = self.unify_date_format(article_soup.find('p', class_="go").text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        date = datetime.datetime.strptime(date_str, "%d.%m.%Y, %H:%M")
-        return date
+        return datetime.datetime.strptime(date_str, "%m.%Y")
 
     def parse(self):
         """
@@ -119,9 +117,12 @@ class ArticleParser:
         response = requests.get(self.full_url, headers=headers)
         if not response:
             raise IncorrectURLError
+
         article_soup = BeautifulSoup(response.content, features='lxml')
+
         self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
+        self.article.save_raw()
         return self.article
 
 
@@ -140,9 +141,7 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
 
-    unknown = ('base_urls' not in config or 'total_articles_to_find_and_parse' not in config
-               or 'max_number_articles_to_get_from_one_seed' not in config)
-    if not isinstance(config, dict) and unknown:
+    if not isinstance(config, dict):
         raise UnknownConfigError
 
     if not isinstance(config['base_urls'], list) or \
@@ -159,18 +158,18 @@ def validate_config(crawler_path):
             'total_articles_to_find_and_parse' not in config or \
             not isinstance(config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
+
     return config.values()
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
-                      max_articles_per_seed=max_articles_per_seed_ex)
-    crawler.find_articles()
+    crawler = Crawler(seed_urls_ex, max_articles_ex, max_articles_per_seed_ex)
+    articles = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
+
     for ind, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind)
+        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
         article = parser.parse()
-        article.save_raw()
-        sleep(7)
+        parser.parse()
