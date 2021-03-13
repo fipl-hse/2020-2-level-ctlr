@@ -92,12 +92,14 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find_all('p')
-        for paragraph in paragraphs_soup:
-            self.article.text += paragraph.text.strip() + ''
+        text_soup = article_soup.find_all('p')
+        text = ''
+        for element in text_soup[:4]:
+            text += element.text
+        return text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text.strip()
+        self.article.title = article_soup.find('h1').text
         return None
 
     @staticmethod
