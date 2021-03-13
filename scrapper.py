@@ -16,9 +16,9 @@ import article
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 HEADERS = {
-        'user-agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-            '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+    'user-agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+        '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
 
 
 class UnknownConfigError(Exception):
@@ -176,10 +176,7 @@ def validate_config(crawler_path):
         raise IncorrectURLError
 
     is_num_articles_incorrect = (not isinstance(config['total_articles_to_find_and_parse'], int)
-                                 #or not isinstance(config['max_number_articles_to_get_from_one_seed'], int)
-                                 or config['total_articles_to_find_and_parse'] < 0
-                                 #or config['max_number_articles_to_get_from_one_seed'] < 0
-                                 )
+                                 or config['total_articles_to_find_and_parse'] < 0)
     if is_num_articles_incorrect:
         raise IncorrectNumberOfArticlesError
 
