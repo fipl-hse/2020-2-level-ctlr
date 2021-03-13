@@ -14,7 +14,7 @@ from constants import CRAWLER_CONFIG_PATH
 from constants import PROJECT_ROOT
 from constants import ASSETS_PATH
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrome/88.0.4324.190 Safari/537.36'}
 
 
@@ -55,29 +55,28 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        return article_bs.find("a").get("href")
 
     def find_articles(self):
         """
         Finds articles
         """
         for seed_url in self.seed_urls:
-            response = requests.get(seed_url, headers=headers)
+            response = requests.get(seed_url, headers=HEADERS)
             sleep(randint(3, 7))
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
             articles = page_soup.find_all('h3', class_='entry-title')
             page_links = []
             for article in articles:
-                link = article.find("a").get("href")
-                page_links.append(link)
-        return []
+                seed_url = self._extract_url(article)
+                page_links.append(seed_url)
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        return self.seed_urls
+        return self.urls
 
 
 class ArticleParser:
@@ -119,7 +118,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers)
+        response = requests.get(self.full_url, headers=HEADERS)
         if response:
             article_soup = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_soup)
