@@ -62,7 +62,6 @@ class Crawler:
         """
         Finds articles
         """
-
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
             sleep(5)
