@@ -238,8 +238,11 @@ def validate_config(crawler_path):
     """
     with open(crawler_path) as crawler_config:
         config = json.load(crawler_config)
-    good_response = list(map(lambda link: link.startswith('https://'),
+    try:
+        good_response = list(map(lambda link: link.startswith('https://'),
                              config['base_urls']))
+    except AttributeError as exception:
+        raise IncorrectURLError from exception
     if not all(good_response):
         raise IncorrectURLError
     try:
