@@ -163,6 +163,7 @@ class CrawlerRecursive(Crawler):
         else:
             self.seed_urls = self.get_search_urls(soup)
             self.find_articles()
+        return None
 
     def _load_previous_state(self):
         if os.path.exists(constants.TO_PARSE_URLS):
@@ -248,6 +249,7 @@ class ArticleParser:
             if len(could_be_author.split()) == 2 \
                     and all(name.isalpha() for name in could_be_author.split()):
                 return could_be_author
+        return None
 
 
 def get_page(url):
