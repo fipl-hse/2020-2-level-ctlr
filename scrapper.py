@@ -100,8 +100,7 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text
-        return None
+        self.article.title = article_soup.find('h1').text.strip()
 
     @staticmethod
     def unify_date_format(date_str):
@@ -159,6 +158,7 @@ def validate_config(crawler_path):
         raise IncorrectNumberOfArticlesError
     return config.values()
 
+
 if __name__ == '__main__':
     # YOUR CODE HERE
     from constants import CRAWLER_CONFIG_PATH
@@ -168,10 +168,10 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=urls_list, max_articles=total_art, max_articles_per_seed=max_number)
     article_urls = crawler.find_articles
     prepare_environment(ASSETS_PATH)
-    id_article = 0
+    article = 0
     for article_url in article_urls:
-        id_article += 1
-        parser = ArticleParser(article_url, id_article)
+        article += 1
+        parser = ArticleParser(article_url, article)
         sleep(random.randint(3, 6))
         article = parser.parse()
         article.save_raw()
