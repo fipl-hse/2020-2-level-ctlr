@@ -87,7 +87,8 @@ class Crawler:
         """
         Finds articles
         """
-        for seed_url in self.seed_urls:
+        seed_urls = self.get_search_urls()
+        for seed_url in seed_urls:
             try:
                 response = requests.get(seed_url, headers=HEADERS)
                 sleep(randint(2, 6))
@@ -203,7 +204,8 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text.strip()
-        existed_author = article_soup.find('div', class_='text-box text-right').find('a').text.strip()
+        existed_author = article_soup.find('a', class_='author-name font-open-s').text
+        #existed_author = article_soup.find('div', class_='text-box text-right').find('a').text.strip()
         if existed_author:
             self.article.author = existed_author
         else:
@@ -284,10 +286,12 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    # response = requests.get(
-    #     'http://ks-yanao.ru/ekonomika/v-yanao-sozdan-reestr-pererabotchikov-ryby.html',
-    #     headers=HEADERS)
-    # page_soup = BeautifulSoup(response.content, features='lxml')
+    response = requests.get(
+        'http://ks-yanao.ru/novosti/v-roskachestve-iskali-samye-bezopasnye-bliny-a-krasnyy-sever-predlagaet-ikh-napech-samostoyatelno.html',
+        headers=HEADERS)
+    page_soup = BeautifulSoup(response.content, features='lxml')
+    author = page_soup.find('a', class_='author-name font-open-s')#.find('a').text.strip()
+    print(author.text)
     # # existed_author = page_soup.find('div', class_='text-box text-right').find('a').text.strip()
     # if existed_author:
     #     print(existed_author)
