@@ -88,10 +88,12 @@ class Crawler:
                 continue
             else:
                 found_links = self._extract_url(main_page_soup)
-                if len(found_links) < self.max_articles_per_seed:
-                    self.urls.extend(found_links)
-                else:
-                    self.urls.extend(found_links[:self.max_articles_per_seed])
+                needed_number = min(len(found_links), self.max_articles_per_seed)
+                for link in found_links[needed_number]:
+                    if len(self.urls) < self.max_articles and link not in self.urls:
+                        self.urls.append(link)
+                if len(self.urls) >= self.max_articles:
+                    break
 
     def get_search_urls(self):
         """
