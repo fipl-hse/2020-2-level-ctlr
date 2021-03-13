@@ -102,7 +102,6 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('a', itemprop='url').text.strip()
         self.article.author = article_soup.find('span', itemprop='name').text
-        return None
 
     @staticmethod
     def unify_date_format(date_str):
