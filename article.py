@@ -27,7 +27,7 @@ class Article:
 
         self.title = ''
         self.date = None
-        self.author = ''
+        self.author = 'NOT FOUND'
         self.topics = []
         self.text = ''
 
