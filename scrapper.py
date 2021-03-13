@@ -90,20 +90,18 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         article_text_list = []
-        text_soup = article_soup.find('div', class_='entry-content')
-        main_text = text_soup.find_all('p')
-        for par in main_text:
-            article_text_list.append(par.text)
+        text_soup = article_soup.find('div', class_='entry-content').text[:-18]
+        article_text_list.append(text_soup)
         self.article.text = '\n'.join(article_text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
-        title = article_soup.find('h1')
+        title = article_soup.find('h1', class_='block-title wow zoomIn')
         self.article.title = title.text
         date_soup = article_soup.find('div', class_='entry-meta')
         date = re.findall(r'\d.{9}', str(date_soup))
         ok_date = ''.join(date)
         self.article.date = self.unify_date_format(ok_date)
-        self.article.author = 'AUTHOR NOT FOUND'
+        self.article.author = 'NOT FOUND'
 
     @staticmethod
     def unify_date_format(date_str):
