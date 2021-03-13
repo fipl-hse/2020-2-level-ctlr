@@ -6,8 +6,8 @@ import os
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 ASSETS_PATH = os.path.join(PROJECT_ROOT, 'tmp', 'articles')
-CRAWLER_STATE = os.path.join(PROJECT_ROOT, 'tmp', 'crawler_state.json')
-PARSER_STATE = os.path.join(PROJECT_ROOT, 'tmp', 'parser_state.json')
+CRAWLER_STATE = os.path.join(PROJECT_ROOT, 'tmp', 'crawler.state')
+PARSER_STATE = os.path.join(PROJECT_ROOT, 'tmp', 'parser.state')
 
 CRAWLER_CONFIG_PATH = os.path.join(PROJECT_ROOT, 'crawler_config.json')
 
