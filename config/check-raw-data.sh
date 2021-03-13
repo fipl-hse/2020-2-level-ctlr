@@ -1,3 +1,5 @@
+set -ex
+
 echo "Stage 1B: Validating metadata"
 echo "Starting tests for received metadata"
 
