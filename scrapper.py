@@ -1,17 +1,23 @@
 """
 Crawler implementation
 """
-import random
-import json
 import datetime
+import json
 import os
+import random
 import re
+import shutil
 from time import sleep
+
+
+from bs4 import BeautifulSoup
 import requests
-from requests.exceptions import MissingSchema
-from bs4 import BeautifulSoup, NavigableString
-from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+
 from article import Article
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                         'Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -51,14 +57,15 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('a').attrs['href']
+        page_urls = list(map(lambda x: x.find('a').attrs['href'],
+                             article_bs.find_all('div', {'class': 'news-preview-content'})))
+        return ['https://vn.ru' + page_url for page_url in page_urls[:max_articles_num_per_seed]]
 
     def find_articles(self):
         """
         Finds articles
         """
-        self.get_search_urls()
-        for seed_url in urls:
+        for seed_url in self.get_search_urls():
             try:
                 response = requests.get(seed_url, headers=headers)
                 sleep(random.randint(2, 6))
@@ -69,21 +76,20 @@ class Crawler:
             except IncorrectURLError:
                 continue
 
-            page_content = response.content
-            page_bs = BeautifulSoup(page_content, features='lxml')
-            page_urls = page_bs.find_all('div', {'class': 'news-preview-content'})
+            page_bs = BeautifulSoup(response.content, features='lxml')
+            urls_list = self._extract_url(article_bs=page_bs)
 
-            urls_number = min(max_articles_num_per_seed, len(page_urls), (max_articles_num - len(self.urls)))
-            for index in range(urls_number):
-                self.urls.append('https://vn.ru' + self._extract_url(article_bs=page_urls[index]))
+            urls_number = min(max_articles_num_per_seed, (max_articles_num - len(self.urls)))
+            self.urls.extend(urls_list[:urls_number])
+
+            if len(self.urls) == max_articles_num:
+                return self.urls
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-
-        themes = ['ekonomika', 'oblast', 'obshchestvo',  'proisshestviya', 'dom', 'transport', 'razvlecheniya']
-        self.seed_urls.extend([f'{self.seed_urls[0]}news/{theme}/' for theme in themes])
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -96,34 +102,25 @@ class ArticleParser:
         self.article_id = article_id
         self.article = Article(full_url, article_id)
 
+    @staticmethod
+    def clean_text(text):
+        return '\n'.join(re.findall(r'[А-я]+.+\.[ \t]*', text, flags=re.MULTILINE))
+
     def _fill_article_with_text(self, article_soup):
+        article_preview = article_soup.find('div', {'class': 'one-news-preview-text'}).text + '\n'
 
-        article_text = article_soup.find('div', {'class': 'js-mediator-article divider-news clearfix'}).find_all('p')
-
-        if not re.sub(r'[^А-Яа-я]', '', ''.join(list(map(lambda x: x.text, article_text)))):
-            text = article_soup.find('div', {'class': 'js-mediator-article divider-news clearfix'}).contents
-            text_list = []
-            for item in text:
-                if isinstance(item, NavigableString):
-                    continue
-
-                for index in range(len(item.contents)):
-                    if isinstance(item.contents[index], NavigableString):
-                        text_list.append(item.contents[index])
-        else:
-            text_list = list(map(lambda x: x.text, article_text))
-
-        self.article.text = '\n'.join(text_list)
+        article_content = article_soup.find('div', {'class': 'js-mediator-article'}).text
+        self.article.text = article_preview + self.clean_text(article_content)
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
 
-        self.article.author = article_soup.find('div', {'class': 'author-name floatleft clearfix'}).text.strip('\n')
+        self.article.author = article_soup.find('div', {'class': 'author-name'}).text.strip('\n')
 
         raw_topics = article_soup.find_all('div', {'class': 'on-footer-row'})
         self.article.topics = list(map(lambda x: x.find('a').text.lower(), raw_topics))
 
-        raw_date = article_soup.find('div', {'class': 'nw-dn-date floatleft'}).text
+        raw_date = article_soup.find('div', {'class': 'nw-dn-date'}).text
         self.article.date = self.unify_date_format(raw_date)
 
     @staticmethod
@@ -144,12 +141,10 @@ class ArticleParser:
         if not response:
             raise IncorrectURLError
 
-        page_content = response.content
-        article_bs = BeautifulSoup(page_content, features='lxml')
+        article_bs = BeautifulSoup(response.content, features='lxml')
 
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
-        self.article.save_raw()
 
 
 def prepare_environment(base_path):
@@ -157,13 +152,10 @@ def prepare_environment(base_path):
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
 
-    try:
-        os.makedirs(base_path, mode=0o777)
-    except FileExistsError:
-        for file in os.listdir(base_path):
-            os.remove(f'{base_path}\\{file}')
-    except OSError as error:
-        raise error
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -177,15 +169,13 @@ def validate_config(crawler_path):
     if 'base_urls' not in config or not isinstance(config['base_urls'], list):
         raise IncorrectURLError
 
-    try:
-        for url in config['base_urls']:
-            requests.get(str(url))
-    except MissingSchema as error:
-        raise IncorrectURLError from error
+    for url in config['base_urls']:
+        if not isinstance(url, str) or not url.startswith('https://'):
+            raise IncorrectURLError
 
     if 'total_articles_to_find_and_parse' in config and \
             isinstance(config['total_articles_to_find_and_parse'], int) and \
-            config['total_articles_to_find_and_parse'] not in range(0, 101):
+            config['total_articles_to_find_and_parse'] not in range(0, 151):
         raise NumberOfArticlesOutOfRangeError
 
     if 'total_articles_to_find_and_parse' not in config or \
@@ -200,18 +190,15 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-
     urls, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                             'Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36'}
 
     crawler = Crawler(seed_urls=urls,
                       max_articles=max_articles_num,
                       max_articles_per_seed=max_articles_num_per_seed)
-    crawler.find_articles()
+    links = crawler.find_articles()
 
     prepare_environment(ASSETS_PATH)
     for i, url_full in enumerate(crawler.urls):
         parser = ArticleParser(full_url=url_full, article_id=i)
         parser.parse()
+        parser.article.save_raw()
