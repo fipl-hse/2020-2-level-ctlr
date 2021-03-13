@@ -1,15 +1,17 @@
 """
 Crawler implementation
 """
-import requests
-import json
+import re
 import os
+import json
 import shutil
-import datetime
-from article import Article
-from time import sleep
+from datetime import datetime
 from random import randint
+from time import sleep
+import requests
 from bs4 import BeautifulSoup
+from article import Article
+
 from constants import CRAWLER_CONFIG_PATH
 from constants import PROJECT_ROOT
 from constants import ASSETS_PATH
@@ -172,7 +174,7 @@ if __name__ == '__main__':
                       max_articles_per_seed=max_articles_num)
     crawler.find_articles()
 
-    for id, url in enumerate(crawler.get_search_urls()):
-        parser = ArticleParser(full_url=url, article_id=id)
+    for article_id_n, article_url in enumerate(crawler.get_search_urls()):
+        parser = ArticleParser(full_url=article_url, article_id=article_id_n)
         parser.parse()
         article.save_raw()
