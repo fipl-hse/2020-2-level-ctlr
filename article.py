@@ -26,7 +26,7 @@ class Article:
         self.article_id = article_id
 
         self.title = ''
-        self.date = 0
+        self.date = None
         self.author = ''
         self.topics = []
         self.text = ''
