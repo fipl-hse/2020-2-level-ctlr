@@ -12,8 +12,8 @@ from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
-                  'Chrome/89.0.4389.82 Safari/537.36'}
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/89.0.4389.82 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -65,7 +65,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            links = article_bs.find_all('div', {'class': 'entry-summary'})
+            links = article_bs.find_all('div', {'class': 'l-grid'})
             urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
             for index in range(urls_number):
                 self.urls.append('https://kostroma.news/' + self._extract_url(article_bs=links[index]))
@@ -90,14 +90,17 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find(name='div', class_="entry-content").text
+        self.article.text = article_soup.find(name='div', class_="text letter").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
-        self.article.author = 'NOT FOUND'
-        for topic in article_soup.find_all('a', rel="tag"):
+        self.article.title = article_soup.find('h1', class_='h-display').text.strip()
+
+        self.article.author = article_soup.find('div', class_='credits t-caption')
+
+        for topic in article_soup.find_all('div', class_="b-caption"):
             self.article.topics.append(topic.text)
-        self.article.date = self.unify_date_format(article_soup.find('span', class_='date updated').text)
+
+        self.article.date = self.unify_date_format(article_soup.find('div', 'small').text)
 
     @staticmethod
     def unify_date_format(date_str):
