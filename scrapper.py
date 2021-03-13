@@ -177,7 +177,7 @@ def validate_config(crawler_path):
 
     if 'total_articles_to_find_and_parse' in config and \
             isinstance(config['total_articles_to_find_and_parse'], int) and \
-            config['total_articles_to_find_and_parse'] not in range(0, 151):
+            config['total_articles_to_find_and_parse'] not in range(0, 101):
         raise NumberOfArticlesOutOfRangeError
 
     if 'total_articles_to_find_and_parse' not in config or \
