@@ -91,11 +91,6 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         self.article.text = article_soup.find(name='div', class_="entry-content").text
 
-        '''paragraphs_soup = article_soup.find_all('p')
-        for par in paragraphs_soup:
-            self.article.text += par.text.strip() + ''
-            '''
-
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
 
