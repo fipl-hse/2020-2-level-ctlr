@@ -2,11 +2,12 @@
 Crawler implementation
 """
 
+import datetime
 import json
 import os
 from random import randint
 import shutil
-from time import strptime, sleep
+from time import sleep
 
 from bs4 import BeautifulSoup
 import requests
@@ -207,7 +208,8 @@ class ArticleParser:
             self.article.author = existed_author
         else:
             self.article.author = 'NOT FOUND'
-        self.article.date = self.unify_date_format(article_soup.find('p', class_='date font-open-s-light').text)
+        date_from_url = article_soup.find('p', class_='date font-open-s-light').text
+        self.article.date = self.unify_date_format(date_from_url)
 
     @staticmethod
     def unify_date_format(date_str):
@@ -219,7 +221,7 @@ class ArticleParser:
         # hours, minutes, secs = time.split(':')
         # date_int = tuple(map(int, [year, month, day, hours, minutes, secs]))
         # valid_date = datetime(*date_int)
-        return strptime(date_str, "%d.%m.%Y %H:%M:%S")
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y %H:%M:%S")
 
     def parse(self):
         """
@@ -286,7 +288,7 @@ if __name__ == '__main__':
     #     'http://ks-yanao.ru/ekonomika/v-yanao-sozdan-reestr-pererabotchikov-ryby.html',
     #     headers=HEADERS)
     # page_soup = BeautifulSoup(response.content, features='lxml')
-    # existed_author = page_soup.find('div', class_='text-box text-right').find('a').text.strip()
+    # # existed_author = page_soup.find('div', class_='text-box text-right').find('a').text.strip()
     # if existed_author:
     #     print(existed_author)
     # else:
@@ -297,7 +299,9 @@ if __name__ == '__main__':
     # print(author_soup)
 
     # date_soup = page_soup.find('p', class_='date font-open-s-light').text
+    # print(date_soup)
     # print(strptime(date_soup, "%d.%m.%Y %H:%M:%S"))
+    # print(strftime("%Y-%m-%d %H:%M:%S"))
     # date, time = date_soup.split()
     # day, month, year = date.split('.')
     # hours, minutes, secs = time.split(':')
