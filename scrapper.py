@@ -97,7 +97,7 @@ class ArticleParser:
             self.article.text += paragraph.text.strip() + ''
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text
+        self.article.title = article_soup.find('h1').text.strip()
         return None
 
     @staticmethod
@@ -132,35 +132,29 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path, 'r') as crawler_config_file:
-        crawler_config = json.load(crawler_config_file)
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        config = json.load(file)
 
-    is_crawler_config_ok = True
-    if not isinstance(crawler_config, dict):
-        is_crawler_config_ok = False
+    unknown = ('base_urls' not in config or 'total_articles_to_find_and_parse' not in config
+               or 'max_number_articles_to_get_from_one_seed' not in config)
+    if not isinstance(config, dict) and unknown:
         raise UnknownConfigError
 
-    if 'base_urls' not in crawler_config or not isinstance(crawler_config['base_urls'], list) or \
-            not all(isinstance(url, str) for url in crawler_config['base_urls']):
-        is_crawler_config_ok = False
+    if not isinstance(config['base_urls'], list) or \
+            not all(isinstance(url, str) for url in config['base_urls']):
         raise IncorrectURLError
 
-    if 'total_articles_to_find_and_parse' in crawler_config \
-            and isinstance(crawler_config['total_articles_to_find_and_parse'], int) \
-            and crawler_config['total_articles_to_find_and_parse'] >= 1000000:
-        is_crawler_config_ok = False
+    if 'total_articles_to_find_and_parse' in config and \
+            isinstance(config['total_articles_to_find_and_parse'], int) and \
+            config['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
 
-    if 'total_articles_to_find_and_parse' in crawler_config and 'max_number_articles_to_get_from_one_seed':
-        if not(isinstance(crawler_config['total_articles_to_find_and_parse'], int)
-               and isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], int)):
-            is_crawler_config_ok = False
-            raise IncorrectNumberOfArticlesError
-    else:
-        is_crawler_config_ok = False
-
-    if is_crawler_config_ok:
-        return crawler_config.values()
+    if 'max_number_articles_to_get_from_one_seed' not in config or \
+            not isinstance(config['max_number_articles_to_get_from_one_seed'], int) or \
+            'total_articles_to_find_and_parse' not in config or \
+            not isinstance(config['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+    return config.values()
 
 if __name__ == '__main__':
     # YOUR CODE HERE
