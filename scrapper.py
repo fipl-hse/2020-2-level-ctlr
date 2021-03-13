@@ -68,7 +68,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            article_soup = article_bs.find_all('p', class_='t-regular')
+            article_soup = article_bs.find_all('div', class_='l-grid')
             for article_bs in article_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
