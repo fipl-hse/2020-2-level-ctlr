@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 from article import Article
 
 from constants import CRAWLER_CONFIG_PATH
-from constants import PROJECT_ROOT
 from constants import ASSETS_PATH
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
