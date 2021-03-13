@@ -98,7 +98,7 @@ class ArticleParser:
         for text in art:
            clear_art += text.text.strip()
 
-        self.article = clear_art
+        self.article.text = clear_art
 
 
     def _fill_article_with_meta_information(self, article_soup):
