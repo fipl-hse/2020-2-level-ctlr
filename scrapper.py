@@ -101,7 +101,8 @@ class ArticleParser:
         self.article.title = title.text
         date_soup = article_soup.find('div', class_='entry-meta')
         date = re.findall(r'\d.{9}', str(date_soup))
-        self.article.date = self.unify_date_format(date.text)
+        ok_date = ''.join(date)
+        self.article.date = self.unify_date_format(ok_date)
         self.article.author = 'AUTHOR NOT FOUND'
 
     @staticmethod
