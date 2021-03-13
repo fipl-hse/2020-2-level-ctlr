@@ -158,20 +158,17 @@ def validate_config(crawler_path):
         raise IncorrectNumberOfArticlesError
     return config.values()
 
-
 if __name__ == '__main__':
     # YOUR CODE HERE
     from constants import CRAWLER_CONFIG_PATH
     from constants import ASSETS_PATH
 
-    urls_list, total_art, max_number = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=urls_list, max_articles=total_art, max_articles_per_seed=max_number)
-    urls = crawler.find_articles
+    urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
+    articles = crawler.find_articles
     prepare_environment(ASSETS_PATH)
-    article = 0
-    for article_url in urls:
-        article += 1
-        parser = ArticleParser(article_url, article)
-        sleep(random.randint(2, 4))
+
+    for ind, article_url in enumerate(urls):
+        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
         article = parser.parse()
-        article.save_raw()
+        parser.parse()
