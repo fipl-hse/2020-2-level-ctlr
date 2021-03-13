@@ -141,8 +141,9 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         conf = json.load(file)
 
-    if 'base_urls' not in conf or not isinstance(conf['base_urls'], list):
+    if not conf['base_urls'] or not isinstance(conf['base_urls'], list):
         raise IncorrectURLError
+
     for link in conf['base_urls']:
         if not isinstance(link, str) or 'http://' not in link:
             raise IncorrectURLError
