@@ -71,6 +71,7 @@ class Crawler:
 
             for link_url in link2:
                 code = 'http://kamtime.ru' + link_url
+
                 if code not in self.urls and len(self.urls) < self.max_articles:
                     self.urls.append(code)
 
@@ -99,6 +100,7 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('title').text
+
         self.article.author = article_soup.find(rel='tag').text
         date = article_soup.find('span', class_='submitted').text.split()
         #self.article.date = self.unify_date_format(date)
@@ -169,8 +171,7 @@ if __name__ == '__main__':
 
     prepare_environment(ASSETS_PATH)
     for ind, url in enumerate(articles):
-        parser = ArticleParser(url, ind+1)
+        parser = ArticleParser(url, ind + 1)
         articles = parser.parse()
         articles.save_raw()
-
 
