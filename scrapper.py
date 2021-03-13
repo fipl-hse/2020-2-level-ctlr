@@ -286,12 +286,12 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    response = requests.get(
-        'http://ks-yanao.ru/novosti/v-roskachestve-iskali-samye-bezopasnye-bliny-a-krasnyy-sever-predlagaet-ikh-napech-samostoyatelno.html',
-        headers=HEADERS)
-    page_soup = BeautifulSoup(response.content, features='lxml')
-    author = page_soup.find('a', class_='author-name font-open-s')#.find('a').text.strip()
-    print(author.text)
+    # response = requests.get(
+    #     'http://ks-yanao.ru/novosti/v-roskachestve-iskali-samye-bezopasnye-bliny-a-krasnyy-sever-predlagaet-ikh-napech-samostoyatelno.html',
+    #     headers=HEADERS)
+    # page_soup = BeautifulSoup(response.content, features='lxml')
+    # author = page_soup.find('a', class_='author-name font-open-s')#.find('a').text.strip()
+    # print(author.text)
     # # existed_author = page_soup.find('div', class_='text-box text-right').find('a').text.strip()
     # if existed_author:
     #     print(existed_author)
