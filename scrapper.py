@@ -119,8 +119,8 @@ class ArticleParser:
 
         self.article.author = article_soup.find('div', {'class': 'author-name'}).text.strip('\n')
 
-        raw_topics = article_soup.find_all('div', {'class': 'on-footer-row'})
-        self.article.topics = list(map(lambda x: x.find('a').text.lower(), raw_topics))
+        raw_topics = article_soup.find_all('div', {'class': 'on-footer-row'})[1]
+        self.article.topics = [raw_topics.text.lower()]
 
         raw_date = article_soup.find('div', {'class': 'nw-dn-date'}).text
         self.article.date = self.unify_date_format(raw_date)
@@ -201,6 +201,6 @@ if __name__ == '__main__':
 
     prepare_environment(ASSETS_PATH)
     for i, url_full in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url_full, article_id=i)
+        parser = ArticleParser(full_url=url_full, article_id=i+1)
         parser.parse()
         parser.article.save_raw()
