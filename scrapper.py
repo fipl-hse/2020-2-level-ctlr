@@ -76,6 +76,7 @@ class Crawler:
             articles_page = BeautifulSoup(response.content, 'lxml')
             links = self._extract_url(articles_page)
             raw_urls.extend(links)
+            raw_urls = raw_urls[:self.total_max_articles]
         for url in raw_urls:
             self.urls.append(url[1:-1])
         return self.urls
