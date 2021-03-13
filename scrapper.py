@@ -67,7 +67,6 @@ class Crawler:
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
             articles = page_soup.find_all('h3', class_='entry-title')
-            page_links = []
             for article in articles:
                 seed_url = self._extract_url(article)
                 self.urls.append(seed_url)
