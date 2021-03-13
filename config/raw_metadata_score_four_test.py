@@ -16,7 +16,6 @@ class RawDataValidator(unittest.TestCase):
 
     def test_validate_sort(self):
         list_ids = [pair[0] for pair in self.texts]
-        print(list_ids)
         for i in range(1, len(list_ids)+1):
             self.assertTrue(i in list_ids,
                             msg="""Articles ids are not homogeneous. E.g. numbers are not from 1 to N""")

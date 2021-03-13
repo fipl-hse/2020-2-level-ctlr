@@ -2,16 +2,18 @@
 Crawler implementation
 """
 
-import os
-import json
 from datetime import date
+import json
+import os
 from random import randint
 from time import sleep as wait
+
+from bs4 import BeautifulSoup
 import requests
 from requests.exceptions import RequestException
-from bs4 import BeautifulSoup
+
 from article import Article
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, LINKS_STORAGE, URL_START
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, LINKS_STORAGE_DIR, URL_START, HEADERS, LINKS_STORAGE_FILE
 
 
 class IncorrectURLError(Exception):
@@ -38,6 +40,12 @@ class UnknownConfigError(Exception):
     """
 
 
+class NoBackUpEnabled(Exception):
+    """
+    Custom Error
+    """
+
+
 class Crawler:
     """
     Crawler implementation
@@ -59,27 +67,28 @@ class Crawler:
         Finds articles
         """
         for link in self.seed_urls:
-            article_bs = BeautifulSoup(requests.get(link, 'html.parser').text, 'html.parser')
+            article_bs = BeautifulSoup(requests.get(link, 'html.parser', headers=HEADERS).text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             self.urls.extend(newfound[:self.max_articles_per_seed])
         self.urls = [i for i in self.urls if len(i) > 20
                      and not any(map(lambda y: y.isupper(), i))][:self.total_max_articles]
         print('Scraped seed urls, overall number of urls is', len(self.urls))
-        old = len(self.urls)
         while len(self.urls) < self.total_max_articles:
             print('Due to insufficient number started further iteration')
             print('current number', len(self.urls), ', required', self.total_max_articles)
+            old = len(self.urls)
             for link in self.urls:
-                article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
+                article_bs = BeautifulSoup(requests.get(URL_START + link,
+                                                        'html.parser', headers=HEADERS).text, 'html.parser')
                 newfound = list(filter(lambda x: len(x) > 20, self._extract_url(article_bs, self.urls)))
-                print('    checked new url, found', len(newfound), 'articles')
+                print('checked new url, found', len(newfound), 'articles')
                 self.urls.extend(newfound[:self.max_articles_per_seed])
                 if len(self.urls) > self.total_max_articles:
                     break
             if len(self.urls) == old:
-                print('     Something is wrong with scraping parameters')
+                print('There are no unseen urls found in all of the available addresses')
+                print(f'crawling finished with {len(self.urls)}')
                 break
-
             self.urls = self.urls[:self.total_max_articles]
 
     def get_search_urls(self):
@@ -96,60 +105,54 @@ class CrawlerRecursive(Crawler):
         self.is_waiting = to_wait
 
     def _crawl(self, pool: list):
+        found = []
         for link in pool:
             if self.is_waiting:
                 wait(randint(0, 10))
-            try:
-                article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
-            except requests.exceptions.ConnectionError:
-                wait(10)
-                article_bs = BeautifulSoup(requests.get(URL_START + link, 'html.parser').text, 'html.parser')
+            article_bs = BeautifulSoup(requests.get(URL_START + link, headers=HEADERS).text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             newfound = [i for i in newfound if len(i) > 20
                         and not any(map(lambda y: y.isupper(), i))]
-            return newfound
+            found.extend(newfound)
+        return list(set(found))
 
     def find_articles(self):
-        if self.get_backedup():
+        if self.read_backedup():
             print('backed up urls found, starting iteration')
         if not self.urls:
-            self.urls = self._crawl(self.seed_urls)
-            with open('links/url_backup.txt', 'w', encoding='utf-8') as file:
-                file.write('\n'.join(self.urls))
-            print(f'Scraped {len(self.urls)} from seed')
+            pool = self.seed_urls
+        else:
+            pool = self.urls
+        newfound = self._crawl(pool)
+        if not newfound:
+            print(f'there are no unseen links found\nrecursive crawling finished with {len(self.urls)} urls.')
+        else:
+            self.urls.extend(newfound)
+            with open(LINKS_STORAGE_FILE, 'a', encoding='utf-8') as file:
+                file.write('\n'.join(newfound))
+            print(f'found {len(newfound)} new urls')
             if self.verify_proceed():
-                print('starting recursive scraping')
+                print('starting new iteration')
                 self.find_articles()
             else:
                 print(f'recursive crawling finished with {len(self.urls)} urls.')
-        else:
-            newfound = self._crawl(self.urls)
-            if not newfound:
-                print(f'there are no unseen links found\nrecursive crawling finished with {len(self.urls)} urls.')
-            else:
-                self.urls.extend(newfound)
-                with open('links/url_backup.txt', 'a', encoding='utf-8') as file:
-                    file.write('\n'.join(newfound))
-                print(f'found {len(newfound)} new urls')
-                if self.verify_proceed():
-                    print('starting new iteration')
-                    self.find_articles()
-                else:
-                    print(f'recursive crawling finished with {len(self.urls)} urls.')
 
     @staticmethod
     def verify_proceed():
         answer = input('Would you like to proceed? yes or no: ').strip()
         return answer == 'yes'
 
-    def get_backedup(self):
+    def read_backedup(self):
         try:
-            with open('links/url_backup.txt', 'r', encoding='utf-8') as file:
+            with open(LINKS_STORAGE_FILE, 'r', encoding='utf-8') as file:
                 sources = file.read().split('\n')
                 self.urls = sources
-                return True
+                if self.urls:
+                    print('backed up urls found')
         except FileNotFoundError:
-            return False
+            print('no backed up files found')
+            with open(LINKS_STORAGE_FILE, 'w', encoding='utf-8'):
+                pass
 
 
 class ArticleParser:
@@ -163,36 +166,28 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         try:
-            text = article_soup.find('div', {'class': 'text letter', 'itemprop': 'articleBody'}).text.strip()
-            text = [i for i in text.split('\n') if 'Фото:' not in i and 'Автор:' not in i
-                    and '© фото:' not in i and 'Источник:' not in i]
-            self.article.text = '\n'.join(text).strip()
+            text = article_soup.find('div', {'class': 'text letter',
+                                             'itemprop': 'articleBody'}).text.strip().split('\n')
+            stopws = ['Фото:', 'Автор:', 'Источник:',  '© фото:']
+            self.article.text = ' '.join(filter(lambda line:
+                                         all(map(lambda stopw: stopw not in line, stopws)), text)).strip()
         except AttributeError:
-            print('    unable to parse', self.full_url)
+            print('unable to parse', self.full_url)
+            self.article.text = 'ERROR'
 
     def _fill_article_with_meta_information(self, article_soup):
         try:
             title = article_soup.title.text
             self.article.title = title
-
-            credit = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0]
-            if 'Автор:' in credit:
-                author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip().split('\n')[0][7:]
-            elif 'Источник:' in credit:
-                author = article_soup.find('div', {'class': 'credits t-caption'}).text.strip()
-                author = author.split('\n')[0][9:].strip()
-            else:
-                author = 'Not found'
-            self.article.author = author
+            author = article_soup.find('div',
+                                       {'class': 'credits t-caption'}).text.strip().split('\n')[0].split(': ')[-1]
+            self.article.author = author.strip()
             when = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[1]
             self.article.date = self.unify_date_format(when)
-
             topic = article_soup.find('div', {'class': 'b-caption'}).text.strip().split('\n')[0]
             self.article.topics = topic
         except AttributeError:
-            print('    something is off with', self.full_url)
-        # print(title)
-        # self.article.title = title
+            print('something is off with', self.full_url)
 
     @staticmethod
     def unify_date_format(date_str):
@@ -220,29 +215,22 @@ class ArticleParser:
         """
         Parses each article
         """
-        self.article.url = self.full_url
-        self.article.article_id = self.article_id
-        html = requests.get(self.full_url, 'html.parser').text
+        html = requests.get(self.full_url, 'html.parser', headers=HEADERS).text
         article_bs = BeautifulSoup(html, 'html.parser')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
-        self.article.save_raw()
+        return self.article
 
 
-def prepare_environment(base_path):
+def prepare_environment(base_path, backup_path_dir):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     if not os.path.exists(base_path):
         os.makedirs(base_path)
-
-
-def enable_backup(base_path):
-    """
-    Creates folder for backup links if not created
-    """
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
+    if not os.path.exists(backup_path_dir):
+        print('GOT HERE WITH PATH', backup_path_dir)
+        os.makedirs(backup_path_dir)
 
 
 def validate_config(crawler_path):
@@ -251,13 +239,8 @@ def validate_config(crawler_path):
     """
     with open(crawler_path) as crawler_config:
         config = json.load(crawler_config)
-    try:
-        good_response = list(map(lambda link: requests.get(link).status_code == 200,
-                                 config['base_urls']))
-    except RequestException as exception:
-        raise IncorrectURLError from exception
-    except Exception as exception:
-        raise UnknownConfigError from exception
+    good_response = list(map(lambda link: link.startswith('https://'),
+                             config['base_urls']))
     if not all(good_response):
         raise IncorrectURLError
     try:
@@ -265,11 +248,6 @@ def validate_config(crawler_path):
             raise IncorrectNumberOfArticlesError
         if config['total_articles_to_find_and_parse'] > 1000:
             raise NumberOfArticlesOutOfRangeError
-        # if not isinstance(config['max_number_articles_to_get_from_one_seed'], int):
-        #     raise IncorrectNumberOfArticlesError
-        # if not config['total_articles_to_find_and_parse'] < config['max_number_articles_to_get_from_one_seed']\
-        #    * len(good_response):
-        #     raise NumberOfArticlesOutOfRangeError
     except KeyError as exception:
         raise IncorrectNumberOfArticlesError from exception
     try:
@@ -280,22 +258,22 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment(ASSETS_PATH)
-    enable_backup(LINKS_STORAGE)
+    prepare_environment(ASSETS_PATH, LINKS_STORAGE_DIR)
     seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     if not max_arts_per_seed:
         max_arts_per_seed = max_articles
-    crawler = CrawlerRecursive(seed_urls=seedurls,
-                               total_max_articles=max_articles,
-                               max_articles_per_seed=max_arts_per_seed)
+    crawler = Crawler(seed_urls=seedurls,
+                      total_max_articles=max_articles,
+                      max_articles_per_seed=max_arts_per_seed)
 
     crawler.find_articles()
-    # print('Scraped', len(crawler.urls), 'articles')
 
     print('onto parsing')
 
-    for n, url in enumerate(crawler.urls):
+    for n, url in enumerate(crawler.urls[:4]):
         full_url = URL_START + url
         parser = ArticleParser(full_url, n + 1)
-        parser.parse()
+        article = parser.parse()
+        article.save_raw()
     print('parsing is finished')
+#
