@@ -43,15 +43,15 @@ class Crawler:
     Crawler implementation
     """
 
-    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
-        self.max_articles = max_articles
+        self.total_max_articles = total_max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find("a").get('href')
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
@@ -63,12 +63,11 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            main_soup = article_bs.find('div', id='comp_bb39263ca1da562ef47431bb60cec3b1')
-            articles_soup = main_soup.find_all('article')
-            for article_bs in articles_soup[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == self.max_articles:
-                    break
+            links = article_bs.find_all('div', {'class': 'entry-summary'})
+            urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
+            for index in range(urls_number):
+                self.urls.append('https://kostroma.news/' + self._extract_url(article_bs=links[index]))
+
         return self.urls
 
     def get_search_urls(self):
@@ -89,17 +88,14 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find('div', class_="text letter").text
+        self.article.text = article_soup.find(name='div', class_="entry-content").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_='h-display').text.strip()
-
-        for topic in article_soup.find_all('div', class_='b-caption'):
+        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
+        self.article.author = 'NOT FOUND'
+        for topic in article_soup.find_all('a', rel="tag"):
             self.article.topics.append(topic.text)
-
-        self.article.author = article_soup.find('div', class_='credits t-caption')
-
-        self.article.date = self.unify_date_format(article_soup.find('div', class_="b-caption").text)
+        self.article.date = self.unify_date_format(article_soup.find('span', class_='date updated').text)
 
     @staticmethod
     def unify_date_format(date_str):
@@ -160,11 +156,12 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls_ex, max_articles_ex, max_articles_per_seed_ex)
-
     prepare_environment(ASSETS_PATH)
+    urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
-    for ind, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
+    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles, max_articles_per_seed=articles_per_seed)
+    crawler.find_articles()
+
+    for i, url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url, article_id=i + 1)
         parser.parse()
