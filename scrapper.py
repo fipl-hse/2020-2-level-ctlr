@@ -68,7 +68,7 @@ class Crawler:
             links = article_bs.find_all('div', {'class': 'l-grid'})
             urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
             for index in range(urls_number):
-                self.urls.append('https://kostroma.news/' + self._extract_url(article_bs=links[index]))
+                self.urls.append('https://burunen.ru/news/' + self._extract_url(article_bs=links[index]))
 
         return self.urls
 
@@ -90,7 +90,7 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find(name='div', class_="text letter").text
+        self.article.text = article_soup.find('div', class_='text letter').text
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1', class_='h-display').text.strip()
