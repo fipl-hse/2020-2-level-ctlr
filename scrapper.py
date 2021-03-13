@@ -1,18 +1,22 @@
 """
 Crawler implementation
 """
+import datetime
 import json
 import os
-from time import sleep
-import datetime
 import random
+import re
 import shutil
-import requests
-from bs4 import BeautifulSoup
-import article
-from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
+from time import sleep
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+from bs4 import BeautifulSoup
+import requests
+
+import article
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, PROJECT_ROOT
+
+CRAWLER_SAVE_PATH = os.path.join(PROJECT_ROOT, 'intermediate_results.json')
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74'}
 
 
@@ -69,9 +73,9 @@ class Crawler:
         """
         for url in self.seed_urls:
             try:
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=HEADERS)
+                sleep(random.randrange(3, 6))
                 if response.status_code == 200:
-                    sleep(random.randrange(3, 6))
                     soup_menu_page = BeautifulSoup(response.content, 'lxml')
                 else:
                     raise BadStatusCode
@@ -79,15 +83,15 @@ class Crawler:
                 continue
             else:
                 links = self._extract_url(soup_menu_page)
-                links = [link for link in links if link not in self.urls]
+                links = list(set(links) - set(self.urls))
                 if links:
                     limit = min(len(links), self.max_articles_per_seed)
                     for link in links[:limit]:
                         if len(self.urls) < self.total_max_articles:
                             self.urls.append(link)
-                if len(self.urls) == self.total_max_articles:
+                if len(self.urls) >= self.total_max_articles:
                     break
-        return self.urls
+        return self.urls[:self.total_max_articles]
 
     def get_search_urls(self):
         """
@@ -105,80 +109,69 @@ class CrawlerRecursive(Crawler):
         """
         Finds articles
         """
-        if os.path.exists(os.path.join(PROJECT_ROOT, 'intermediate_results.json')):
-            with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'),
-                      'r', encoding='utf-8') as file:
-                results = json.load(file)
-            if results['seed_urls']:
-                self.seed_urls = results['seed_urls']
-            if results['article_urls']:
-                self.urls = results['article_urls']
-        for url in self.get_search_urls():
-            try:
-                response = requests.get(url, headers=headers)
-                if response.status_code == 200:
-                    sleep(random.randrange(3, 6))
-                    soup_menu_page = BeautifulSoup(response.content, 'lxml')
-                else:
-                    raise BadStatusCode
-            except BadStatusCode:
-                continue
+        self._load_intermediate_results()
+        seeds = self.get_search_urls()
+        try:
+            response = requests.get(seeds[0], headers=HEADERS)
+            sleep(random.randrange(3, 6))
+            if response.status_code == 200:
+                soup_menu_page = BeautifulSoup(response.content, 'lxml')
             else:
-                links = self._extract_url(soup_menu_page)
-                links = [link for link in links if link not in self.urls]
-                if links:
-                    limit = min(len(links), self.max_articles_per_seed)
-                    for link in links[:limit]:
-                        if len(self.urls) < self.total_max_articles:
-                            self.urls.append(link)
-                    with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'),
-                              'r', encoding='utf-8') as file:
-                        results = json.load(file)
-                    results['seed_urls'].remove(url)
-                    results['article_urls'] = self.urls
-                    with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'), 'w', encoding='utf-8') as file:
-                        json.dump(results, file)
-                if len(self.urls) == self.total_max_articles:
-                    break
-        return self.urls
+                raise BadStatusCode
+        except BadStatusCode:
+            return self.find_articles()
+        else:
+            links = self._extract_url(soup_menu_page)
+            links = list(set(links) - set(self.urls))
+            if links:
+                limit = min(len(links), self.max_articles_per_seed)
+                for link in links[:limit]:
+                    if len(self.urls) < self.total_max_articles:
+                        self.urls.append(link)
+                self._save_intermediate_results()
+                if len(self.urls) >= self.total_max_articles:
+                    return self.urls[:self.total_max_articles]
+        return self.find_articles()
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        for link in self.seed_urls:
-            try:
-                if len(self.seed_urls) > 100:
-                    with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'),
-                              'r', encoding='utf-8') as file:
-                        results = json.load(file)
-                    results['seed_urls'] = self.seed_urls
-                    with open(os.path.join(PROJECT_ROOT, 'intermediate_results.json'), 'w',
-                              encoding='utf-8') as file:
-                        json.dump(results, file)
-                    break
-                response = requests.get(link, headers=headers)
-                if response.status_code == 200:
-                    sleep(random.randrange(1, 2))
-                    soup_page = BeautifulSoup(response.content, 'lxml')
-                else:
-                    raise BadStatusCode
-            except BadStatusCode:
-                continue
+        current_seed = self.seed_urls[0]
+        try:
+            response = requests.get(current_seed, headers=HEADERS)
+            sleep(random.randrange(2, 4))
+            if response.status_code == 200:
+                soup_page = BeautifulSoup(response.content, 'lxml')
             else:
-                if link == 'https://astravolga.ru' and len(self.seed_urls) == 1:
-                    for tag in soup_page.find_all(class_='menu-item menu-item-type-taxonomy'
-                                                         ' menu-item-object-category'
-                                                         ' menu-item-87549'):
-                        link = tag.find('a').get('href')
-                        if link not in self.seed_urls:
-                            self.seed_urls.append(link)
-                else:
-                    for tag in soup_page.find_all('a', class_="page-numbers"):
-                        link = tag.get('href')
-                        if link not in self.seed_urls:
-                            self.seed_urls.append(link)
+                raise BadStatusCode
+        except BadStatusCode:
+            self.seed_urls.pop(0)
+            return self.get_search_urls()
+        else:
+            if current_seed == 'https://astravolga.ru':
+                for tag in soup_page.find(class_="dropdown").find_all('a'):
+                    link = tag.get('href')
+                    if link not in self.seed_urls:
+                        self.seed_urls.append(link)
+            else:
+                for tag in soup_page.find_all('a', class_="page-numbers"):
+                    link = tag.get('href')
+                    if link not in self.seed_urls:
+                        self.seed_urls.append(link)
         return self.seed_urls
+
+    def _load_intermediate_results(self):
+        if os.path.exists(CRAWLER_SAVE_PATH):
+            with open(CRAWLER_SAVE_PATH, 'r', encoding='utf-8') as file:
+                dic = json.load(file)
+            if self.seed_urls not in dic['seed_urls'] and not dic['seed_urls']:
+                dic['seed_urls'].extend(self.seed_urls)
+            self.seed_urls, self.urls = dic['seed_urls'], dic['article_urls']
+
+    def _save_intermediate_results(self):
+        with open(CRAWLER_SAVE_PATH, 'w', encoding='utf-8') as file:
+            json.dump({"seed_urls": self.seed_urls[1:], "article_urls": self.urls}, file)
 
 
 class ArticleParser:
@@ -219,7 +212,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.article_url, headers=headers)
+        response = requests.get(self.article_url, headers=HEADERS)
         if response:
             article_bs = BeautifulSoup(response.content, 'lxml')
             self._fill_article_with_text(article_bs)
@@ -231,9 +224,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
-    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -246,20 +239,23 @@ def validate_config(crawler_path):
                                        or 'max_number_articles_to_get_from_one_seed' not in conf
                                        or 'total_articles_to_find_and_parse' not in conf):
         raise UnknownConfigError
-    if not isinstance(conf['base_urls'], list) or \
-            not all([isinstance(seed_url, str) for seed_url in conf['base_urls']]):
+    if not isinstance(conf['base_urls'], list):
         raise IncorrectURLError
+    for url in conf['base_urls']:
+        if not isinstance(url, str) or not re.findall(r'^https?://', str(url)):
+            raise IncorrectURLError
     if not isinstance(conf['total_articles_to_find_and_parse'], int)\
             or conf['total_articles_to_find_and_parse'] < 0:
         raise IncorrectNumberOfArticlesError
     if conf['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
-    return conf.values()
+    return conf['base_urls'], conf['total_articles_to_find_and_parse'],\
+        conf['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    prepare_environment(PROJECT_ROOT)
+    prepare_environment(ASSETS_PATH)
     urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = CrawlerRecursive(seed_urls=urls,
                                total_max_articles=max_articles,
