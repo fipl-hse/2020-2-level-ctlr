@@ -12,7 +12,7 @@ import logging.config
 from json.decoder import JSONDecodeError
 from collections import namedtuple
 from datetime import datetime
-from typing import Set, List, Tuple, Optional, Dict, Any
+from typing import Set, List, Tuple, Dict, Any
 from pathlib import Path
 
 import requests
@@ -128,7 +128,7 @@ class CrawlerRecursive(Crawler):
         self.urls.update(links)
 
         if len(self.urls) == self.max_articles:
-            return
+            return None
 
         self._save_state()
 
@@ -240,7 +240,7 @@ class ArticleParser:
         return {}
 
 
-def fetch_page(url: str) -> Optional[str]:
+def fetch_page(url: str):
     """
     Fetches the seed page and returns its content
     """
@@ -322,7 +322,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as exc:
-        log.exception(exc)
+    main()
