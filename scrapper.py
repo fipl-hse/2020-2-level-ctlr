@@ -61,14 +61,22 @@ class Crawler:
         return list(filter(lambda x: x.startswith('/news/')
                            and x not in seen, extracted))
 
+    def _crawl(self, pool: iter):
+        found = []
+        for link in pool:
+            article_bs = BeautifulSoup(requests.get(link, headers=HEADERS).text, 'html.parser')
+            newfound = self._extract_url(article_bs, self.urls)
+            newfound = [i for i in newfound if len(i) > 20
+                        and not any(map(lambda y: y.isupper(), i))]
+            found.extend(newfound)
+        return list(set(found))[:self.max_articles_per_seed]
+
     def find_articles(self):
         """
         Finds articles
         """
-        for link in self.seed_urls:
-            article_bs = BeautifulSoup(requests.get(link, 'html.parser', headers=HEADERS).text, 'html.parser')
-            newfound = self._extract_url(article_bs, self.urls)
-            self.urls.extend(newfound[:self.max_articles_per_seed])
+        found = self._crawl(self.seed_urls)
+        self.urls.extend(found)
         self.urls = [i for i in self.urls if len(i) > 20
                      and not any(map(lambda y: y.isupper(), i))][:self.total_max_articles]
         print('Scraped seed urls, overall number of urls is', len(self.urls))
@@ -76,14 +84,9 @@ class Crawler:
             print('Due to insufficient number started further iteration')
             print('current number', len(self.urls), ', required', self.total_max_articles)
             old = len(self.urls)
-            for link in self.urls:
-                article_bs = BeautifulSoup(requests.get(URL_START + link,
-                                                        'html.parser', headers=HEADERS).text, 'html.parser')
-                newfound = list(filter(lambda x: len(x) > 20, self._extract_url(article_bs, self.urls)))
-                print('checked new url, found', len(newfound), 'articles')
-                self.urls.extend(newfound[:self.max_articles_per_seed])
-                if len(self.urls) > self.total_max_articles:
-                    break
+            pool = tuple(map(lambda x: URL_START + x, self.urls))
+            found = self._crawl(pool)
+            self.urls.extend(found)
             if len(self.urls) == old:
                 print('There are no unseen urls found in all of the available addresses')
                 print(f'crawling finished with {len(self.urls)}')
@@ -272,7 +275,7 @@ if __name__ == '__main__':
 
     print('onto parsing')
 
-    for n, url in enumerate(crawler.urls[:4]):
+    for n, url in enumerate(crawler.urls):
         full_url = URL_START + url
         parser = ArticleParser(full_url, n + 1)
         article = parser.parse()
