@@ -69,7 +69,7 @@ class Crawler:
         for tag_a_content in article_bs.find_all('div', class_='signature'):
             link = tag_a_content.find('a').get('href')
             if link and link not in pages_links:
-                pages_links.append('http://ks-yanao.ru/' + link)
+                pages_links.append('http://ks-yanao.ru' + link)
         return pages_links
 
     # def _extract_url(article_bs):
@@ -205,7 +205,7 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text.strip()
         try:
-            self.article.author = article_soup.find('a', class_='author-name font-open-s').text
+            self.article.author = article_soup.find('a', class_='author-name font-open-s').text.strip()
         except AttributeError:
             self.article.author = 'NOT FOUND'
         #existed_author = article_soup.find('div', class_='text-box text-right').find('a').text.strip()
