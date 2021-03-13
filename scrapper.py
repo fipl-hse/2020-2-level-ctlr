@@ -111,7 +111,7 @@ class ArticleParser:
         self.article.title = article_soup.find('h1').text
         text_soup = article_soup.find('div', class_="inner-post-entry").find_all('p')
         article_author = (text_soup[-1]).text
-        if len(article_author) < 40:
+        if len(article_author) < 70:
             self.article.author = article_author
         else:
             self.article.author = "NOT FOUND"
