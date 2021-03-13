@@ -287,7 +287,8 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # response = requests.get(
-    #     'http://ks-yanao.ru/novosti/v-roskachestve-iskali-samye-bezopasnye-bliny-a-krasnyy-sever-predlagaet-ikh-napech-samostoyatelno.html',
+    #     'http://ks-yanao.ru/novosti/v-roskachestve-iskali-samye-bezopasnye-bliny-a-krasnyy-sever-
+    #     predlagaet-ikh-napech-samostoyatelno.html',
     #     headers=HEADERS)
     # page_soup = BeautifulSoup(response.content, features='lxml')
     # author = page_soup.find('a', class_='author-name font-open-s')#.find('a').text.strip()
