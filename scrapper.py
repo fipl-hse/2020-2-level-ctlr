@@ -100,7 +100,11 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text
+        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
+        self.article.author = 'NOT FOUND'
+        for topic in article_soup.find_all('a', rel="tag"):
+            self.article.topics.append(topic.text)
+        self.unify_date_format(article_soup.find('time', class_='entry-date').text)
 
     @staticmethod
     def unify_date_format(date_str):
