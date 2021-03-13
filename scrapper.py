@@ -120,7 +120,7 @@ class ArticleParser:
         self.article.author = article_soup.find('div', {'class': 'author-name'}).text.strip('\n')
 
         raw_topics = article_soup.find_all('div', {'class': 'on-footer-row'})[1]
-        self.article.topics = [raw_topics.text.lower()]
+        self.article.topics = [raw_topics.find('a').text.lower()]
 
         raw_date = article_soup.find('div', {'class': 'nw-dn-date'}).text
         self.article.date = self.unify_date_format(raw_date)
