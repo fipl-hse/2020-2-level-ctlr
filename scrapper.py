@@ -51,7 +51,12 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('a').attrs['href']
+        links = []
+        for content in article_bs.find_all('p', class_='t-regular'):
+            link = content.find('a').get('href')
+            if link and link not in links:
+                links.append('https://burunen.ru/news/' + link)
+        return links
 
     def find_articles(self):
         """
@@ -64,7 +69,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            article_soup = article_bs.find_all('div', class_='article-info')
+            article_soup = article_bs.find_all('p', class_='t-regular')
             for article_bs in article_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
@@ -89,17 +94,17 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find(name='div', class_="entry-content").text
+        self.article.text = article_soup.find('div', class_="text letter").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
+        self.article.title = article_soup.find('h1', class_='h-display').text.strip()
 
-        for topic in article_soup.find_all('a', rel='tag'):
+        for topic in article_soup.find_all('div', class_='b-caption'):
             self.article.topics.append(topic.text)
 
-        self.article.author = 'NOT FOUND'
+        self.article.author = article_soup.find('div', class_='credits t-caption')
 
-        self.article.date = self.unify_date_format(article_soup.find('time', class_="entry-date").text)
+        self.article.date = self.unify_date_format(article_soup.find('div', class_="b-caption").text)
 
     @staticmethod
     def unify_date_format(date_str):
@@ -137,37 +142,34 @@ def validate_config(crawler_path):
     Validates given config
     """
     with open(crawler_path, 'r', encoding='utf-8') as file:
-        config = json.load(file)
+        conf = json.load(file)
 
-    if not isinstance(config, dict):
-        raise UnknownConfigError
-
-    if not isinstance(config['base_urls'], list) or \
-            not all(isinstance(url, str) for url in config['base_urls']):
+    if 'base_urls' not in conf or not isinstance(conf['base_urls'], list) or\
+            not all([isinstance(link, str) for link in conf['base_urls']]):
         raise IncorrectURLError
 
-    if 'total_articles_to_find_and_parse' in config and \
-            isinstance(config['total_articles_to_find_and_parse'], int) and \
-            config['total_articles_to_find_and_parse'] > 100:
+    if 'total_articles_to_find_and_parse' in conf and \
+            isinstance(conf['total_articles_to_find_and_parse'], int) and \
+            conf['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
 
-    if 'max_number_articles_to_get_from_one_seed' not in config or \
-            not isinstance(config['max_number_articles_to_get_from_one_seed'], int) or \
-            'total_articles_to_find_and_parse' not in config or \
-            not isinstance(config['total_articles_to_find_and_parse'], int):
+    if 'max_number_articles_to_get_from_one_seed' not in conf or\
+            not isinstance(conf['max_number_articles_to_get_from_one_seed'], int) or\
+            'total_articles_to_find_and_parse' not in conf or\
+            not isinstance(conf['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
 
-    return config.values()
+    return conf['base_urls'], conf['total_articles_to_find_and_parse'], conf[
+        'max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls_ex, max_articles_ex, max_articles_per_seed_ex)
-    articles = crawler.find_articles()
+
     prepare_environment(ASSETS_PATH)
 
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind + 1)
-        article = parser.parse()
         parser.parse()
