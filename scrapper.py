@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
+from datetime import datetime
 
 headers = {
             'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
@@ -66,7 +67,7 @@ class Crawler:
             page = BeautifulSoup(response.content, features='lxml')
             links = self._extract_url(page)
             for link in links:
-                link2 = re.findall(r'/node/\d{4}', str(links))
+                link2 = re.findall(r'/node/5\d{3}', str(links))
 
             for link_url in link2:
                 code = 'http://kamtime.ru' + link_url
@@ -94,11 +95,16 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         self.article.text = article_soup.find('div', class_="content clear-block").text.strip()
-        print(self.article.text)
 
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('title').text
+        self.article.author = article_soup.find(rel='tag').text
+        date = article_soup.find('span', class_='submitted').text.split()
+        #self.article.date = self.unify_date_format(date)
+        #print(clear_date)
+        self.article.date = date[1]
+
 
     @staticmethod
     def unify_date_format(date_str):
@@ -107,13 +113,17 @@ class ArticleParser:
         """
         pass
 
+
+
     def parse(self):
         response = requests.get(self.full_url, headers=headers)
 
         article_bs = BeautifulSoup(response.content, features='lxml')
 
         self._fill_article_with_text(article_bs)
-        #self.article.save_raw()
+        self._fill_article_with_meta_information(article_bs)
+
+        return self.article
 
 
 
@@ -154,13 +164,13 @@ if __name__ == '__main__':
     seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     prepare_environment(ASSETS_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
-    article = crawler.find_articles()
-    print(article)
-
+    articles = crawler.find_articles()
+    print(articles)
 
     prepare_environment(ASSETS_PATH)
-    for ind, url in enumerate(article):
-        parser = ArticleParser(url, ind)
+    for ind, url in enumerate(articles):
+        parser = ArticleParser(url, ind+1)
         articles = parser.parse()
+        articles.save_raw()
 
 
