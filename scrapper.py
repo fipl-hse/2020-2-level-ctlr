@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import requests
 
 import article
-from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
 class UnknownConfigError(Exception):
@@ -204,12 +204,12 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text.strip()
-        existed_author = article_soup.find('a', class_='author-name font-open-s').text
-        #existed_author = article_soup.find('div', class_='text-box text-right').find('a').text.strip()
-        if existed_author:
-            self.article.author = existed_author
-        else:
+        try:
+            self.article.author = article_soup.find('a', class_='author-name font-open-s').text
+        except AttributeError:
             self.article.author = 'NOT FOUND'
+        #existed_author = article_soup.find('div', class_='text-box text-right').find('a').text.strip()
+
         date_from_url = article_soup.find('p', class_='date font-open-s-light').text
         self.article.date = self.unify_date_format(date_from_url)
 
@@ -234,7 +234,7 @@ class ArticleParser:
             article_soup = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_soup)
             self._fill_article_with_meta_information(article_soup)
-        self.article.save_raw()
+        #self.article.save_raw()
 
         return self.article
 
@@ -243,9 +243,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        shutil.rmtree(os.path.join(base_path, 'tmp', 'articles'))
-    os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     # print(author_soup.text)
 
     # YOUR CODE HERE
-    prepare_environment(PROJECT_ROOT)
+    prepare_environment(ASSETS_PATH)
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_ex,
                       max_articles=max_articles_ex,
