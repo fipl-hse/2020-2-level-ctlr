@@ -63,11 +63,11 @@ class Crawler:
         self.urls = []
 
     @staticmethod
-    def _extract_url(article_bs, urls):
+    def _extract_url(article_bs):
         pages_links = []
         for tag_a_content in article_bs.find_all('div', class_='signature'):
             link = tag_a_content.find('a').get('href')
-            if link and link not in urls:
+            if link and link not in pages_links:
                 pages_links.append('http://ks-yanao.ru/' + link)
         return pages_links
 
