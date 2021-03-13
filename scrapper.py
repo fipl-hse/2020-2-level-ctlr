@@ -3,19 +3,17 @@ Crawler implementation
 """
 import json
 import os
-import shutil
 import random
 import re
+import shutil
 from time import sleep
 from datetime import datetime
+
 import requests
 from bs4 import BeautifulSoup
+
 import constants
 from article import Article
-
-
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/88.0.4324.182 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -55,11 +53,9 @@ class Crawler:
     @staticmethod
     def _extract_url(article_bs):
         container = article_bs.find('div', attrs={
-            'class': 'news-container',
             'id': 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'})
         tags = container.find_all('a', id=re.compile('_articleLink'))
-        # можно заменять циферки (ctl01_ctl00) в id... или взять все теги с "articleLink"
-        # id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl01_ctl00_articleLink"
+
         return [tag.attrs['href'] for tag in tags]
 
     def find_articles(self):
@@ -67,7 +63,7 @@ class Crawler:
         Finds articles
         """
         for seed_url in self.get_search_urls():
-            response = requests.get(seed_url, headers=headers)
+            response = requests.get(seed_url, headers=constants.HEADERS)
             sleep(random.randrange(2, 6))
             page_bs = BeautifulSoup(response.content, 'lxml')
             extracted_url = self._extract_url(page_bs)
@@ -122,7 +118,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        article_bs = BeautifulSoup(requests.get(self.full_url, headers=headers).content, 'lxml')
+        article_bs = BeautifulSoup(requests.get(self.full_url, headers=constants.HEADERS).content, 'lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
         return self.article
@@ -145,9 +141,9 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         conf = json.load(file)
 
-    if 'base_urls' not in conf or not isinstance(conf['base_urls'], list) or\
-            not all([isinstance(link, str) for link in conf['base_urls']]):
-        raise IncorrectURLError
+    for link in conf['base_urls']:
+        if not isinstance(link, str) or 'http://' not in link:
+            raise IncorrectURLError
 
     if 'total_articles_to_find_and_parse' in conf and \
             isinstance(conf['total_articles_to_find_and_parse'], int) and \
@@ -173,7 +169,7 @@ if __name__ == '__main__':
     prepare_environment(constants.PROJECT_ROOT)
 
     for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i)
+        parser = ArticleParser(full_url=url, article_id=i + 1)
         article = parser.parse()
         article.save_raw()
         sleep(random.randrange(2, 6))
