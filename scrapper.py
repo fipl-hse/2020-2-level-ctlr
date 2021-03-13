@@ -2,16 +2,18 @@
 Crawler implementation
 """
 import json
-from time import sleep
-import datetime
 import os
+import re
+import datetime
+from time import sleep
 import requests
 from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/89.0.4389.82 Safari/537.36'}
+headers = {
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  'Chrome/89.0.4389.82 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -57,8 +59,8 @@ class Crawler:
         """
         Finds articles
         """
-        for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+        for s_url in self.seed_urls:
+            response = requests.get(s_url, headers=headers)
             sleep(5)
             if not response:
                 raise IncorrectURLError
@@ -83,8 +85,8 @@ class ArticleParser:
     """
 
     def __init__(self, full_url: str, article_id: int):
-        self.full_url = full_url
-        self.article_id = article_id
+        self.article_url = full_url
+        self.ids = article_id
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
@@ -108,14 +110,9 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers)
-        if not response:
-            raise IncorrectURLError
-
-        article_soup = BeautifulSoup(response.content, features='lxml')
-
-        self._fill_article_with_text(article_soup)
-        self._fill_article_with_meta_information(article_soup)
+        article_bs = BeautifulSoup(requests.get(self.article_url, headers=headers).content, 'lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
         self.article.save_raw()
         return self.article
 
@@ -133,25 +130,22 @@ def validate_config(crawler_path):
     Validates given config
     """
     with open(crawler_path, 'r', encoding='utf-8') as file:
-        conf = json.load(file)
+        crawler_config = json.load(file)
 
-    if 'base_urls' not in conf or not isinstance(conf['base_urls'], list) or\
-            not all([isinstance(link, str) for link in conf['base_urls']]):
-        raise IncorrectURLError
+    for base_url in crawler_config['base_urls']:
+        if not re.match('https://', base_url):
+            raise IncorrectURLError
 
-    if 'total_articles_to_find_and_parse' in conf and \
-            isinstance(conf['total_articles_to_find_and_parse'], int) and \
-            conf['total_articles_to_find_and_parse'] > 100:
+    if 'total_articles_to_find_and_parse' in crawler_config and \
+            isinstance(crawler_config['total_articles_to_find_and_parse'], int) and \
+            crawler_config['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
 
-    if 'max_number_articles_to_get_from_one_seed' not in conf or\
-            not isinstance(conf['max_number_articles_to_get_from_one_seed'], int) or\
-            'total_articles_to_find_and_parse' not in conf or\
-            not isinstance(conf['total_articles_to_find_and_parse'], int):
+    if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
 
-    return conf['base_urls'], conf['total_articles_to_find_and_parse'], conf[
-        'max_number_articles_to_get_from_one_seed']
+    return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse'], \
+           crawler_config['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
@@ -162,6 +156,6 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=urls, total_max_articles=max_articles, max_articles_per_seed=articles_per_seed)
     crawler.find_articles()
 
-    for i, urls in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=urls, article_id=i + 1)
+    for i, url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url, article_id=i + 1)
         parser.parse()
