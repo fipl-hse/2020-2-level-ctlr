@@ -165,7 +165,7 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment(PROJECT_ROOT)
+    prepare_environment(ASSETS_PATH)
 
     urls_list, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
