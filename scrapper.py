@@ -172,6 +172,6 @@ if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind + 1)
+        sleep((random.randrange(2, 6)))
         article = parser.parse()
         article.save_raw()
-        sleep((random.randrange(2, 6)))
