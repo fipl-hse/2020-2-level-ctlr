@@ -52,6 +52,12 @@ class BadArticle(Exception):
     """
 
 
+class DepthOfCrawlerOutOfRangeError(Exception):
+    """
+    Custom Error
+    """
+
+
 class Crawler:
     """
     Crawler implementation
@@ -79,18 +85,19 @@ class Crawler:
             if href := link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/'
                                      r'\d{4}/\d{2}/.+/$', href):
-                    if res[0] not in seen_urls:
+                    if res[0] not in seen_urls\
+                            and not re.findall(r'https://www.zvezdaaltaya.ru/'
+                                               r'\d{4}/\d{2}/\d{2}/', res[0]):
                         article_urls.add(res[0])
         if article_urls:
             with open(constants.ARTICLE_URLS, 'w', encoding='utf-8') as file:
-                file.write('\n'.join(article_urls) + '\n')
+                file.write('\n'.join(article_urls))
         return article_urls
 
     def find_articles(self):
         """
         Finds articles
         """
-        article_id = 1
         while len(self.urls) < self.max_articles and self.seed_urls:
             seed_url = self.seed_urls.pop()
             try:
@@ -99,7 +106,6 @@ class Crawler:
                 continue
             else:
                 self.seed_urls = self.get_search_urls(soup)
-                article_id += 1
         self.urls = list(self.urls)[:self.max_articles]
 
     def get_search_urls(self, soup):
@@ -137,6 +143,25 @@ class CrawlerRecursive(Crawler):
         super().__init__(seed_urls, max_articles, max_articles_per_seed)
         self._load_previous_state()
 
+    def find_articles(self):
+        """
+        Finds articles
+        """
+        if len(self.urls) >= self.max_articles or not self.seed_urls:
+            self.urls = list(self.urls)[:self.max_articles]
+            with open(constants.ARTICLE_URLS, 'w', encoding='utf-8') as file:
+                file.write('\n'.join(self.urls))
+            return 1
+
+        seed_url = self.seed_urls.pop()
+        try:
+            soup = self._process_page(seed_url)
+        except BadStatusCode:
+            pass
+        else:
+            self.seed_urls = self.get_search_urls(soup)
+            self.find_articles()
+
     def _load_previous_state(self):
         if os.path.exists(constants.TO_PARSE_URLS):
             self.seed_urls = open(constants.TO_PARSE_URLS).read().split('\n')
@@ -170,11 +195,9 @@ class ArticleParser:
         self.article.date = self.unify_date_format(date_str)
 
         paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
-        could_be_author = paragraphs.find_all('p')[-1].text
         if res := paragraphs.find('p', {'class': 'has-text-align-right'}):
             self.article.author = res.text
-        elif len(could_be_author.split()) == 2\
-                and all(name.isalpha() for name in could_be_author.split()):
+        elif could_be_author := self._is_author_in_the_end(paragraphs):
             self.article.author = could_be_author
         else:
             self.article.author = 'NOT FOUND'
@@ -214,6 +237,15 @@ class ArticleParser:
         self._fill_article_with_text(soup)
         self._fill_article_with_meta_information(soup)
         return self.article
+
+    @staticmethod
+    def _is_author_in_the_end(paragraphs):
+        could_be_author = paragraphs.find_all('p')[-1].text
+        if len(could_be_author.split()) == 2 \
+            and all(name.isalpha() for name in could_be_author.split()):
+            return could_be_author
+        return None
+
 
 
 def get_page(url):
