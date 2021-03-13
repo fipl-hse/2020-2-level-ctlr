@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from article import Article
 
 from constants import CRAWLER_CONFIG_PATH
-from constants import ASSETS_PATH
+from constants import PROJECT_ROOT
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrome/88.0.4324.190 Safari/537.36'}
@@ -163,7 +163,7 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment(ASSETS_PATH)
+    prepare_environment(PROJECT_ROOT)
 
     urls_list, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
