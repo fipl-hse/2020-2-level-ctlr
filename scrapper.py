@@ -146,6 +146,13 @@ class ArticleParser:
             for key in arr:
                 if date_str[0] == key:
                     date_str[0] = arr[key]
+            if date_str[-1] == 'назад':
+                if len(date_str) == 2:
+                    date_str = datetime.now() - timedelta(hours=1)
+                else:
+                    date_str = datetime.now() - timedelta(hours=2)
+                date_str = date_str.strftime("%d %m %Y %H:%M")
+                return date_str
             if date_str == 'что':
                 date_str = str(date_str[0] + ' ' + str(str(today.hour) + ':' + str(today.minute)))
             else:
