@@ -4,6 +4,7 @@ Crawler implementation
 import json
 import os
 import random
+import shutil
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
@@ -128,8 +129,9 @@ def prepare_environment(base_path):
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     assets_path = os.path.join(base_path, 'tmp', 'articles')
-    if not os.path.isdir(assets_path):
-        os.makedirs(assets_path)
+    if os.path.exists(assets_path):
+        shutil.rmtree(os.path.dirname(assets_path))
+    os.makedirs(assets_path)
 
 
 def validate_config(crawler_path):
