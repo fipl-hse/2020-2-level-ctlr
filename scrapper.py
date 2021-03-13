@@ -62,6 +62,7 @@ class Crawler:
     """
     Crawler implementation
     """
+
     def __init__(self,
                  seed_urls: list,
                  max_articles: int = None,
@@ -85,7 +86,7 @@ class Crawler:
             if href := link.get('href'):
                 if res := re.findall(r'https://www.zvezdaaltaya.ru/'
                                      r'\d{4}/\d{2}/.+/$', href):
-                    if res[0] not in seen_urls\
+                    if res[0] not in seen_urls \
                             and not re.findall(r'https://www.zvezdaaltaya.ru/'
                                                r'\d{4}/\d{2}/\d{2}/', res[0]):
                         article_urls.add(res[0])
@@ -139,6 +140,7 @@ class CrawlerRecursive(Crawler):
     """
     Recursive Crawler implementation
     """
+
     def __init__(self, seed_urls, max_articles, max_articles_per_seed):
         super().__init__(seed_urls, max_articles, max_articles_per_seed)
         self._load_previous_state()
@@ -177,6 +179,7 @@ class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
@@ -240,12 +243,11 @@ class ArticleParser:
 
     @staticmethod
     def _is_author_in_the_end(paragraphs):
-        could_be_author = paragraphs.find_all('p')[-1].text
-        if len(could_be_author.split()) == 2 \
-            and all(name.isalpha() for name in could_be_author.split()):
-            return could_be_author
-        return None
-
+        if paragraphs.find_all('p'):
+            could_be_author = paragraphs.find_all('p')[-1].text
+            if len(could_be_author.split()) == 2 \
+                    and all(name.isalpha() for name in could_be_author.split()):
+                return could_be_author
 
 
 def get_page(url):
@@ -280,8 +282,8 @@ def validate_config(crawler_path):
     is_config_a_dict = isinstance(config, dict)
 
     has_config_attributes = (
-        'base_urls' in config and
-        'total_articles_to_find_and_parse' in config
+            'base_urls' in config and
+            'total_articles_to_find_and_parse' in config
     )
 
     if not (is_config_a_dict and has_config_attributes):
@@ -302,8 +304,8 @@ def validate_config(crawler_path):
         raise IncorrectNumberOfArticlesError
 
     is_max_number_of_articles_int = (
-        isinstance(config['max_number_articles_to_get_from_one_seed'], int) and
-        config['max_number_articles_to_get_from_one_seed'] > 0
+            isinstance(config['max_number_articles_to_get_from_one_seed'], int) and
+            config['max_number_articles_to_get_from_one_seed'] > 0
     )
 
     is_max_number_of_articles_correct = (
