@@ -4,7 +4,9 @@ Crawler implementation
 import json
 import os
 from datetime import datetime
+from time import sleep
 import requests
+import random
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 from article import Article
@@ -60,26 +62,32 @@ class Crawler:
         """
         self.get_search_urls()
         for url in self.seed_urls:
-            response = requests.get(url, headers=HEADERS)
+            response = requests.get(str(url))
             if not response:
                 raise IncorrectURLError
-            page_soup = BeautifulSoup(response.content, features='lxml')
-            articles_soup = page_soup.find_all('article')
-            for i in range(self.max_articles_per_seed):
-                if len(self.urls) < self.max_articles:
-                    self.urls.append(self._extract_url(articles_soup[i]))
-                else:
-                    break
-            if len(self.urls) == self.max_articles:
+            if len(self.urls) < self.max_articles:
+                self.urls.append(url)
+            else:
                 break
+        return self.urls
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
         default_url = self.seed_urls[0]
-        for i in range(2, 13):
-            self.seed_urls.append(f'{default_url}/page/{i}')
+        page = requests.get(str(default_url))
+        soup = BeautifulSoup(page.text, 'html.parser')
+
+        populars = soup.findAll('div', {"class": "block"})
+
+        soup = BeautifulSoup(str(populars[0]), 'html.parser')
+
+        a_list = soup.find_all('a')
+
+        self.seed_urls = []
+        for a in a_list:
+            self.seed_urls.append(a.get("href"))
 
 
 class ArticleParser:
@@ -94,23 +102,19 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         article_texts = article_soup.find_all('p')
         for par in article_texts:
-            if 'class' not in par.attrs:
-                self.article.text += par.text.strip() + ' '
+            self.article.text += par.text.strip() + ' '
 
     def _fill_article_with_meta_information(self, article_soup):
-        # find title
-        self.article.title = article_soup.find('h1', class_="entry-title").text
+        self.article.title = article_soup.find('section', {"class": "articles-main"}).find('header').a.text
 
-        # find topics
-        for topic in article_soup.find_all('a', rel="category tag"):
-            self.article.topics.append(topic.text)
-
-        # find author
-        self.article.author = article_soup.find('span', class_="author vcard").find('a').text
+        # find topic
+        self.article.topic = article_soup.find('section', {"class": "articles-main"}).find('article').p.text
 
         # find date
-        date_art = self.unify_date_format(article_soup.find('time', class_="entry-date published").text)
-        self.article.date = date_art
+        self.article.date = article_soup.find('section', {"class": "articles-main"}).find('header').time.text
+
+        # find author
+        self.article.author = article_soup.find('div', {"id": "content"}).find('a', {"class": "red"}).text
 
     @staticmethod
     def unify_date_format(date_str):
@@ -126,10 +130,14 @@ class ArticleParser:
         """
         Parses each article
         """
-        article_bs = BeautifulSoup(requests.get(self.article_url, headers=headers).content, 'lxml')
-        self._fill_article_with_text(article_bs)
-        self._fill_article_with_meta_information(article_bs)
-        self.article.save_raw()
+        response = requests.get(self.full_url, headers=HEADERS)
+        if not response:
+            raise IncorrectURLError
+        article_soup = BeautifulSoup(response.content, features='lxml')
+        self._fill_article_with_text(
+            article_soup.find('div', {"id": "MainMasterContentPlaceHolder_InsidePlaceHolder_articleText"}))
+        self._fill_article_with_meta_information(article_soup)
+
         return self.article
 
 
