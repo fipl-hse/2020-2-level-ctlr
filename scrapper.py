@@ -48,7 +48,6 @@ class Crawler:
     """
     Crawler implementation
     """
-
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
@@ -102,11 +101,9 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         title = article_soup.find('h1')
         self.article.title = title.text
-
         date_soup = article_soup.find('div', class_='entry-meta')
         date = re.findall(r'\d.{9}', str(date_soup))
         self.article.date = self.unify_date_format(date.text)
-
         self.article.author = 'AUTHOR NOT FOUND'
 
     @staticmethod
@@ -125,6 +122,8 @@ class ArticleParser:
             article_soup = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_soup)
             self._fill_article_with_meta_information(article_soup)
+        self.article.save_raw()
+        return self.article
 
 
 def prepare_environment(base_path):
@@ -177,4 +176,3 @@ if __name__ == '__main__':
     for article_id_n, article_url in enumerate(crawler.get_search_urls()):
         parser = ArticleParser(full_url=article_url, article_id=article_id_n)
         parser.parse()
-        article.save_raw()
