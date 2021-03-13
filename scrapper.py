@@ -1,16 +1,16 @@
 """
 Crawler implementation
 """
-import requests
 import json
 import os
-import random
 from time import sleep
-from bs4 import BeautifulSoup
+import random
 import re
+import requests
+from bs4 import BeautifulSoup
 from article import Article
-
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
+from constants import CRAWLER_CONFIG_PATH
+from constants import ASSETS_PATH
 
 headers = {
             'user-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36'
@@ -90,19 +90,14 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(full_url, article_id)
+        self.article = Article(url=full_url, article_id=article_id)
 
     def _fill_article_with_text(self, article_soup):
-        art = article_soup.find_all('p')
-        clear_art = ''
-        for text in art:
-           clear_art += text.text.strip()
-
-        self.article.text = clear_art
+        self.article.text = article_soup.find('div', class_="content clear-block").text.strip()
+        print(self.article.text)
 
 
     def _fill_article_with_meta_information(self, article_soup):
-
         pass
 
     @staticmethod
@@ -113,13 +108,12 @@ class ArticleParser:
         pass
 
     def parse(self):
-        response = requests.get(self.full_url, headers = headers)
+        response = requests.get(self.full_url, headers=headers)
 
-        article_bs = BeautifulSoup(response.content, 'lxml')
+        article_bs = BeautifulSoup(response.content, features='lxml')
 
         self._fill_article_with_text(article_bs)
-
-        return self.article
+        #self.article.save_raw()
 
 
 
@@ -161,10 +155,12 @@ if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
     article = crawler.find_articles()
+    print(article)
 
 
+    prepare_environment(ASSETS_PATH)
     for ind, url in enumerate(article):
-        parser = ArticleParser(url, ind+1)
-        article = parser.parse()
-        article.save_raw()
+        parser = ArticleParser(url, ind)
+        articles = parser.parse()
+
 
