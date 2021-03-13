@@ -51,7 +51,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.findALL('a', attrs={'href'})
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
@@ -64,7 +64,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            article_soup = article_bs.find_all('div', class_='itis')
+            article_soup = article_bs.find_all('div', class_='article-info')
             for article_bs in article_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
@@ -89,26 +89,29 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find_all('p')
+        self.article.text = article_soup.find(name='div', class_="entry-content").text
+
+        '''paragraphs_soup = article_soup.find_all('p')
         for par in paragraphs_soup:
             self.article.text += par.text.strip() + ''
+            '''
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_='title').text.strip()
+        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
 
-        for topic in article_soup.find_all('a', class_='foot-links'):
+        for topic in article_soup.find_all('a', rel='tag'):
             self.article.topics.append(topic.text)
 
         self.article.author = 'NOT FOUND'
 
-        self.article.date = self.unify_date_format(article_soup.find('p', class_="go").text)
+        self.article.date = self.unify_date_format(article_soup.find('time', class_="entry-date").text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        return datetime.datetime.strptime(date_str, "%m.%Y")
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
