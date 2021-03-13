@@ -10,7 +10,6 @@ from time import sleep as wait
 
 from bs4 import BeautifulSoup
 import requests
-from requests.exceptions import RequestException
 
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, LINKS_STORAGE_DIR, URL_START, HEADERS, LINKS_STORAGE_FILE
