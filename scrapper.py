@@ -81,6 +81,14 @@ class Crawler:
         return self.seed_urls
 
 
+def _fill_article_with_text(article_soup):
+    text_soup = article_soup.find_all('p')
+    text = ''
+    for element in text_soup[:4]:
+        text += element.text
+    return text.strip()
+
+
 class ArticleParser:
     """
     ArticleParser implementation
@@ -90,13 +98,6 @@ class ArticleParser:
         self.full_url = full_url
         self.article_id = article_id
         self.article = Article(self.full_url, self.article_id)
-
-    def _fill_article_with_text(self, article_soup):
-        text_soup = article_soup.find_all('p')
-        text = ''
-        for element in text_soup[:4]:
-            text += element.text
-        return text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
@@ -117,7 +118,7 @@ class ArticleParser:
         if not response:
             raise IncorrectURLError
         article_soup = BeautifulSoup(response.content, features='lxml')
-        self.article.text += self._fill_article_with_text(article_soup)
+        self.article.text += _fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
         return self.article
 
