@@ -85,6 +85,8 @@ class Crawler:
             if len(self.urls) == max_articles_num:
                 return self.urls
 
+        return self.urls
+
     def get_search_urls(self):
         """
         Returns seed_urls param
