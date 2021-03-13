@@ -141,23 +141,19 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         conf = json.load(file)
 
-    if not conf['base_urls'] or not isinstance(conf['base_urls'], list):
+    if not conf["base_urls"]:
         raise IncorrectURLError
 
-    for link in conf['base_urls']:
-        if not isinstance(link, str) or 'http://' not in link:
+    for base_url in conf["base_urls"]:
+        if not isinstance(base_url, str):
             raise IncorrectURLError
 
-    if 'total_articles_to_find_and_parse' in conf and \
-            isinstance(conf['total_articles_to_find_and_parse'], int) and \
-            conf['total_articles_to_find_and_parse'] > 100:
-        raise NumberOfArticlesOutOfRangeError
-
-    if 'max_number_articles_to_get_from_one_seed' not in conf or\
-            not isinstance(conf['max_number_articles_to_get_from_one_seed'], int) or\
-            'total_articles_to_find_and_parse' not in conf or\
-            not isinstance(conf['total_articles_to_find_and_parse'], int):
+    if not isinstance(conf["total_articles_to_find_and_parse"], int):
         raise IncorrectNumberOfArticlesError
+
+    if conf["total_articles_to_find_and_parse"] <= 0 \
+            or conf["total_articles_to_find_and_parse"] > 100:
+        raise NumberOfArticlesOutOfRangeError
 
     return conf['base_urls'], conf['total_articles_to_find_and_parse'], conf[
         'max_number_articles_to_get_from_one_seed']
