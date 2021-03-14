@@ -4,13 +4,14 @@ Crawler implementation
 import json
 import os
 from time import sleep
-import datetime
+from datetime import datetime
 import random
 import shutil
 import requests
 from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
+from constants import PROJECT_ROOT
 
 
 class IncorrectURLError(Exception):
@@ -155,8 +156,8 @@ if __name__ == '__main__':
                       max_articles=max_articles_num,
                       max_articles_per_seed=max_articles_num_per_seed)
     articles = crawler.find_articles()
-    prepare_environment(ASSETS_PATH)
-    for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i + 1)
+    prepare_environment(PROJECT_ROOT)
+    for i, a_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=a_url, article_id=i + 1)
         parser.parse()
         parser.article.save_raw()
