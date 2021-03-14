@@ -99,8 +99,7 @@ class ArticleParser:
         title = article_soup.find('h4')
         self.article.title = title.text
 
-        date = article_soup.find('p', class_="em")
-        self.article.date = self.unify_date_format(date.text)
+        self.article.date = self.unify_date_format(article_soup.find_('em').text)
 
         self.article.author = 'NOT FOUND'
 
