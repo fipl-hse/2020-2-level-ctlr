@@ -6,7 +6,7 @@ from constants import CRAWLER_CONFIG_PATH
 from time import sleep
 import json
 import requests
-import re
+from article import Article
 
 
 headers = {
@@ -41,30 +41,32 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed:int):
+    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed:int):
         self.seed_urls = seed_urls
-        self.max_articles = max_articles
+        self.max_articles = total_max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        one_of_urls = article_bs.find('a')
+        return one_of_urls.get['href']
 
     def find_articles(self):
         """
         Finds articles
         """
-        url_list = []
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
             sleep(5)
             print('Requesting')
 
             soup_page = BeautifulSoup(response.content, features='lxml')
-            all_urls = soup_page.find_all(class_="articles-list-item-title")
-            url_list.append(all_urls)
-        return url_list
+            all_urls_soup = soup_page.find_all(class_="articles-list-item-title")
+            for one_of_urls in all_urls_soup:
+                self.urls.append(self._extract_url(one_of_urls))
+            if len(self.urls) == self.max_articles:
+                return self.urls
 
 
     def get_search_urls(self):
@@ -79,10 +81,17 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+
+        articles_info = article_soup.find_all('br')
+        article_text = ''
+        for article in articles_info:
+            article_text += article
+            return article_text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
         pass
