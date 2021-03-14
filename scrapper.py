@@ -2,7 +2,7 @@
 Crawler implementation
 """
 from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
+import constants
 from time import sleep
 import json
 import requests
@@ -42,9 +42,9 @@ class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed:int):
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed:int):
         self.seed_urls = seed_urls
-        self.max_articles = total_max_articles
+        self.max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
@@ -146,10 +146,10 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, total_max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls, total_max_articles, max_articles_per_seed)
+    seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
     articles = crawler.find_articles()
-    prepare_environment(ASSETS_PATH)
+    prepare_environment(constants.ASSETS_PATH)
     article_id = 0
     for article_url in articles:
         article_id += 1
