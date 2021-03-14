@@ -100,9 +100,9 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         self.article.text = article_soup.find(name='div', id="article").text
-        self.article.text = re.sub(' ', ' ', self.article.text)
-        self.article.text = re.sub('­', ' ', self.article.text)
-
+        # self.article.text = re.sub(' ', '&nbsp;', self.article.text)
+        # self.article.text = re.sub('&nbsp;', ' ', self.article.text)
+        # self.article.text = re.sub('­', ' ', self.article.text)
 
     def _fill_article_with_meta_information(self, article_soup):
 
@@ -110,9 +110,11 @@ class ArticleParser:
         categ_tag = all_text.find_all(name='p', class_="news-category")
         self.article.topics = categ_tag[0].text
 
-        h1_tag = all_text.find_all(name="h1")
-        self.article.title = h1_tag[0].text
-        self.article.title = re.sub(' ', ' ', self.article.title)
+        self.article.title = article_soup.find(name='title').text
+        #h1_tag = all_text.find_all(name="h1")
+
+        #self.article.title = h1_tag[0].text
+        #self.article.title = re.sub(' ', '&nbsp;', self.article.title)
 
         #return None
 
@@ -137,6 +139,7 @@ class ArticleParser:
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
         self.article.save_raw()
+
 
 
 
@@ -191,6 +194,7 @@ if __name__ == '__main__':
     for id, url in enumerate(urlss):
         parser = ArticleParser(url, id+1)
         parser.parse()
+
 
 
 
