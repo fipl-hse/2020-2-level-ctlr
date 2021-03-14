@@ -139,7 +139,7 @@ def validate_config(crawler_path):
 
     if ("total_articles_to_find_and_parse" in crawler_config
         and crawler_config["total_articles_to_find_and_parse"] > 100) \
-            or not isinstance('max_number_articles_to_get_from_one_seed', int):
+            or not isinstance(crawler_config['max_number_articles_to_get_from_one_seed'], int):
         raise NumberOfArticlesOutOfRangeError
 
     return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse'], \
