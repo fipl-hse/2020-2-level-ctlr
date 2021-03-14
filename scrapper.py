@@ -148,12 +148,10 @@ if __name__ == '__main__':
     # YOUR CODE HERE
     seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
-    articles = crawler.find_articles()
+    crawler.find_articles()
     prepare_environment(constants.ASSETS_PATH)
-    article_id = 0
-    for article_url in articles:
-        article_id += 1
-        parser = ArticleParser(article_url, article_id)
-        sleep(5)
+
+    for i, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=article_url, article_id=i)
         article = parser.parse()
         article.save_raw()
