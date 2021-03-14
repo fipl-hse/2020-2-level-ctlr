@@ -25,8 +25,8 @@ class Article:
         self.article_id = article_id
 
         self.title = ''
-        self.date = None
-        self.author = ''
+        self.date = 0
+        self.author = 'NOT FOUND'
         self.topics = []
         self.text = ''
 
@@ -89,7 +89,7 @@ class Article:
             'id': self.article_id,
             'url': self.url,
             'title': self.title,
-            'date': self._date_to_text(),
+            'date': self.date,
             'author': self.author,
             'topics': self.topics
         }

@@ -3,7 +3,6 @@ Crawler implementation
 """
 import json
 import os
-import datetime
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
