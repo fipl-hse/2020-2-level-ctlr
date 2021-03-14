@@ -50,9 +50,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find('a', class_='h-link')
-        link = url_article.attrs['href']
-        return 'https://burunen.ru/news/' + link
+        return article_bs.find("a").get("href")
 
     def find_articles(self):
         """
