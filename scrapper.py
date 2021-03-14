@@ -56,7 +56,7 @@ class Crawler:
         links_page=[]
         for link in article_bs.find_all(class_='next news')[:max_articles_per_one_seed]:
             links_page.append(link.find('a').get('href'))
-        return links_page
+
 
     def find_articles(self):
         """
