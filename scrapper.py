@@ -9,8 +9,8 @@ import random
 import shutil
 import requests
 from bs4 import BeautifulSoup
-import article
-from constants import CRAWLER_CONFIG_PATH, PROJECT_ROOT
+from article import Article
+from constants import CRAWLER_CONFIG_PATH
 
 
 class IncorrectURLError(Exception):
@@ -88,7 +88,7 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         text = article_soup.find('div',class_="announce").find_all("p")
-        clean_text = [sent.text for sent in text_from_soup]
+        clean_text = [sent.text for sent in text]
         self.article.text = " ".join(clean_text)
 
     def _fill_article_with_meta_information(self, article_soup):
