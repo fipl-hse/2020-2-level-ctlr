@@ -97,6 +97,7 @@ class ArticleParser:
         self.article.title = article_soup.find('h2', {'itemprop': 'headline'}).find('span').text
         self.article.annotation = article_soup.find('p', class_="CLpj JZaj-").find('span').text
         self.article.author = 'NOT FOUND'
+        self.article.topics = article_soup.find('a', class_="CLpx CLrt JZak9").find('span').text
         self.article.date = article_soup.find('time', class_="G-k1").find('a').text.strip()
 
     @staticmethod
