@@ -50,7 +50,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url = article_bs.content[1]
+        url = article_bs.contents[1]
         return url.get('href')
 
     def find_articles(self):
@@ -64,8 +64,8 @@ class Crawler:
                 continue
             soup_seed = BeautifulSoup(response.content, features='lxml')
             articles_soup = soup_seed.find_all('li')
-            for articles_bs in articles_soup[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(articles_bs))
+            for article_bs in articles_soup[:self.max_articles_per_seed]:
+                self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
                     return self.urls
 
@@ -93,7 +93,7 @@ class ArticleParser:
         return text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text
+        self.article.title = article_soup.find('h1').text.strip()
         return None
 
     @staticmethod
@@ -120,7 +120,7 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.pathisdir(base_path):
+    if not os.path.isdir(base_path):
         os.makedirs(base_path)
 
 
@@ -161,12 +161,12 @@ if __name__ == '__main__':
 
     urls_list, total_art, max_number = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=urls_list, max_articles=total_art, max_articles_per_seed=max_number)
-    article_urls = crawler.find_articles()
+    urls = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     article_id = 0
-    for article_url in article_urls:
+    for article_url in urls:
         article_id += 1
         parser = ArticleParser(article_url, article_id)
-        sleep(random.randint(3, 6))
+        sleep(random.randint(2, 4))
         article = parser.parse()
         article.save_raw()
