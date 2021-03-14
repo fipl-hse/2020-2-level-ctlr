@@ -47,7 +47,7 @@ class Crawler:
     """
     def __init__(self, seed_urls: list, max_articles: int,max_articles_per_seed:int):
         self.seed_urls = seed_urls
-        self.total_max_articles = max_articles
+        self.max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
