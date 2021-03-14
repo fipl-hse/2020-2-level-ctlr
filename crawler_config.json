@@ -1,5 +1,6 @@
 {
-    "base_urls": ["https://newbur.ru/article/"],
+    "base_urls": ["https://newbur.ru/article/", "https://newbur.ru/n/abroad/", "https://newbur.ru/n/incidents/",
+        "https://newbur.ru/n/health/"],
     "total_articles_to_find_and_parse": 7,
     "max_number_articles_to_get_from_one_seed": 100
 }

@@ -74,9 +74,13 @@ class Crawler:
             page_soup = BeautifulSoup(response.content, features='lxml')
             article_soup = page_soup.find_all('div', class_='article-info')
             for article_bs in article_soup[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
+                try:
+                    self.urls.append(self._extract_url(article_bs))
+                except AttributeError:
+                    continue
                 if len(self.urls) == self.max_articles:
                     break
+        self.urls = [element for element in self.urls if element is not None]
         return self.urls
 
     def get_search_urls(self):
