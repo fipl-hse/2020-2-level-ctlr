@@ -10,7 +10,7 @@ from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-           'Chrome/89.0.4389.82 Safari/537.36'}
+                         'Chrome/89.0.4389.82 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -88,11 +88,13 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         art_soup = article_soup.find_all('p')
-        for art in art_soup:
-            self.article.text += art.text.strip() + '\n'
+        text = ''
+        for element in art_soup:
+            text += element.text
+        return text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', itemprop='name headline').text.strip()
+        self.article.title = article_soup.find('h1').text.strip()
         return None
 
     @staticmethod
