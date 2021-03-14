@@ -129,7 +129,7 @@ def prepare_environment(base_path):
     """
 
     if os.path.exists(base_path):
-        shutil.rmtree(base_path))
+        shutil.rmtree(base_path)
     os.makedirs(base_path)
 
 
