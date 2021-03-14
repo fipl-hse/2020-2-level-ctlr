@@ -137,24 +137,6 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    '''with open(crawler_path, 'r', encoding='utf-8') as file:
-        configuration = json.load(file)
-    if not isinstance(configuration, dict):
-        raise UnknownConfigError
-    if not isinstance(configuration['base_urls'], list) or \
-            not all(isinstance(url, str) for url in configuration['base_urls']):
-        raise IncorrectURLError
-    if 'total_articles_to_find_and_parse' in configuration and \
-            isinstance(configuration['total_articles_to_find_and_parse'], int) and \
-            configuration['total_articles_to_find_and_parse'] > 100:
-        raise NumberOfArticlesOutOfRangeError
-    if 'max_number_articles_to_get_from_one_seed' not in configuration or \
-            not isinstance(configuration['max_number_articles_to_get_from_one_seed'], int) or \
-            'total_articles_to_find_and_parse' not in configuration or \
-            not isinstance(configuration['total_articles_to_find_and_parse'], int):
-        raise IncorrectNumberOfArticlesError
-
-    return configuration.values()'''
     with open(crawler_path, 'r', encoding='utf-8') as file:
         crawler_config = json.load(file)
     for base_url in crawler_config['base_urls']:
@@ -175,13 +157,6 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    '''urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler_current = Crawler(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
-    crawler_current.find_articles()
-    prepare_environment(ASSETS_PATH)
-    for ind, article_url in enumerate(crawler_current.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
-        parser.parse()'''
     prepare_environment(ASSETS_PATH)
     urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=urls, max_articles=max_articles, max_articles_per_seed=articles_per_seed)
