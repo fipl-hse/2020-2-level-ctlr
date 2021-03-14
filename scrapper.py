@@ -68,8 +68,9 @@ class Crawler:
             page_soup = BeautifulSoup(response.content, features='lxml')
             articles = page_soup.find_all('h3', class_='entry-title')
             for article in articles:
-                seed_url = self._extract_url(article)
-                self.urls.append(seed_url)
+                if len(self.urls) <= self.max_articles and article not in self.urls:
+                    seed_url = self._extract_url(article)
+                    self.urls.append(seed_url)
 
     def get_search_urls(self):
         """
@@ -95,12 +96,13 @@ class ArticleParser:
         self.article.text = '\n'.join(article_text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
-        title = article_soup.find('h1', class_='block-title wow zoomIn')
-        self.article.title = title.text
+        self.article.title = article_soup.find('h1', class_='block-title wow zoomIn').text.strip()
+
         date_soup = article_soup.find('div', class_='entry-meta')
         date = re.findall(r'\d.{9}', str(date_soup))
         ok_date = ''.join(date)
         self.article.date = self.unify_date_format(ok_date)
+
         self.article.author = 'NOT FOUND'
 
     @staticmethod
