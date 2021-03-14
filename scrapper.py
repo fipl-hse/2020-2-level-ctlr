@@ -89,27 +89,20 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        art_soup = article_soup.find('div', class_='l-grid').find_all('p')
+        art_soup = article_soup.find_all('p')
         for art in art_soup:
             self.article.text += art.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text
+        self.article.title = article_soup.find('h1').text.strip()
 
-        self.article.author = article_soup.find('div', class_='credits t-caption')
-
-        for topic in article_soup.find_all('div', class_="b-caption"):
-            self.article.topics.append(topic.text)
-
-        date = article_soup.find('div', class_='b-caption').text
-        self.article.date = self.unify_date_format(date)
+        self.article.author = 'NOT FOUND'
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
@@ -118,7 +111,6 @@ class ArticleParser:
         article_bs = BeautifulSoup(requests.get(self.article_url, headers=headers).content, 'lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
-        self.article.save_raw()
         return self.article
 
 
@@ -155,6 +147,7 @@ def validate_config(crawler_path):
     return (crawler_config['base_urls'],
             crawler_config['total_articles_to_find_and_parse'],
             crawler_config['max_number_articles_to_get_from_one_seed'])
+
 
 if __name__ == '__main__':
     # YOUR CODE HERE
