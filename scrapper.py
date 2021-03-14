@@ -146,8 +146,8 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    seed_urls, total_max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, total_max_articles, max_articles_per_seed)
     articles = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     article_id = 0
