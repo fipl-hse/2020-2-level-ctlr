@@ -63,11 +63,12 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             soup = BeautifulSoup(response.content, features='lxml')
-            links = soup.find_all('div', {'class': 'entry-summary'})
-            urls_number = min(max_articles_per_seed, len(links), (max_articles - len(self.urls)))
-            for index in range(urls_number):
-                self.urls.append('https://севернаяправда.рф/' + self._extract_url(article_bs=links[index]))
-        return self.urls
+            links = soup.find_all('div', class_='slick-list')
+            for article_bs in links[:self.max_articles_per_seed]:
+                self.urls.append(self._extract_url(article_bs))
+                if len(self.urls) == self.max_articles:
+                    break
+            return self.urls
 
 
 
@@ -157,11 +158,11 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(urls, max_articles, max_articles_per_seed)
+    urls, maxi_articles, maxi_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(urls, maxi_articles, maxi_articles_per_seed)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for i, articles_url in enumerate(urls):
-        parser = ArticleParser(full_url=articles_url, article_id=i + 1)
+        parser = ArticleParser(full_url=articles_url, article_id=i+1)
         article = parser.parse()
         parser.parse()
