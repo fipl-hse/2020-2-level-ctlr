@@ -10,6 +10,7 @@ import random
 from article import Article
 import os
 
+
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
            'Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'}
 
@@ -50,8 +51,8 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url = article_bs.contents[1]
-        return url.get('href')
+        return article_bs.find("a").get('href')
+
 
     def find_articles(self):
         """
