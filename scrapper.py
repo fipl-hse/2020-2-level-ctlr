@@ -8,11 +8,11 @@ import shutil
 import re
 from time import sleep
 
+from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
 from article import Article
-from datetime import datetime
 from constants import CRAWLER_CONFIG_PATH
 from constants import HEADERS
 from constants import PROJECT_ROOT
@@ -66,9 +66,9 @@ class Crawler:
         """
         Finds articles
         """
-        for url in self.seed_urls:
+        for seed_url in self.seed_urls:
             if len(self.urls) < self.total_max_articles:
-                response = requests.get(url, headers=HEADERS)
+                response = requests.get(seed_url, headers=HEADERS)
                 print('Making a request...')
                 sleep_interval = random.randrange(2, 5)
                 sleep(sleep_interval)
@@ -123,8 +123,7 @@ class ArticleParser:
         print('The webpage is being requested...')
         if not response:
             raise IncorrectURLError
-        else:
-            print('Request is OK')
+        print('Request is OK')
         article_bs = BeautifulSoup(response.content, features='lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
@@ -155,8 +154,8 @@ def validate_config(crawler_path):
     if not isinstance(data, dict) or not data:
         raise UnknownConfigError
 
-    for url in validating_seed_urls:
-        if not re.match('https://www\.[\d\w-]+\..+', url):
+    for base_url in validating_seed_urls:
+        if not re.match(r'https://www\.[\d\w-]+\..+', base_url):
             raise IncorrectURLError
 
     if not isinstance(validating_max_articles, int):
@@ -169,8 +168,8 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    example = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    proper_seed_urls, proper_max_articles, proper_max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    example = Crawler(proper_seed_urls, proper_max_articles, proper_max_articles_per_seed)
     example.find_articles()
     prepare_environment(PROJECT_ROOT)
     for index, url in enumerate(example.urls, 1):
