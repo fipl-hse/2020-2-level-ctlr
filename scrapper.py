@@ -3,16 +3,13 @@ Crawler implementation
 """
 import json
 import os
+import random
 import requests
 
-from datetime import datetime
 from bs4 import BeautifulSoup
 from article import Article
-from constants import CRAWLER_CONFIG_PATH
-from constants import HEADERS
-from constants import ASSETS_PATH
+from constants import CRAWLER_CONFIG_PATH, HEADERS, ASSETS_PATH
 from time import sleep
-import random
 
 
 class IncorrectURLError(Exception):
@@ -47,30 +44,33 @@ class Crawler:
         self.seed_urls = seed_urls
         self.total_max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
-
         self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        article_link = article_bs.find('h2', {'itemprop': 'name'}).find('a').get('href')
-        print(article_link)
+        url_article = article_bs.find('h2', class_="G3ax").find('a')
+        article_link = url_article.attrs['href']
+        return 'https://www.e1.ru' + article_link
 
     def find_articles(self):
         """
         Finds articles
         """
         for url in self.seed_urls:
-            sleep(random.randint(2, 8))
             response = requests.get(url, headers=HEADERS)
             if not response:
-                continue
-            link = BeautifulSoup(response.content, features='lxml')
-            articles_soup = link.find_all('li')
-            for article_bs in articles_soup[:max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == max_articles:
-                    return self.urls
-
+                raise IncorrectURLError
+            if response.status_code == 200:
+                sleep(random.randrange(2, 6))
+            response.encoding = 'utf-8'
+            page_soup = BeautifulSoup(response.content, features='lxml')
+            article_soup = page_soup.find_all('article', class_="G3aj7")
+            for article in article_soup:
+                seed_url = self._extract_url(article)
+                self.urls.append(seed_url)
+                if len(self.urls) <= max_articles and article not in self.urls:
+                    seed_url = self._extract_url(article)
+                    self.urls.append(seed_url)
 
     def get_search_urls(self):
         """
@@ -89,41 +89,44 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        article_text = article_soup.find_all('p')
+        article_text = article_soup.find('div', class_="F-af3").find_all('p')
         for par in article_text:
-            if 'class' not in par.attrs:
-                self.article.text += par.text.strip() + ' '
+            self.article.text += par.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('div',class_='page-header').find('h2').text
-        self.article.views = article_soup.find('dd', class_="hits").find('meta').text
-        self.article.date = self.unify_date_format(article_soup.find('dd', class_="create").find('time').text)
+        self.article.title = article_soup.find('h2', {'itemprop': 'headline'}).find('span').text
+        self.article.annotation = article_soup.find('p', class_="CLpj JZaj-").find('span').text
         self.article.author = 'NOT FOUND'
+        self.article.date = article_soup.find('time', class_="G-k1").find('a').text.strip()
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        return datetime.strptime(date_str, "%Y-%m-%d")
+        pass
 
     def parse(self):
         """
         Parses each article
         """
         response = requests.get(self.full_url, headers=HEADERS)
-        article_soup = BeautifulSoup(response.content, features='lxml')
+        if not response:
+            raise IncorrectURLError
+
+        article_soup = BeautifulSoup(response.text, 'lxml')
         self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
-        self.article.save_raw()
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(os.path.join(base_path, 'tmp', 'articles')):
-        os.makedirs(os.path.join(base_path, 'tmp', 'articles'))
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+
 
 def validate_config(crawler_path):
     """
@@ -146,13 +149,11 @@ def validate_config(crawler_path):
         if not isinstance(max_articles, int) or max_articles < 0:
             raise IncorrectNumberOfArticlesError
 
-        if not isinstance(max_articles_per_seed,int) or max_articles_per_seed > 100:
+        if not isinstance(max_articles_per_seed, int) or max_articles_per_seed > 100:
             raise NumberOfArticlesOutOfRangeError
 
     except(IncorrectURLError, IncorrectNumberOfArticlesError, NumberOfArticlesOutOfRangeError) as error:
         raise error
-    except:
-        raise UnknownConfigError
     else:
         return seed_urls, max_articles, max_articles_per_seed
 
@@ -163,9 +164,11 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=seed_urls,
                       max_articles=max_articles,
                       max_articles_per_seed=max_articles_per_seed)
-    crawler.find_articles()
-
+    art = crawler.find_articles()
+    print(art)
     prepare_environment(ASSETS_PATH)
-    for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i)
-        parser.parse()
+    for article_id, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(article_url, article_id+1)
+        article = parser.parse()
+        article.save_raw()
+        sleep((random.randrange(2, 6)))

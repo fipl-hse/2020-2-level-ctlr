@@ -1,5 +1,5 @@
 {
-    "base_urls": ["https://express-kamchatka1.ru/sobytiya.html"],
-    "total_articles_to_find_and_parse": 15,
-    "max_number_articles_to_get_from_one_seed": 15
+    "base_urls": ["https://www.e1.ru/news/"],
+    "total_articles_to_find_and_parse": 5,
+    "max_number_articles_to_get_from_one_seed": 10
 }
