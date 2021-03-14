@@ -51,8 +51,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        one_of_urls = article_bs.find('a')
-        return one_of_urls.get['href']
+        return article_bs.find('div', class_="articles-list-item").find('a').attrs['href']
 
     def find_articles(self):
         """
@@ -64,9 +63,9 @@ class Crawler:
             print('Requesting')
 
             soup_page = BeautifulSoup(response.content, features='lxml')
-            all_urls_soup = soup_page.find_all(class_="articles-list-item-title")
+            all_urls_soup = soup_page.find_all('div', class_="articles-list-block")
             for one_of_urls in all_urls_soup:
-                self.urls.append(self._extract_url(one_of_urls))
+                self.urls.append('https://www.ks87.ru'+self._extract_url(one_of_urls))
             if len(self.urls) == self.max_articles:
                 return self.urls
 
@@ -111,8 +110,8 @@ class ArticleParser:
         response = requests.get(self.full_url, headers=headers)
         sleep(5)
         print('Requesting')
-        article_bs = BeautifulSoup(response.content, featurs='lxml')
-        self.text += self._fill_article_with_text(article_bs)
+        article_bs = BeautifulSoup(response.content, features='lxml')
+        self.article.text += self._fill_article_with_text(article_bs)
         return self.article
 
 
@@ -154,5 +153,4 @@ if __name__ == '__main__':
 
     for i, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=i)
-        article = parser.parse()
-        article.save_raw()
+        parser.parse().save_raw()
