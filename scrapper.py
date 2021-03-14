@@ -115,24 +115,20 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         crawler_config = json.load(file)
 
-    all_urls = crawler_config["base_urls"]
-    articles = crawler_config["total_articles_to_find_and_parse"]
-    max_number_of_articles = crawler_config["max_number_articles_to_get_from_one_seed"]
+    for base_url in crawler_config["base_urls"]:
+        if base_url[:8] != 'https://':
+            raise IncorrectURLError
 
-    for url in all_urls:
-        if url[:8] == "https://":
-            print('Ok')
-        raise IncorrectURLError
-
-    if not isinstance(articles, int)\
-            or not isinstance(max_number_of_articles, int):
+    if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
 
-    if articles < max_number_of_articles\
-            or max_number_of_articles > 100:
+    if "total_articles_to_find_and_parse" in crawler_config \
+            and crawler_config["total_articles_to_find_and_parse"] > 100 \
+            or not isinstance('max_number_articles_to_get_from_one_seed', int):
         raise NumberOfArticlesOutOfRangeError
 
-    return all_urls, articles
+    return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse'], \
+           crawler_config['max_number_articles_to_get_from_one_seed']
 
 if __name__ == '__main__':
     # YOUR CODE HERE
