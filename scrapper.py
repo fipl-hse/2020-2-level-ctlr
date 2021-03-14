@@ -86,7 +86,6 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-
         articles_info = article_soup.find_all('br')
         article_text = ''
         for article in articles_info:
@@ -94,7 +93,8 @@ class ArticleParser:
             return article_text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article_title = article_soup.find('h1').text.strip()
+        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -107,7 +107,13 @@ class ArticleParser:
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers=headers)
+        sleep(5)
+        print('Requesting')
+        article_bs = BeautifulSoup(response.content, featurs='lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        return self.article
 
 
 def prepare_environment(base_path):
