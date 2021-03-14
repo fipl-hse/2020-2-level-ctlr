@@ -51,7 +51,7 @@ class Crawler:
     @staticmethod
     def _extract_url(article_bs):
         url_article = article_bs.find('a', class_='h-link')
-        return 'https://burunen.ru/' + url_article.attrs['href']
+        return 'https://burunen.ru' + url_article.attrs['href']
 
     def find_articles(self):
         """
@@ -87,11 +87,9 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        art_soup = article_soup.find_all('p')
-        text = ''
-        for element in art_soup:
-            text += element.text
-        return text.strip()
+        paragraphs_soup = article_soup.find('div', class_='text letter').find_all('p')
+        for par in paragraphs_soup:
+            self.article.text += par.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text.strip()
