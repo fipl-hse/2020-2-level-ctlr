@@ -50,8 +50,8 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find('a', class_='h-link')
-        return 'https://burunen.ru' + url_article.attrs['href']
+        url_article = article_bs.find('a')
+        return 'http://orbita-znamensk.ru/' + url_article.attrs['href']
 
     def find_articles(self):
         """
@@ -63,7 +63,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            links = article_bs.find_all('h3', class_='title')
+            links = article_bs.find_all('div', class_='title')
             for article in links:
                 if len(self.urls) <= self.max_articles and article not in self.urls:
                     seed_url = self._extract_url(article)
@@ -87,7 +87,7 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find('div', class_='text letter').find_all('p')
+        paragraphs_soup = article_soup.find('div', class_='node-inner').find_all('p')
         for par in paragraphs_soup:
             self.article.text += par.text.strip() + '\n'
 
