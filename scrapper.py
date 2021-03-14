@@ -5,7 +5,7 @@ Crawler implementation
 
 class IncorrectURLError(Exception):
     """
-    Custom error
+    Custom error.
     """
 
 
