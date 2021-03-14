@@ -10,7 +10,7 @@ from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/89.0.4389.82 Safari/537.36'}
+           'Chrome/89.0.4389.82 Safari/537.36'}
 
 
 class IncorrectURLError(Exception):
@@ -51,7 +51,7 @@ class Crawler:
     @staticmethod
     def _extract_url(article_bs):
         url_article = article_bs.find('a', class_='h-link')
-        return 'https://burunen.ru/' + url_article.attrs['href']
+        return 'https://burunen.ru' + url_article.attrs['href']
 
     def find_articles(self):
         """
