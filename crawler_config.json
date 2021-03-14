@@ -1,5 +1,5 @@
 {
-    "base_urls": ["https://sovsakh.ru/"],
-    "total_articles_to_find_and_parse": 1,
-    "max_number_articles_to_get_from_one_seed": 2
+    "base_urls": ["https://sovsakh.ru/node?page=5"],
+    "total_articles_to_find_and_parse": 5,
+    "max_number_articles_to_get_from_one_seed": 5
 }
