@@ -64,7 +64,7 @@ class Crawler:
                 raise IncorrectURLError
             soup = BeautifulSoup(response.content, features='lxml')
             links = soup.find_all('div', {'class': 'entry-summary'})
-            urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
+            urls_number = min(max_articles_per_seed, len(links), (max_articles - len(self.urls)))
             for index in range(urls_number):
                 self.urls.append('https://севернаяправда.рф/' + self._extract_url(article_bs=links[index]))
         return self.urls
@@ -102,7 +102,7 @@ class ArticleParser:
         self.article.author = 'NOT FOUND'
         for topic in article_soup.find_all('a', rel="tag"):
             self.article.topics.append(topic.text)
-        self.article.date = self.unify_date_format(article_soup.find('span', class_='date updated').text)
+        self.article.date = self.unify_date_format(article_soup.find('time', class_='entry-date').text)
 
 
     @staticmethod
@@ -157,11 +157,11 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment(ASSETS_PATH)
-    urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=urls, max_articles=max_articles, max_articles_per_seed=articles_per_seed)
+    urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(urls, max_articles, max_articles_per_seed)
     crawler.find_articles()
-
-    for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i + 1)
+    prepare_environment(ASSETS_PATH)
+    for i, articles_url in enumerate(urls):
+        parser = ArticleParser(full_url=articles_url, article_id=i + 1)
+        article = parser.parse()
         parser.parse()
