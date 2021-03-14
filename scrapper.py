@@ -51,24 +51,24 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find("a").get('href')
-
+        url = article_bs.content[1]
+        return url.get('href')
 
     def find_articles(self):
         """
         Finds articles
         """
-        for seed in self.seed_urls:
-            sleep(random.randint(4, 8))
-            response = requests.get(seed, headers=headers)
+        self.get_search_urls()
+        for url in self.seed_urls:
+            response = requests.get(str(url))
             if not response:
-                continue
-            soup_seed = BeautifulSoup(response.content, features='lxml')
-            articles_soup = soup_seed.find_all('li')
-            for article_bs in articles_soup[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == self.max_articles:
-                    return self.urls
+                raise IncorrectURLError
+            if len(self.urls) < self.max_articles:
+                self.urls.append(url)
+            else:
+                break
+
+        return self.urls
 
     def get_search_urls(self):
         """
@@ -84,7 +84,7 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(self.full_url, self.article_id)
+        self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
         text_soup = article_soup.find_all('p')
@@ -146,7 +146,7 @@ def validate_config(crawler_path):
             not isinstance(max_articles, int) and isinstance(max_articles, bool):
         raise IncorrectNumberOfArticlesError
 
-    articles_num_in_range = 0 < max_articles <= total_articles and 5 <= total_articles <= 10000
+    articles_num_in_range = 0 < max_articles <= total_articles and 5 <= total_articles <= 1000
 
     if not articles_num_in_range:
         raise NumberOfArticlesOutOfRangeError
