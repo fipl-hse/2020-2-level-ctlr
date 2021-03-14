@@ -162,6 +162,9 @@ def validate_config(crawler_path):
     total_artcls = config['total_articles_to_find_and_parse']
     max_artcls = config.get('max_number_articles_to_get_from_one_seed', total_artcls)
 
+    if max_artcls > total_artcls:
+        max_artcls = total_artcls
+
     is_url_ok = isinstance(urls, list) and all(isinstance(url, str) for url in urls)
     is_articles_num_ok = (isinstance(total_artcls, int) and not isinstance(total_artcls, bool) and
                           isinstance(max_artcls, int) and not isinstance(max_artcls, bool))
@@ -172,7 +175,7 @@ def validate_config(crawler_path):
     if not is_articles_num_ok:
         raise IncorrectNumberOfArticlesError
 
-    is_articles_num_in_range = 0 < max_artcls <= total_artcls and 2 <= total_artcls <= 1000
+    is_articles_num_in_range = max_artcls !=0 and 2 <= total_artcls <= 1000
 
     if not is_articles_num_in_range:
         raise NumberOfArticlesOutOfRangeError
