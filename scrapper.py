@@ -72,6 +72,7 @@ class Crawler:
                 if len(self.urls) <= self.max_article and article_bs not in self.urls:
                     seed_url = self._extract_url(article_bs)
                     self.urls.append(seed_url)
+            return self.urls
 
     def get_search_urls(self):
         """
