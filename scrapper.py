@@ -2,15 +2,16 @@
 Crawler implementation
 """
 from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 from time import sleep
 import json
 import requests
 from article import Article
+import os
 
 
 headers = {
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)' 'Chrome/88.0.4324.190 Safari/537.36'
 }
 
 class IncorrectURLError(Exception):
@@ -93,8 +94,7 @@ class ArticleParser:
             return article_text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article_title = article_soup.find('h1').text.strip()
-        return None
+        pass
 
     @staticmethod
     def unify_date_format(date_str):
@@ -111,8 +111,7 @@ class ArticleParser:
         sleep(5)
         print('Requesting')
         article_bs = BeautifulSoup(response.content, featurs='lxml')
-        self._fill_article_with_text(article_bs)
-        self._fill_article_with_meta_information(article_bs)
+        self.text += self._fill_article_with_text(article_bs)
         return self.article
 
 
@@ -120,8 +119,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
-
+    if not os.path.isdir(base_path):
+        os.makedirs(base_path)
 
 def validate_config(crawler_path):
     """
@@ -147,7 +146,14 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    response = requests.get('https://www.ks87.ru/')
-    if not requests:
-        raise ImportError
-    print(response.headers)
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    articles = crawler.find_articles()
+    prepare_environment(ASSETS_PATH)
+    article_id = 0
+    for article_url in articles:
+        article_id += 1
+        parser = ArticleParser(article_url, article_id)
+        sleep(5)
+        article = parser.parse()
+        article.save_raw()
