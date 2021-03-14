@@ -70,6 +70,7 @@ class Crawler:
             if len(self.all_urls) > self.total_max_articles:
                 self.all_urls = self.all_urls[:self.total_max_articles]
                 return self.all_urls
+            return self.all_urls
 
     def get_search_urls(self):
         """
