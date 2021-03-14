@@ -53,9 +53,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs,max_articles_per_one_seed):
-        links_page=[]
-        for link in article_bs.find_all(class_='next news')[:max_articles_per_one_seed]:
-            links_page.append(link.find('a').get('href'))
+        return article_bs.find('a').attrs['href']
 
 
     def find_articles(self):
@@ -64,11 +62,15 @@ class Crawler:
         """
         for url in self.seed_urls:
             sleep(random.randint(5,10))
-            response=requests.get(url,headers=headers)
-            if response.status_code==200:
-                seed_soap=BeautifulSoup(response.content,features='lxml')
-            self._extract_url(seed_soap,self.max_articles_per_seed)
-
+            response = requests.get(url, headers=headers)
+            if not response:
+                continue
+            seed_soup = BeautifulSoup(response.content, features='lxml')
+            articles_soup = seed_soup.find_all('div', class_='next news')
+            for article_bs in articles_soup[:self.max_articles_per_seed]:
+                self.urls.append(self._extract_url(article_bs))
+                if len(self.urls) == self.max_articles:
+                    return self.urls
 
     def get_search_urls(self):
         """
