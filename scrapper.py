@@ -52,7 +52,7 @@ class Crawler:
         self.urls = []
 
     @staticmethod
-    def _extract_url(article_bs,max_articles_per_one_seed):
+    def _extract_url(article_bs):
         return article_bs.find('a').attrs['href']
 
 
@@ -70,7 +70,8 @@ class Crawler:
             for article_bs in articles_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
-                    return self.urls
+                    break
+        return self.urls
 
     def get_search_urls(self):
         """
