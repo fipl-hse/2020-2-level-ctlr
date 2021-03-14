@@ -145,7 +145,7 @@ def validate_config(crawler_path):
         raise IncorrectURLError
 
     for base_url in conf["base_urls"]:
-        if not isinstance(base_url, str):
+        if not isinstance(base_url, str) or 'https://' not in base_url:
             raise IncorrectURLError
 
     if not isinstance(conf["total_articles_to_find_and_parse"], int):
