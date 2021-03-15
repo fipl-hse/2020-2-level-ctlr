@@ -8,5 +8,7 @@
                   "https://vn.ru/news/razvlecheniya/",
                   "https://vn.ru/news/politika/"],
     "total_articles_to_find_and_parse": 100,
-    "max_number_articles_to_get_from_one_seed": 20
+    "max_number_articles_to_get_from_one_seed": 20,
+    "headers" : {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36"
+    }
 }

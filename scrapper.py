@@ -16,9 +16,6 @@ import requests
 from article import Article
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/88.0.4324.41 YaBrowser/21.2.0.1097 Yowser/2.5 Safari/537.36'}
-
 
 class IncorrectURLError(Exception):
     """
@@ -106,7 +103,7 @@ class ArticleParser:
 
     @staticmethod
     def clean_text(text):
-        return '\n'.join(re.findall(r'[А-я]+.+\.[ \t]*', text, flags=re.MULTILINE))
+        return '\n'.join(re.findall(r'[А-я]+.+\.[ \t]*', text))
 
     def _fill_article_with_text(self, article_soup):
         article_preview = article_soup.find('div', {'class': 'one-news-preview-text'}).text + '\n'
@@ -172,7 +169,9 @@ def validate_config(crawler_path):
         raise IncorrectURLError
 
     for url in config['base_urls']:
-        if not isinstance(url, str) or not url.startswith('https://'):
+        regex_check = re.match(r'https://vn\.ru(/[a-z0-9-]*)*/', url).group()
+
+        if not isinstance(url, str) or not regex_check == url:
             raise IncorrectURLError
 
     if 'total_articles_to_find_and_parse' in config and \
@@ -188,11 +187,12 @@ def validate_config(crawler_path):
 
     return config['base_urls'], \
            config['total_articles_to_find_and_parse'], \
-           config['max_number_articles_to_get_from_one_seed']
+           config['max_number_articles_to_get_from_one_seed'], \
+           config['headers']
 
 
 if __name__ == '__main__':
-    urls, max_articles_num, max_articles_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    urls, max_articles_num, max_articles_num_per_seed, headers = validate_config(CRAWLER_CONFIG_PATH)
 
     crawler = Crawler(seed_urls=urls,
                       max_articles=max_articles_num,
