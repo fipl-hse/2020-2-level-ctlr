@@ -141,14 +141,14 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         conf = json.load(file)
 
-    urls_check = re.compile(r"^(https?:\/\/)?moyaokruga.ru\/ahtpravda\/(\?([a-z]+id=([0-9]+)?&?)*)?")
+    url_check = re.compile(r"^(https?:\/\/)?moyaokruga.ru\/ahtpravda\/(\?([a-z]+id=([0-9]+)?&?)*)?", re.I)
+    urls_check = all(url_check.match(str(link)) for link in conf["base_urls"])
 
     if not conf["base_urls"]:
         raise IncorrectURLError
 
-    for base_url in conf["base_urls"]:
-        if not isinstance(base_url, str) or not urls_check.match(str(base_url)):
-            raise IncorrectURLError
+    if not urls_check:
+        raise IncorrectURLError
 
     if not isinstance(conf["total_articles_to_find_and_parse"], int):
         raise IncorrectNumberOfArticlesError
