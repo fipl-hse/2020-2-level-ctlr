@@ -128,6 +128,7 @@ class CrawlerRecursive(Crawler):
                 for link in links[:limit]:
                     if len(self.urls) < self.total_max_articles:
                         self.urls.append(link)
+                        self.seed_urls.append(link)
                 self._save_intermediate_results()
                 if len(self.urls) >= self.total_max_articles:
                     return self.urls[:self.total_max_articles]
@@ -154,8 +155,13 @@ class CrawlerRecursive(Crawler):
                     link = tag.get('href')
                     if link not in self.seed_urls:
                         self.seed_urls.append(link)
-            else:
+            elif 'rubriki' in current_seed:
                 for tag in soup_page.find_all('a', class_="page-numbers"):
+                    link = tag.get('href')
+                    if link not in self.seed_urls:
+                        self.seed_urls.append(link)
+            else:
+                for tag in soup_page.find(class_="crp_related").find_all('a'):
                     link = tag.get('href')
                     if link not in self.seed_urls:
                         self.seed_urls.append(link)
@@ -242,7 +248,7 @@ def validate_config(crawler_path):
     if not isinstance(conf['base_urls'], list):
         raise IncorrectURLError
     for url in conf['base_urls']:
-        if not isinstance(url, str) or not re.findall(r'^https?://', str(url)):
+        if not isinstance(url, str) or not re.findall(r'^https?://[0-9a-z]+.[0-9a-z]+[/_0-9a-z-]+', str(url)):
             raise IncorrectURLError
     if not isinstance(conf['total_articles_to_find_and_parse'], int)\
             or conf['total_articles_to_find_and_parse'] < 0:
