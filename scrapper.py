@@ -324,19 +324,9 @@ def validate_config(crawler_path):
     if not is_max_number_of_articles_correct:
         raise NumberOfArticlesOutOfRangeError
 
-    if all((
-            is_config_a_dict,
-            has_config_attributes,
-            is_base_urls_correct,
-            is_total_number_of_articles_correct,
-            is_max_number_of_articles_int,
-            is_max_number_of_articles_correct
-    )):
-        return (config['base_urls'],
-                config['total_articles_to_find_and_parse'],
-                config['max_number_articles_to_get_from_one_seed'])
-
-    raise UnknownConfigError
+    return (config['base_urls'],
+            config['total_articles_to_find_and_parse'],
+            config['max_number_articles_to_get_from_one_seed'])
 
 
 if __name__ == '__main__':
