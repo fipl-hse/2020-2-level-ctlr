@@ -144,10 +144,7 @@ def validate_config(crawler_path):
     url_check = re.compile(r"^(https?:\/\/)?moyaokruga.ru\/ahtpravda\/(\?([a-z]+id=([0-9]+)?&?)*)?", re.I)
     urls_check = all(url_check.match(str(link)) for link in conf["base_urls"])
 
-    if not conf["base_urls"]:
-        raise IncorrectURLError
-
-    if not urls_check:
+    if not conf["base_urls"] or not urls_check:
         raise IncorrectURLError
 
     if not isinstance(conf["total_articles_to_find_and_parse"], int):
