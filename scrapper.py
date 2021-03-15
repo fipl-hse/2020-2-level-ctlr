@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from article import Article
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, LINKS_STORAGE_DIR, URL_START, HEADERS, LINKS_STORAGE_FILE
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, LINKS_STORAGE_DIR, HEADERS, LINKS_STORAGE_FILE, URL_START
 
 
 class IncorrectURLError(Exception):
@@ -64,6 +64,8 @@ class Crawler:
     def _crawl(self, pool: iter):
         found = []
         for link in pool:
+            if not link.startswith('https'):
+                link = URL_START + link
             article_bs = BeautifulSoup(requests.get(link, headers=HEADERS).text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             newfound = [i for i in newfound if len(i) > 20
@@ -81,15 +83,15 @@ class Crawler:
                      and not any(map(lambda y: y.isupper(), i))][:self.total_max_articles]
         print('Scraped seed urls, overall number of urls is', len(self.urls))
         while len(self.urls) < self.total_max_articles:
-            print('Due to insufficient number started further iteration')
-            print('current number', len(self.urls), ', required', self.total_max_articles)
+            print('Due to insufficient number of urls started further iteration')
+            print('current number is', len(self.urls), ', required', self.total_max_articles)
             old = len(self.urls)
             pool = tuple(map(lambda x: URL_START + x, self.urls))
             found = self._crawl(pool)
             self.urls.extend(found)
             if len(self.urls) == old:
                 print('There are no unseen urls found in all of the available addresses')
-                print(f'crawling finished with {len(self.urls)}')
+                print(f'crawling finished with {len(self.urls)} urls')
                 break
             self.urls = self.urls[:self.total_max_articles]
 
@@ -101,17 +103,24 @@ class Crawler:
 
 
 class CrawlerRecursive(Crawler):
-
-    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int, to_wait=False):
+    """
+    Crawler implementation
+    Scrapes all the articles from the source
+    Uses advanced user imitation with fake headers and random waiting time
+    """
+    def __init__(self, seed_urls: list, total_max_articles: int,
+                 max_articles_per_seed: int, to_wait=False):
         super().__init__(seed_urls, total_max_articles, max_articles_per_seed)
         self.is_waiting = to_wait
 
-    def _crawl(self, pool: list):
+    def _crawl(self, pool: iter):
         found = []
         for link in pool:
             if self.is_waiting:
-                wait(randint(0, 10))
-            article_bs = BeautifulSoup(requests.get(URL_START + link, headers=HEADERS).text, 'html.parser')
+                wait(randint(1, 10))
+            if not link.startswith('https'):
+                link = URL_START + link
+            article_bs = BeautifulSoup(requests.get(link, headers=HEADERS).text, 'html.parser')
             newfound = self._extract_url(article_bs, self.urls)
             newfound = [i for i in newfound if len(i) > 20
                         and not any(map(lambda y: y.isupper(), i))]
@@ -119,8 +128,9 @@ class CrawlerRecursive(Crawler):
         return list(set(found))
 
     def find_articles(self):
-        if self.read_backedup():
-            print('backed up urls found, starting iteration')
+        if not self.urls:
+            if self.read_backedup():
+                print('backed up urls found, starting iteration')
         if not self.urls:
             pool = self.seed_urls
         else:
@@ -132,17 +142,9 @@ class CrawlerRecursive(Crawler):
             self.urls.extend(newfound)
             with open(LINKS_STORAGE_FILE, 'a', encoding='utf-8') as file:
                 file.write('\n'.join(newfound))
-            print(f'found {len(newfound)} new urls')
-            if self.verify_proceed():
-                print('starting new iteration')
-                self.find_articles()
-            else:
-                print(f'recursive crawling finished with {len(self.urls)} urls.')
-
-    @staticmethod
-    def verify_proceed():
-        answer = input('Would you like to proceed? yes or no: ').strip()
-        return answer == 'yes'
+            print(f'found {len(newfound)} new urls, overall number is {len(self.urls)}')
+            print('starting new iteration')
+            self.find_articles()
 
     def read_backedup(self):
         try:
@@ -231,7 +233,6 @@ def prepare_environment(base_path, backup_path_dir):
     if not os.path.exists(base_path):
         os.makedirs(base_path)
     if not os.path.exists(backup_path_dir):
-        print('GOT HERE WITH PATH', backup_path_dir)
         os.makedirs(backup_path_dir)
 
 
@@ -267,9 +268,9 @@ if __name__ == '__main__':
     seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     if not max_arts_per_seed:
         max_arts_per_seed = max_articles
-    crawler = Crawler(seed_urls=seedurls,
-                      total_max_articles=max_articles,
-                      max_articles_per_seed=max_arts_per_seed)
+    crawler = CrawlerRecursive(seed_urls=seedurls,
+                               total_max_articles=max_articles,
+                               max_articles_per_seed=max_arts_per_seed)
 
     crawler.find_articles()
 
@@ -281,4 +282,3 @@ if __name__ == '__main__':
         article = parser.parse()
         article.save_raw()
     print('parsing is finished')
-#
