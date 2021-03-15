@@ -169,9 +169,8 @@ def validate_config(crawler_path):
         raise IncorrectURLError
 
     for url in config['base_urls']:
-        regex_check = re.match(r'https://vn\.ru(/[a-z0-9-]*)*/', url).group()
-
-        if not isinstance(url, str) or not regex_check == url:
+        regex_check = re.match(r'https://vn\.ru(/[a-z0-9-]*)*/', url)
+        if not isinstance(url, str) or not regex_check:
             raise IncorrectURLError
 
     if 'total_articles_to_find_and_parse' in config and \
