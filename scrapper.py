@@ -311,6 +311,9 @@ def validate_config(crawler_path):
             config['max_number_articles_to_get_from_one_seed'] > 0
     )
 
+    if not is_max_number_of_articles_int:
+        raise UnknownConfigError
+
     is_max_number_of_articles_correct = (
             config['max_number_articles_to_get_from_one_seed'] <= 10000
     )
