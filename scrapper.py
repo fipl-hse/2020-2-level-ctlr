@@ -65,7 +65,7 @@ class Crawler:
             main_soup = page_soup.find('main', id='main')
             articles_soup = main_soup.find_all('article')
             for i in range(self.max_articles_per_seed):
-                if len(self.urls) < self.max_articles:
+                if len(self.urls) < self.max_articles and i < len(articles_soup):
                     self.urls.append(self._extract_url(articles_soup[i]))
                 else:
                     break
