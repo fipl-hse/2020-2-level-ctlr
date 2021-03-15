@@ -82,14 +82,6 @@ class Crawler:
         return self.seed_urls
 
 
-def _fill_article_with_text(article_soup):
-    text_soup = article_soup.find_all('p')
-    text = ''
-    for element in text_soup[:4]:
-        text += element.text
-    return text.strip()
-
-
 class ArticleParser:
     """
     ArticleParser implementation
@@ -98,7 +90,12 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(self.full_url, self.article_id)
+        self.article = Article(full_url, article_id)
+
+    def _fill_article_with_text(self, article_soup):
+        paragraphs_soup = article_soup.find('div', class_='news-content').find_all('p')
+        for paragraph in paragraphs_soup:
+            self.article.text += paragraph.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('a', itemprop='url').text.strip()
@@ -119,7 +116,7 @@ class ArticleParser:
         if not response:
             raise IncorrectURLError
         article_soup = BeautifulSoup(response.content, features='lxml')
-        self.article.text += _fill_article_with_text(article_soup)
+        self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
         return self.article
 
@@ -174,6 +171,6 @@ if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind + 1)
-        sleep((random.randrange(2, 6)))
+        sleep((random.randrange(2, 4)))
         article = parser.parse()
         article.save_raw()
