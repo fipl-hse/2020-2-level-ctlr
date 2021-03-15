@@ -268,7 +268,7 @@ if __name__ == '__main__':
     seedurls, max_articles, max_arts_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     if not max_arts_per_seed:
         max_arts_per_seed = max_articles
-    crawler = CrawlerRecursive(seed_urls=seedurls,
+    crawler = Crawler(seed_urls=seedurls,
                                total_max_articles=max_articles,
                                max_articles_per_seed=max_arts_per_seed)
 
