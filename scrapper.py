@@ -1,7 +1,7 @@
 """
 Crawler implementation
 """
-
+...
 
 class IncorrectURLError(Exception):
     """
