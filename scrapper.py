@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import requests
 
 import article
-from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, HEADERS
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
 class UnknownConfigError(Exception):
@@ -73,7 +73,7 @@ class Crawler:
         seed_urls = self.get_search_urls()
         for seed_url in seed_urls:
             try:
-                response = requests.get(seed_url, headers=HEADERS)
+                response = requests.get(seed_url, headers=headers)
                 sleep(randint(2, 6))
                 if response.status_code:
                     main_page_soup = BeautifulSoup(response.content, features='lxml')
@@ -135,7 +135,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=HEADERS)
+        response = requests.get(self.full_url, headers=headers)
         if response:
             article_soup = BeautifulSoup(response.content, features='lxml')
             self._fill_article_with_text(article_soup)
@@ -183,13 +183,14 @@ def validate_config(crawler_path):
 
     return config['base_urls'], \
            config['total_articles_to_find_and_parse'], \
-           config['max_number_articles_to_get_from_one_seed']
+           config['max_number_articles_to_get_from_one_seed'],\
+           config['headers']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     prepare_environment(ASSETS_PATH)
-    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
+    seed_urls_ex, max_articles_ex, max_articles_per_seed_ex, headers = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_ex,
                       max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
