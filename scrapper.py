@@ -111,9 +111,6 @@ class ArticleParser:
         date_art = self.unify_date_format(article_soup.find('time', class_="entry-date published").text)
         self.article.date = date_art
 
-    def _save_article(self):
-        self.article.save_raw()
-
     @staticmethod
     def unify_date_format(date_str):
         """
@@ -132,7 +129,6 @@ class ArticleParser:
         article_soup = BeautifulSoup(response.content, features='lxml')
         self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
-        self._save_article()
 
 
 def prepare_environment(base_path):
@@ -190,3 +186,4 @@ if __name__ == '__main__':
     for ind, article_url in enumerate(crawler_current.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind+1)
         parser.parse()
+        parser.article.save_raw()
