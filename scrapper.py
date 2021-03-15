@@ -168,6 +168,7 @@ if __name__ == '__main__':
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for article_id, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(article_url, article_id + 1)
+        parser = ArticleParser(article_url, article_id+1)
         article = parser.parse()
         article.save_raw()
+        sleep((random.randrange(2, 6)))
