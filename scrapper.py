@@ -13,12 +13,7 @@ from bs4 import BeautifulSoup
 import requests
 
 import article
-from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
-
-HEADERS = {
-    'user-agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-        '(KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36'}
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, HEADERS
 
 
 class UnknownConfigError(Exception):
