@@ -13,9 +13,9 @@ import requests
 from bs4 import BeautifulSoup
 
 from article import Article
+from constants import ASSETS_PATH
 from constants import CRAWLER_CONFIG_PATH
 from constants import HEADERS
-from constants import PROJECT_ROOT
 
 
 class IncorrectURLError(Exception):
@@ -106,7 +106,7 @@ class ArticleParser:
         self.article.date = self.unify_date_format(article_soup.find(name='time', class_='js-time').get('datetime'))
         self.article.author = article_soup.find(class_='author').text.split(': ')[1]
         topics = article_soup.find(name='div', class_='tags').text
-        self.article.topics = [topic for topic in topics.split('\n') if topic != '']
+        self.article.topics = [topic for topic in topics.split('\n') if topic]
 
     @staticmethod
     def unify_date_format(date_str):
@@ -134,10 +134,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    assets_path = os.path.join(base_path, 'tmp', 'articles')
-    if os.path.exists(assets_path):
-        shutil.rmtree(os.path.dirname(assets_path))
-    os.makedirs(assets_path)
+    if os.path.exists(base_path):
+        shutil.rmtree(os.path.dirname(base_path))
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -171,7 +170,7 @@ if __name__ == '__main__':
     proper_seed_urls, proper_max_articles, proper_max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     example = Crawler(proper_seed_urls, proper_max_articles, proper_max_articles_per_seed)
     example.find_articles()
-    prepare_environment(PROJECT_ROOT)
+    prepare_environment(ASSETS_PATH)
     for index, url in enumerate(example.urls, 1):
         parser = ArticleParser(url, index)
         article = parser.parse()
