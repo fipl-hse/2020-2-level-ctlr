@@ -105,6 +105,17 @@ class CrawlerRecursive(Crawler):
     Recursive Crawler
     """
 
+    @staticmethod
+    def _extract_url(article_bs):
+        links = []
+        if article_bs.find_all(class_='post-title'):
+            for tag in article_bs.find_all(class_='post-title'):
+                links.append(tag.find('a').get('href'))
+        if article_bs.find(class_="crp_related"):
+            for tag in article_bs.find(class_="crp_related").find_all('a'):
+                links.append(tag.get('href'))
+        return links
+
     def find_articles(self):
         """
         Finds articles
@@ -153,19 +164,12 @@ class CrawlerRecursive(Crawler):
             if current_seed == 'https://astravolga.ru':
                 for tag in soup_page.find(class_="dropdown").find_all('a'):
                     link = tag.get('href')
-                    if link not in self.seed_urls:
-                        self.seed_urls.append(link)
+                    self.seed_urls.append(link)
             elif 'rubriki' in current_seed:
                 for tag in soup_page.find_all('a', class_="page-numbers"):
                     link = tag.get('href')
-                    if link not in self.seed_urls:
-                        self.seed_urls.append(link)
-            else:
-                for tag in soup_page.find(class_="crp_related").find_all('a'):
-                    link = tag.get('href')
-                    if link not in self.seed_urls:
-                        self.seed_urls.append(link)
-        return self.seed_urls
+                    self.seed_urls.append(link)
+        return list(set(self.seed_urls))
 
     def _load_intermediate_results(self):
         if os.path.exists(CRAWLER_SAVE_PATH):
