@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from article import Article
-from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH, HEADERS
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 
 class IncorrectURLError(Exception):
@@ -58,7 +58,7 @@ class Crawler:
         """
         self.get_search_urls()
         for url in self.seed_urls:
-            response = requests.get(url, headers=HEADERS)
+            response = requests.get(url, headers=headers)
             if not response:
                 raise IncorrectURLError
             page_soup = BeautifulSoup(response.content, features='lxml')
@@ -122,7 +122,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=HEADERS)
+        response = requests.get(self.full_url, headers=headers)
         if not response:
             raise IncorrectURLError
 
@@ -148,7 +148,7 @@ def validate_config(crawler_path):
     """
     with open(crawler_path, 'r', encoding='utf-8') as file:
         crawler = json.load(file)
-    url_pattern = 'http://'
+    url_pattern = 'http://kmvexpress.ru/'
 
     for url in crawler['base_urls']:
         if not isinstance(url, str) or url_pattern not in url:
@@ -173,12 +173,13 @@ def validate_config(crawler_path):
         raise UnknownConfigError from error
 
     seed_urls = crawler['base_urls']
-    return seed_urls, max_articles, max_articles_per_seed
+    headers_config = crawler['headers']
+    return seed_urls, max_articles, max_articles_per_seed, headers_config
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    urls, max_num_articles, max_per_seed, headers = validate_config(CRAWLER_CONFIG_PATH)
     crawler_current = Crawler(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
     crawler_current.find_articles()
 
