@@ -267,12 +267,12 @@ def get_page(url):
     return page
 
 
-def prepare_environment():
+def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    shutil.rmtree(constants.ASSETS_PATH, ignore_errors=True)
-    os.makedirs(constants.ASSETS_PATH, exist_ok=True)
+    shutil.rmtree(base_path, ignore_errors=True)
+    os.makedirs(base_path, exist_ok=True)
 
 
 def validate_config(crawler_path):
@@ -333,7 +333,7 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment()
+    prepare_environment(constants.ASSETS_PATH)
 
     urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
     crawler = CrawlerRecursive(
