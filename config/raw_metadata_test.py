@@ -1,3 +1,4 @@
+import html
 import re
 import os
 import json
@@ -42,13 +43,24 @@ class RawDataValidator(unittest.TestCase):
                             msg="""Articles ids are not homogeneous. E.g. numbers are not from 1 to N""")
 
     def test_validate_metadata(self):
+        with open(CRAWLER_CONFIG_PATH) as file:
+            config = json.load(file)
+
+        session = requests.Session()
+
+        if config['headers']:
+            session.headers.update(config['headers'])
+
+        if config['cookies']:
+            session.cookies.update(config['cookies'])
+
         # can i open this URL?
         for metadata in self.metadata:
-            self.assertTrue(requests.get(metadata[1]['url']),
+            self.assertTrue(session.get(metadata[1]['url']),
                             msg="Can not open URL: <{}>. Check how you collect URLs".format(
                                 metadata[1]['url']))
 
-            html_source = requests.get(metadata[1]['url']).text
+            html_source = html.unescape(session.get(metadata[1]['url']).text)
 
             self.assertTrue(metadata[1]['title'] in
                             html_source,
