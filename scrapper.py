@@ -192,18 +192,14 @@ class ArticleParser:
         """
         return datetime.fromisoformat(date_str)
 
+    @property
+    def processed(self) -> bool:
+        return self.full_url in self._load_state()
+
     def parse(self):
         """
         Parses each article
         """
-        if self.full_url in self._load_state():
-            log.info(
-                "Article #%s '%s' is duplicated. Skipping.",
-                self.article_id,
-                self.full_url,
-            )
-            return None
-
         page = fetch_page(self.full_url)
         soup = BeautifulSoup(page, features="lxml")
 
@@ -267,6 +263,7 @@ def fetch_page(url: str):
         log.exception(
             "%s was encountered while getting seed_urls", exc.__class__.__name__
         )
+        return None
 
 
 def prepare_environment(base_path: str) -> None:
@@ -334,9 +331,13 @@ def main():
     for idx, article_url in enumerate(sorted(crawler.urls), 1):
         parser = ArticleParser(full_url=article_url, article_id=idx)
 
-        if article := parser.parse():
-            article.save_raw()
-            time.sleep(random.uniform(2, 4))
+        if parser.processed:
+            continue
+
+        article = parser.parse()
+        article.save_raw()
+
+        time.sleep(random.uniform(2, 4))
 
     log.info("Total: %s articles.", len(crawler.urls))
 
