@@ -1,11 +1,14 @@
 """
 Article implementation
 """
+import datetime
 import json
 import os
-import datetime
+
+from sqlalchemy.orm import sessionmaker
 
 from constants import ASSETS_PATH
+from models import Meta, Post, Topic, create_table, db_connect
 
 
 def date_from_meta(date_txt):
@@ -15,11 +18,26 @@ def date_from_meta(date_txt):
     return datetime.datetime.strptime(date_txt, "%Y-%m-%d %H:%M:%S")
 
 
+class ArticleDB:  # pylint: disable=too-few-public-methods
+    """
+    Interface for interacting with the Article database.
+    Creates connection to the database
+    """
+
+    def __init__(self):
+        self.engine = db_connect()
+        create_table(self.engine)
+
+    def connect(self):
+        return sessionmaker(self.engine)
+
+
 class Article:
     """
     Article class implementation.
     Stores article metadata and knows how to work with articles
     """
+
     def __init__(self, url, article_id):
         self.url = url
         self.article_id = article_id
@@ -46,7 +64,35 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
+
+    def save_to_db(self):
+        database = ArticleDB()
+        session = database.connect()
+
+        with session.begin() as session:  # pylint: disable=no-member
+            post = Post()
+            meta = Meta()
+
+            post.id = self.article_id
+            post.title = self.title
+            post.text = self.text
+
+            meta.id = self.article_id
+            meta.url = self.url
+            meta.date = self.date
+            meta.author = self.author
+
+            if self.topics:
+                for topic_name in self.topics:
+                    topic = Topic(name=topic_name)
+                    if record := session.query(Topic).filter_by(name=topic_name).first():
+                        topic = record
+                    meta.topics.append(topic)
+
+            post.meta = meta
+
+            session.add(post)
+
     @staticmethod
     def from_meta_json(json_path: str):
         """
@@ -94,13 +140,13 @@ class Article:
             'author': self.author,
             'topics': self.topics
         }
-    
+
     def _date_to_text(self):
         """
         Converts datetime object to text
         """
         return self.date.strftime("%Y-%m-%d %H:%M:%S")
-    
+
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article
