@@ -145,7 +145,7 @@ def validate_config(crawler_path):
         json_dict = json.load(crawler_path)
     except:
         raise IncorrectURLError('error')
-    for url in json_dict:
+    for url in json_dict['base_urls']:
         try:
             requests.get(url)
         except Exception:
