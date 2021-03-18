@@ -43,7 +43,6 @@ class IncorrectNumberOfArticlesError(Exception):
     pass
 
 
-
 class UnknownConfigError(Exception):
     """
     Most general error
@@ -62,7 +61,7 @@ class Crawler:
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
-    @staticmethod #?
+    @staticmethod  # ?
     def _extract_url(article_bs):
         new_urls = []
         for a in article_bs.find_all('a'):
@@ -96,6 +95,7 @@ class Crawler:
             except Exception:
                 raise IncorrectURLError
         self.urls = new_urls
+
     def get_search_urls(self):
         """
         Returns seed_urls param
@@ -142,16 +142,16 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path, 'r') as f:
-        data = f.read()
-        json_dict = json.loads(data)
-        for url in json_dict:
-            try:
-                requests.get(url)
-            except Exception:
-                raise IncorrectURLError
 
-        return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
+    json_dict = json.load(crawler_path)
+    for url in json_dict:
+        try:
+            requests.get(url)
+        except Exception:
+            raise IncorrectURLError
+
+    return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
+
 
 if __name__ == '__main__':
     # YOUR CODE HERE
