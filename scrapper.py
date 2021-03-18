@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 from urllib.parse import urljoin, urldefrag
+import json
 
 
 class LinkWorker:
@@ -48,26 +49,29 @@ class Crawler:
     """
     lw = LinkWorker('', '')
 
-    def __init__(self, seed_urls: list, max_articles: int):
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
-    @staticmethod
+    @staticmethod #?
     def _extract_url(article_bs):
-        new_seed_urls = []
+        new_urls = []
         for a in article_bs.find_all('a'):
             link = str(a.get('href'))
             if link.find('https://') == -1:
                 try:
                     Crawler.lw.update_link(link)
-                    new_seed_urls.append(Crawler.lw.get_absolute_link())
+                    new_urls.append(Crawler.lw.get_absolute_link())
                 except:
                     pass
             else:
                 try:
-                    new_seed_urls.append(link)
+                    new_urls.append(link)
                 except:
                     pass
+        return new_urls
 
     def find_articles(self):
         """
@@ -75,16 +79,16 @@ class Crawler:
         """
         new_urls = []
 
-        for url in self.get_search_urls():
+        for url in self.seed_urls:
             time.sleep(0.25)
             try:
-                response = requests.get(self.get_search_urls())
+                response = requests.get(url)
                 parser = BeautifulSoup(response.text, 'lxml')
                 self.lw = LinkWorker(url, "")
                 new_urls.extend(self._extract_url(parser))
             except Exception:
                 raise IncorrectURLError
-
+        self.urls = new_urls
     def get_search_urls(self):
         """
         Returns seed_urls param
@@ -131,8 +135,10 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
-
+    with open(crawler_path, 'r') as f:
+        data = f.read()
+        json_dict = json.loads(data)
+        return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
 
 if __name__ == '__main__':
     # YOUR CODE HERE
