@@ -145,6 +145,12 @@ def validate_config(crawler_path):
     with open(crawler_path, 'r') as f:
         data = f.read()
         json_dict = json.loads(data)
+        for url in json_dict:
+            try:
+                requests.get(url)
+            except Exception:
+                raise IncorrectURLError
+
         return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
 
 if __name__ == '__main__':
