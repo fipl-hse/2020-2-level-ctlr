@@ -141,10 +141,9 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    try:
-        json_dict = json.load(open(crawler_path, "r"))
-    except:
-        raise IncorrectURLError('error')
+    with open(crawler_path) as read_file:
+        json_dict = json.loads(read_file.read())
+
     for url in json_dict['base_urls']:
         s = str(url)
         if s.find('http') == -1:
@@ -156,3 +155,4 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     pass
+validate_config('C:\\Users\\Daniel\\Desktop\\GITHUB\\2020-2-level-ctlr\\crawler_config.json')
