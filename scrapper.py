@@ -142,7 +142,7 @@ def validate_config(crawler_path):
     Validates given config
     """
     try:
-        json_dict = json.load(crawler_path)
+        json_dict = json.load(open(crawler_path, "r"))
     except:
         raise IncorrectURLError('error')
     for url in json_dict['base_urls']:
