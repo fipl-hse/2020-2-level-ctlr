@@ -26,7 +26,6 @@ class IncorrectURLError(Exception):
     Custom error
     """
     pass
-    # def __init__(self, ):
 
 
 class NumberOfArticlesOutOfRangeError(Exception):
@@ -145,12 +144,12 @@ def validate_config(crawler_path):
     try:
         json_dict = json.load(crawler_path)
     except:
-        raise IncorrectURLError
+        raise IncorrectURLError('error')
     for url in json_dict:
         try:
             requests.get(url)
         except Exception:
-            raise IncorrectURLError
+            raise IncorrectURLError('error')
 
     return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
 
