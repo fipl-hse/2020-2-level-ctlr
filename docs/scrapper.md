@@ -14,7 +14,7 @@ Scraping as a process contains following steps:
 1. saving necessary information
 
 As a part of the first milestone, you need to implement scrapping logic as a `scrapper.py` module.
-When it is run as a standalone Python program, it should all aforementioned stages.
+When it is run as a standalone Python program, it should perform all aforementioned stages.
 
 ## Executing scrapper
 

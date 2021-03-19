@@ -86,7 +86,7 @@ class TextProcessingPipeline:
         pass
 
 
-def validate_given_path(path_to_validate):
+def validate_dataset(dataset_path):
     """
     Validates folder with assets
     """
