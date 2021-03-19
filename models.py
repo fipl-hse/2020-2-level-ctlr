@@ -14,7 +14,7 @@ Base = declarative_base()
 
 def db_connect():
     """
-    Performs database connection using database settings from settings.py.
+    Performs database connection.
     Returns sqlalchemy engine instance
     """
     return create_engine(DB_CONNECTION)
