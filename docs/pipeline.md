@@ -43,7 +43,7 @@ Expected result:
 
 ## Configuring pipeline
 
-Processing behaviour is not configurable:
+Processing behavior is not configurable:
 
 1. pipeline takes a raw dataset that is collected by
    `crawler.py` and placed at `ASSETS_PATH` (see `constants.py` for a particular place)
@@ -53,7 +53,7 @@ Processing behaviour is not configurable:
 
 ## Assessment criteria
 
-You state your abmitions on the mark by editing the file `target_score.txt` at the `line 5`. For example, such content:
+You state your ambition on the mark by editing the file `target_score.txt` at the `line 5`. For example, such content:
 ```
 ...
 # Target score for pipeline.py:
@@ -84,8 +84,8 @@ would mean that you have made tasks for mark `6` and request mentors to check if
       Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
       Desired output: 
       [config/test_files/reference_test.txt](./config/test_files/reference_test.txt).
-    1. pipeline uses pymystem library to perform lemmatization and tagging (more details in the description below) 
-    1. pymystem tags are represented in angle brackets (within this tutorial we refer to it as a **pymystem-format**)
+    1. pipeline uses pymystem3 library to perform lemmatization and tagging (more details in the description below) 
+    1. pymystem3 tags are represented in angle brackets (within this tutorial we refer to it as a **pymystem-format**)
 1. Desired mark: **8**:
    1. pylint level: `10/10`
    1. all requirements for the mark **6**
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
 You will not be able to start your implementation if there is no collected dataset.
 Dataset is collected by scrapper.py. Therefore, if you still do not have it working,
-fix all the issues. Healthcheck would be existence of a raw dataset in the `tmp/articles`
+fix all the issues. Health check would be existence of a raw dataset in the `tmp/articles`
 folder on your computer. For more details on how to implement `scrapper.py` refer to the 
 [scrapper tutorial](./scrapper.md).
 
@@ -153,13 +153,13 @@ When dataset is not valid:
    errors are self-explaining):
    `FileNotFoundError`, `NotADirectoryError`, `InconsistentDatasetError`,
    `EmptyDirectoryError`, and throw `UnknownDatasetError` if
-   any other inconsstency is found.
+   any other inconsistency is found.
 2. script immediately finishes execution
 
 ### Stage 2. Introduce corpus abstraction: CorpusManager
 
 As we discussed multiple times when there are real world entities that we are working
-with from our Python programs, we need to emulate their behaviour by new abstractions.
+with from our Python programs, we need to emulate their behavior by new abstractions.
 If we think of the Pipeline and consider the Single Responsibility Principle, we will quickly
 realize that it is not the responsibility of the Pipeline to know where the dataset files
 are located and how to read/write to them, etc. Therefore, we need a new abstraction to be
@@ -194,12 +194,12 @@ def _scan_dataset(self):
     pass
 ```
 
-> NOTE: call this method during initizalization and save the results in 
+> NOTE: call this method during initialization and save the results in 
 > `self._storage` attribute.
 
 > SELF CHECK: Can you explain why the name of the method starts with underscore? 
 
-The method should contain logic for iteraring over the content of the folder, finding
+The method should contain logic for iterating over the content of the folder, finding
 all `_raw.txt` files and creating an `Article` instance for each file.
 
 > NOTE: Article constructor expects URL as the first argument. It should be safe
@@ -233,8 +233,8 @@ def get_articles(self):
 ### Stage 3. Introduce abstraction for elementary tokens in corpus: MorphologicalToken
 
 `MorphologicalToken` is responsible for storing morphological analysis results and transforming them
-into text format. As you already know, morpholocal analysis allows to study a particular word.
-For example, analysing `красивая` we can get a lemmatized version: `красивый` and word
+into text format. As you already know, morphological analysis allows to study a particular word.
+For example, analyzing `красивая` we can get a lemmatized version: `красивый` and word
 attributes `A=им,ед,полн,жен`. `MorphologicalToken` is needed to store all this information.
 
 #### Stage 3.1 Introduce MorphologicalToken abstraction
@@ -263,7 +263,7 @@ By default, the method should return the normalized word, stored in `self.normal
 
 ### Stage 4. Introduce abstraction for processing texts in corpus: TextProcessingPipeline
 
-Pipeline is responsible for applying processing techniqies to the raw text, such as
+Pipeline is responsible for applying processing techniques to the raw text, such as
 tokenization, lemmatization, etc.
 
 `TextProcessingPipeline` should be instantiated with the following instruction:
@@ -295,7 +295,7 @@ with names following this convention: `N_processed.txt`.
 
 > NOTE: it is mandatory to write processed article with the `Article.save_processed` method
 
-> Healthcheck: try to implement `pipeline.run()` in a way that is goes through the articles 
+> Health check: try to implement `pipeline.run()` in a way that is goes through the articles 
 > collected by `CorpusManager.get_articles`, reads each of them with `Article.get_raw_text`
 > and then writes to the file as a processed article with the `Article.save_processed` method.
 > At least you will see that everything works to this moment and you can proceed to implementing
@@ -319,7 +319,7 @@ Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt).
 Desired output: 
 [config/test_files/reference_score_four_test.txt](./config/test_files/reference_score_four_test.txt)
 
-All processing logic is incapsulated in the following protected method:
+All processing logic is encapsulated in the following protected method:
 
 ```py
 def _process(self):
@@ -348,9 +348,9 @@ For mark 4 you need to implement following processing:
 Strong requirement is to use [pymystem3](https://pypi.org/project/pymystem3/) library for this task (steps 1-5 from
 the list above).
 
-> NOTE: it is recommended to use rely on pymestem ability to process text as a whole and perform
+> NOTE: it is recommended to use rely on pymystem ability to process text as a whole and perform
 > lemmatization and morphological analysis at once. There are several reasons to do that,
-> but from the linguistic perspective it would intereseting for you to remember that 
+> but from the linguistic perspective it would interesting for you to remember that 
 > context-aware lemmatization works better that lemmatization of each word separately.
 
 Use the following way to analyze the text:
@@ -367,7 +367,7 @@ result of morphology analysis. Inspect the `result` as you need.
 > HINT: `result['text']` is likely to have the original word. Use the same approach to find tags and 
 > normalized form
 
-All processing logic is incapsulated in the following protected method:
+All processing logic is encapsulated in the following protected method:
 
 ```py
 def _process(self):
@@ -403,7 +403,7 @@ For mark 8 you need to implement processing from Stage 5.2 plus:
 Strong requirement is to use [pymorphy2](https://pypi.org/project/pymorphy2/) library for morphological analysis.
 
 > NOTE: it is recommended to have morphological analysis done after pymystem3. In other words, you extract 
-> list of `MorphologicalToken` with pymystem3 and then iterate through them and fill each token with pymorhy2 tags.
+> list of `MorphologicalToken` with pymystem3 and then iterate through them and fill each token with pymorphy2 tags.
 
 You will need `MorphAnalyzer.parse` [docs](https://pymorphy2.readthedocs.io/en/stable/user/guide.html#id3).
 
@@ -423,9 +423,58 @@ You will need `MorphAnalyzer.parse` [docs](https://pymorphy2.readthedocs.io/en/s
 ### Stage 6. Implement analytical pipeline: POSFrequencyPipeline (Stages 0-6 are required to get the mark 10)
 
 We have just made the text processing pipeline. However, this is only the beginning of your 
-linguistic research: you have the data and now need to start analyzing it, gaining insights, undertanding it
+linguistic research: you have the data and now need to start analyzing it, gaining insights, understanding it
 and finding hidden meanings. During this stage we will make a small pipeline that will compute
-distribution of various parts of speech in our texts and maybe it will give better understanding of the text.
+distribution of various parts of speech in our texts, visualize it and, maybe, it will give better understanding of the text.
 
 This is a sample result we are going to obtain: 
 ![](./sample_visualization.png)
+
+#### Stage 6.1. Introduce POSFrequencyPipeline abstraction
+
+Create file `pos_frequency_pipeline.py` with a class `POSFrequencyPipeline`. All code should be written in
+`main` function. `POSFrequencyPipeline` is instantiated in the similar manner as the `TextProcessingPipeline`:
+
+```py
+corpus_manager = CorpusManager(...)
+...
+pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
+```
+
+#### Stage 6.2. Implement core logic of POSFrequencyPipeline
+
+`POSFrequencyPipeline` is executed with a same interface method, that you need to implement:
+
+```py
+pipeline.run()
+```
+
+Once executed, `pipeline.run()`:
+1. iterates through the available articles taken from `CorpusManager`,
+1. reads each file,
+1. calculates frequencies of each part of speech
+1. writes them to the meta file
+1. visualizes them (frequencies) in a form of images with names following this convention: `N_image.png`.
+
+> NOTE: it is mandatory to get articles with the `CorpusManager.get_articles` method
+
+> NOTE: it is mandatory to use `Article.get_raw_text` method
+
+For visualization, you need to use `visualize` method from `visualizer.py` module available
+in the root folder of the project. Sample usage:
+
+```py
+visualize(statistics=frequencies_dict, path_to_save='./tmp/articles/1_image.png')
+```
+
+#### Stage 6.3. Refactor your own code to use pathlib
+
+As we discussed during lectures it is always better to have something designed specifically for the
+given task. Comparing `os` and `pathlib` modules, the latter is the one that is designed for most of
+filesystem related operations.
+
+Make sure you use only `pathlib` in the code you write.
+
+> NOTE: do not change modules external to your code, for example `article.py` - consider them as
+> not available for installation. If you see a way to improve external modules, propose them in a 
+> separate PR - mentors will review them separately and give you bonuses as any improvements are appreciated
