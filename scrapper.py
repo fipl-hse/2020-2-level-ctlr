@@ -8,6 +8,7 @@ import json
 import requests
 from article import Article
 import os
+from datetime import datetime
 
 
 headers = {
@@ -95,7 +96,8 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.text = article_soup.find('h1', class_='articles-body').text
-        self.article.author = article_soup.find('strong')
+        self.article.author = article_soup.find('strong').text
+        self.article.date = self.unify_date_formate(article_soup.find('div', class_='articles-body-date').text)
         return None
 
     @staticmethod
@@ -103,7 +105,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        return datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
@@ -112,9 +114,10 @@ class ArticleParser:
         response = requests.get(self.full_url, headers=headers)
         sleep(5)
         print('Requesting')
-        article_bs = BeautifulSoup(response.content, features='lxml')
-        self.article.text += self._fill_article_with_text(article_bs)
-        return self.article
+        article_soup = BeautifulSoup(response.content, features='lxml')
+        self._fill_article_with_text(article_soup)
+        self._fill_article_with_meta_information(article_soup)
+        return self.article.save_raw()
 
 
 def prepare_environment(base_path):
