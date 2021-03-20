@@ -90,11 +90,12 @@ class ArticleParser:
         articles_info = article_soup.find_all('br')
         article_text = ''
         for article in articles_info:
-            article_text += article
+            article_text += str(article)
             return article_text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.text = article_soup.find('h1').text
+        return
 
     @staticmethod
     def unify_date_format(date_str):
