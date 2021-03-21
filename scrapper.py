@@ -48,7 +48,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        article_link = article_bs.find('h2', class_="G3ax").find('a').get('href')
+        article_link = article_bs.find('h2', class_="G1ax").find('a').get('href')
         return 'https://www.e1.ru' + article_link
 
     def find_articles(self):
@@ -63,7 +63,7 @@ class Crawler:
                 sleep(random.randrange(2, 6))
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('article', class_="G3ajx")
+            article_soup = page_soup.find_all('article', class_="G1ajx")
             for article in article_soup:
                 seed_url = self._extract_url(article)
                 self.urls.append(seed_url)
@@ -166,7 +166,7 @@ if __name__ == '__main__':
                       max_articles_per_seed=max_articles_per_seed)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
-    for article_id, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(article_url, article_id+1)
+    for article_id, article_url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(article_url, article_id)
         article = parser.parse()
         article.save_raw()
