@@ -9,6 +9,7 @@ import requests
 from article import Article
 import os
 from datetime import datetime
+import shutil
 
 
 headers = {
@@ -88,16 +89,16 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        articles_info = article_soup.find_all('br')
+        articles_info = article_soup.find('div', class_="content-block").find('div').text
         article_text = ''
         for article in articles_info:
             article_text += str(article)
             return article_text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.text = article_soup.find('h1', class_='articles-body').text
+        self.article.title = article_soup.find('div', class_='articles-body').find('h1').text
         self.article.author = article_soup.find('strong').text
-        self.article.date = self.unify_date_formate(article_soup.find('div', class_='articles-body-date').text)
+        self.article.date = self.unify_date_format(article_soup.find('div', class_='articles-body-date').text[2:-3].strip())
         return None
 
     @staticmethod
@@ -124,6 +125,7 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
+    shutil.rmtree(base_path, ignore_errors=True)
     if not os.path.isdir(base_path):
         os.makedirs(base_path)
 
@@ -158,4 +160,5 @@ if __name__ == '__main__':
 
     for i, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=i)
-        parser.parse().save_raw()
+        parser.parse()
+        parser.article.save_raw()
