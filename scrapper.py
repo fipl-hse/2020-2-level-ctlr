@@ -64,12 +64,12 @@ class Crawler:
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
             article_soup = page_soup.find_all('article', class_="G1ajx")
-            for article in article_soup:
+            for article in article_soup[:max_articles_per_seed]:
                 seed_url = self._extract_url(article)
                 self.urls.append(seed_url)
-                if len(self.urls) <= max_articles and article not in self.urls:
-                    seed_url = self._extract_url(article)
-                    self.urls.append(seed_url)
+                if len(self.urls) == max_articles:
+                    return self.urls
+
 
     def get_search_urls(self):
         """
