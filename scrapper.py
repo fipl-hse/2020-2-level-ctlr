@@ -67,9 +67,10 @@ class Crawler:
             soup_page = BeautifulSoup(response.content, features='lxml')
             all_urls_soup = soup_page.find_all('div', class_="articles-list-block")
             for one_of_urls in all_urls_soup:
-                self.urls.append('https://www.ks87.ru'+self._extract_url(one_of_urls))
+                if self.max_articles_per_seed == 15:
+                    self.urls.append('https://www.ks87.ru'+self._extract_url(one_of_urls))
             if len(self.urls) == self.max_articles:
-                return self.urls
+                print(self.urls)
 
 
     def get_search_urls(self):
