@@ -48,8 +48,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find('h2', class_="G3ax").find('a')
-        article_link = url_article.attrs['href']
+        article_link = article_bs.find('h2', class_="G3ax").find('a').get('href')
         return 'https://www.e1.ru' + article_link
 
     def find_articles(self):
@@ -64,7 +63,7 @@ class Crawler:
                 sleep(random.randrange(2, 6))
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('article', class_="G3aj7")
+            article_soup = page_soup.find_all('article', class_="G3ajx")
             for article in article_soup:
                 seed_url = self._extract_url(article)
                 self.urls.append(seed_url)
@@ -94,11 +93,11 @@ class ArticleParser:
             self.article.text += par.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h2', {'itemprop': 'headline'}).find('span').text
-        self.article.annotation = article_soup.find('p', class_="CLpj JZaj-").find('span').text
+        self.article.title = article_soup.find('h2', class_="CVq3 CVtb KHax").find('span').text
+        self.article.annotation = article_soup.find('p', class_="CVq- KHaj1").find('span').text
         self.article.author = 'NOT FOUND'
-        self.article.topics = article_soup.find('a', class_="CLpx CLrt JZak9").find('span').text
-        self.article.date = article_soup.find('time', class_="G-k1").find('a').text.strip()
+        self.article.topics = article_soup.find('a', class_="CVrn CVtj KHak5").find('span').text
+        self.article.date = article_soup.find('time', class_="HDkz").find('a').text
 
     @staticmethod
     def unify_date_format(date_str):
@@ -171,4 +170,3 @@ if __name__ == '__main__':
         parser = ArticleParser(article_url, article_id+1)
         article = parser.parse()
         article.save_raw()
-        sleep((random.randrange(2, 6)))
