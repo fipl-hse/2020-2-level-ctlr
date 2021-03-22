@@ -60,7 +60,7 @@ class Crawler:
         Finds articles
         """
         for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, verify=False)
             sleep(5)
             print('Requesting')
 
@@ -114,7 +114,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers)
+        response = requests.get(self.full_url, headers=headers, verify=False)
         sleep(5)
         print('Requesting')
         article_soup = BeautifulSoup(response.content, features='lxml')
