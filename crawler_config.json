@@ -1,5 +1,5 @@
 {
-    "base_urls": ["https://www.nn.ru/text/world"],
+    "base_urls": ["https://www.ks87.ru/20/?page=2"],
     "total_articles_to_find_and_parse": 1,
     "max_number_articles_to_get_from_one_seed": 15
 }
