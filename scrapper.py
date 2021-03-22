@@ -139,7 +139,7 @@ def validate_config(crawler_path):
         crawler_config = json.load(file)
 
     for base_url in crawler_config["base_urls"]:
-        if base_url[:8] != 'https://':
+        if base_url[:8] != 'https://' and not base_url.startswith('http://)':
             raise IncorrectURLError
 
     if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
