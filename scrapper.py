@@ -99,7 +99,7 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('div', class_='articles-body').find('h1').text
-        self.article.author = article_soup.find('strong').text
+        self.article.author = article_soup.find('strong').text.split('\r')[0]
         self.article.date = self.unify_date_format(article_soup.find('div', class_='articles-body-date').text[2:-3].strip())
         return None
 
