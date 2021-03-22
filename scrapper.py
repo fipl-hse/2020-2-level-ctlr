@@ -11,8 +11,7 @@ import re
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
-headers = {
-            'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'
         }
 class IncorrectURLError(Exception):
     """
@@ -57,17 +56,17 @@ class Crawler:
         """
         Finds articles
         """
-        for ttm in self.seed_urls:
+        for urls in self.seed_urls:
             response = requests.get(urls, headers=headers)
             sleep(random.randrange(3, 6))
             if not response:
                 raise IncorrectURLError
             soup = BeautifulSoup(response.content, features='lxml')
-            links = soup.find_all('div', class_='slick-list')
-            for article_bs in links[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == self.max_articles:
-                    break
+            article_soup = soup.find_all('h1', class_='entry-title')
+            for article_bs in article_soup[:self.max_articles_per_seed]:
+                if len(self.urls) <= self.max_articles and article_bs not in self.urls:
+                    seed_url = self._extract_url(article_bs)
+                    self.urls.append(seed_url)
             return self.urls
 
 
@@ -90,20 +89,16 @@ class ArticleParser:
 
 
     def _fill_article_with_text(self, article_soup):
-        article_texts = article_soup.find_all('p')
-        filling_article = []
-        for texts in article_texts:
-            if 'class' not in texts.attrs:
-                filling_article.append(texts.text.strip())
-        self.article.text = ' '.join(filling_article)
+        text_soup = article_soup.find_all('p')
+        text = ''
+        for element in text_soup[:-4]:
+            text += element.text
+        return text.strip()
 
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1', class_="entry-title").text
-        self.article.author = 'NOT FOUND'
-        for topic in article_soup.find_all('a', rel="tag"):
-            self.article.topics.append(topic.text)
-        self.article.date = self.unify_date_format(article_soup.find('time', class_='entry-date').text)
+        self.article.title = article_soup.find('h1').text
+        return None
 
 
     @staticmethod
@@ -117,11 +112,11 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = BeautifulSoup(requests.get(self.full_url, headers=headers).content, 'lxml')
+        response = requests.get(self.full_url, headers=headers)
         if not response:
             raise IncorrectURLError
         article_soup = BeautifulSoup(response.content, features='lxml')
-        self._fill_article_with_text(article_soup)
+        self.article.text += self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
         return self.article
 
@@ -154,14 +149,11 @@ def validate_config(crawler_path):
 
 
 
-
-
-
 if __name__ == '__main__':
+    prepare_environment(ASSETS_PATH)
     urls, maxi_articles, maxi_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(urls, maxi_articles, maxi_articles_per_seed)
     crawler.find_articles()
-    prepare_environment(ASSETS_PATH)
     for i, articles_url in enumerate(urls):
         parser = ArticleParser(full_url=articles_url, article_id=i+1)
         article = parser.parse()

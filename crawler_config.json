@@ -1,5 +1,5 @@
 {
-    "base_urls": ['https://севернаяправда.рф/'],
+    "base_urls": ["https://севернаяправда.рф/category/rubriki/sport"],
     "total_articles_to_find_and_parse": 3,
     "max_number_articles_to_get_from_one_seed": 3
 }
