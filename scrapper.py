@@ -11,6 +11,8 @@ import os
 from datetime import datetime
 import shutil
 
+from tls_adapter import TLSAdapter
+
 
 headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)' 
@@ -60,7 +62,7 @@ class Crawler:
         Finds articles
         """
         for url in self.seed_urls:
-            response = requests.get(url, headers=headers, verify=False)
+            response = session.get(url, headers=headers)
             sleep(5)
             print('Requesting')
 
@@ -114,7 +116,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers, verify=False)
+        response = session.get(self.full_url, headers=headers)
         sleep(5)
         print('Requesting')
         article_soup = BeautifulSoup(response.content, features='lxml')
@@ -155,37 +157,15 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-
-    import requests
-    import ssl
-    from urllib3 import poolmanager
-
-    url = 'http://www.ks87.ru/20/?page=2'
-
-    class TLSAdapter(requests.adapters.HTTPAdapter):
-
-        def init_poolmanager(self, connections, maxsize, block=False):
-            """Create and initialize the urllib3 PoolManager."""
-            ctx = ssl.create_default_context()
-            ctx.set_ciphers('DEFAULT@SECLEVEL=1')
-            self.poolmanager = poolmanager.PoolManager(
-                    num_pools=connections,
-                    maxsize=maxsize,
-                    block=block,
-                    ssl_version=ssl.PROTOCOL_TLS,
-                    ssl_context=ctx)
-
     session = requests.session()
     session.mount('https://', TLSAdapter())
-    res = session.get(url)
-    print(res)
 
-    # seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
-    # crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
-    # crawler.find_articles()
-    # prepare_environment(constants.ASSETS_PATH)
+    seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    crawler.find_articles()
+    prepare_environment(constants.ASSETS_PATH)
 
-    # for i, article_url in enumerate(crawler.urls):
-    #     parser = ArticleParser(full_url=article_url, article_id=i)
-    #     parser.parse()
-    #     parser.article.save_raw()
+    for i, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=article_url, article_id=i)
+        parser.parse()
+        parser.article.save_raw()
