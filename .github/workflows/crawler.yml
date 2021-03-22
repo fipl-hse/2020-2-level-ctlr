@@ -142,6 +142,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements_qa.txt
         pip install -r requirements.txt
+        pip freeze | grep urllib3
     - name: Crawl a raw dataset from web
       run: |
         TARGET_SCORE=$(head -2 target_score.txt | tail -1)
