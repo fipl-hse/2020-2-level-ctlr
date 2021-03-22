@@ -11,6 +11,8 @@ import os
 from datetime import datetime
 import shutil
 
+from tls_adapter import TLSAdapter
+
 
 headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)' 
@@ -60,7 +62,7 @@ class Crawler:
         Finds articles
         """
         for url in self.seed_urls:
-            response = requests.get(url, headers=headers, verify=False)
+            response = session.get(url, headers=headers)
             sleep(5)
             print('Requesting')
 
@@ -114,7 +116,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers, verify=False)
+        response = session.get(self.full_url, headers=headers)
         sleep(5)
         print('Requesting')
         article_soup = BeautifulSoup(response.content, features='lxml')
@@ -139,7 +141,7 @@ def validate_config(crawler_path):
         crawler_config = json.load(file)
 
     for base_url in crawler_config["base_urls"]:
-        if base_url[:8] != 'https://' and not base_url.startswith('http://'):
+        if base_url[:8] != 'https://':
             raise IncorrectURLError
 
     if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
@@ -155,6 +157,9 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
+    session = requests.session()
+    session.mount('https://', TLSAdapter())
+
     seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
     crawler.find_articles()
