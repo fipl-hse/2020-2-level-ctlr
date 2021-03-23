@@ -138,7 +138,7 @@ def prepare_environment(base_path):
     """
     path = os.path.join(base_path, 'temp', 'articles')
     if os.path.exists(path):
-        shutil.rmtree(path)
+        shutil.rmtree(path)  # remove recursively
     os.mkdir(path)
 
 
@@ -169,4 +169,4 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     pass
-validate_config('C:\\Users\\Daniel\\Desktop\\GITHUB\\2020-2-level-ctlr\\crawler_config.json')
+
