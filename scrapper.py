@@ -143,13 +143,22 @@ def validate_config(crawler_path):
     """
     with open(crawler_path) as read_file:
         json_dict = json.loads(read_file.read())
+    if 'base_urls' not in json_dict:
+        raise IncorrectURLError
 
     for url in json_dict['base_urls']:
         s = str(url)
         if s.find('http') == -1:
             raise IncorrectURLError('error')
 
+    if not isinstance(json_dict["total_articles_to_find_and_parse"], int):
+        raise IncorrectNumberOfArticlesError
+
+    if 100 < json_dict["total_articles_to_find_and_parse"] <= 0:
+        raise NumberOfArticlesOutOfRangeError
+
     return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
+
 
 
 if __name__ == '__main__':
