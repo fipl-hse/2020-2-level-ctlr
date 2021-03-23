@@ -136,8 +136,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    # path = os.path.join(base_path, 'tmp', 'articles')
-    path = base_path
+    path = os.path.join(base_path, 'tmp', 'articles')
+    # path = base_path
     if os.path.exists(path):
         shutil.rmtree(path)  # remove recursively
     os.mkdir(path)
@@ -169,5 +169,5 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    prepare_environment(constants.ASSETS_PATH)
+    prepare_environment(constants.PROJECT_ROOT)
 
