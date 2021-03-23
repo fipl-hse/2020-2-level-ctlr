@@ -6,6 +6,8 @@ import requests
 import time
 from urllib.parse import urljoin, urldefrag
 import json
+import os
+import shutil
 
 
 class LinkWorker:
@@ -134,7 +136,10 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    path = os.path.join(base_path, 'temp', 'articles')
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.mkdir(path)
 
 
 def validate_config(crawler_path):
