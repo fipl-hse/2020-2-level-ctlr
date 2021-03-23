@@ -140,7 +140,7 @@ def prepare_environment(base_path):
     # path = base_path
     if os.path.exists(path):
         shutil.rmtree(path)  # remove recursively
-    os.mkdir(path)
+    os.makedirs(path)
 
 
 def validate_config(crawler_path):
