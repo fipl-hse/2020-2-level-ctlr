@@ -8,6 +8,7 @@ import random
 from bs4 import BeautifulSoup
 import os
 import re
+import datetime
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
@@ -62,7 +63,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = soup.find_all('h1', class_='entry-title')
+            article_soup = soup.find_all('h2', class_='entry-title')
             for article_bs in article_soup[:self.max_articles_per_seed]:
                 if len(self.urls) <= self.max_articles and article_bs not in self.urls:
                     seed_url = self._extract_url(article_bs)
@@ -89,16 +90,15 @@ class ArticleParser:
 
 
     def _fill_article_with_text(self, article_soup):
-        text_soup = article_soup.find_all('p')
-        text = ''
-        for element in text_soup[:-4]:
-            text += element.text
-        return text.strip()
+        self.article.text = article_soup.find(name='div', class_="entry-content").text
 
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h1').text
-        return None
+        self.article.title = article_soup.find('h2', class_='entry-title').text.strip()
+        self.article.author = 'NOT FOUND'
+        for topic in article_soup.find_all('a', rel="tag"):
+            self.article.topics.append(topic.text)
+        self.article.date = self.unify_date_format(article_soup.find('span', class_='entry-date').text)
 
 
     @staticmethod
@@ -106,18 +106,16 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers)
-        if not response:
-            raise IncorrectURLError
-        article_soup = BeautifulSoup(response.content, features='lxml')
-        self.article.text += self._fill_article_with_text(article_soup)
-        self._fill_article_with_meta_information(article_soup)
+        article_bs = BeautifulSoup(requests.get(self.full_url, headers=headers).content, 'lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
         return self.article
 
 
