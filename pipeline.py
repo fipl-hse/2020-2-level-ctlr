@@ -18,12 +18,6 @@ class EmptyDirectoryError(Exception):
     """
 
 
-class NotADirectoryError(Exception):
-    """
-    Custom error
-    """
-
-
 class InconsistentDatasetError(Exception):
     """
     Custom error
