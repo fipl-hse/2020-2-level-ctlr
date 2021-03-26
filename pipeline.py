@@ -2,14 +2,28 @@
 Pipeline for text processing implementation
 """
 
+from typing import List
 
-class ArticleNotFoundError(Exception):
+
+class EmptyDirectoryError(Exception):
     """
     Custom error
     """
 
 
-class EmptyDirectoryError(Exception):
+class NotADirectoryError(Exception):
+    """
+    Custom error
+    """
+
+
+class InconsistentDatasetError(Exception):
+    """
+    Custom error
+    """
+
+
+class UnknownDatasetError(Exception):
     """
     Custom error
     """
@@ -19,17 +33,11 @@ class MorphologicalToken:
     """
     Stores language params for each processed token
     """
-    def __init__(self, normalized_form, tags, original_word):
-        pass
-
-    def to_text(self):
-        """
-        Converts instance to str format
-        """
+    def __init__(self, original_word, normalized_form):
         pass
 
     def __str__(self):
-        pass
+        return "MorphologicalToken instance here"
 
 
 class CorpusManager:
@@ -39,21 +47,15 @@ class CorpusManager:
     def __init__(self, path_to_raw_txt_data: str):
         pass
 
-    def get_articles_meta(self):
+    def _scan_dataset(self):
         """
-        Gets article metadata
-        """
-        pass
-
-    def get_raw_text(self, text_id):
-        """
-        Opens processed text
+        Register each dataset entry
         """
         pass
 
-    def write_processed_text(self, text_id, processed_text):
+    def get_articles(self):
         """
-        Writes processed text
+        Returns storage params
         """
         pass
 
@@ -71,28 +73,23 @@ class TextProcessingPipeline:
         """
         pass
 
-    @staticmethod
-    def normalize_and_tag_text(text) -> str:
+    def _process(self) -> List[type(MorphologicalToken)]:
         """
-        Processes each token and creates MorphToken class instance
-        """
-        pass
-
-    @staticmethod
-    def transform_tokens_to_text(tokens: list) -> str:
-        """
-        Transforms given list of tokens to str
+        Performs processing of each text
         """
         pass
 
 
-def validate_given_path(path_to_validate):
+def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
     pass
 
 
+def main():
+    print('Your code goes here')
+
+
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    main()
