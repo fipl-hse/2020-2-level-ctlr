@@ -123,7 +123,9 @@ class ArticleParser:
         self.article.topics = []
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.date = '18/09/19 01:55:19'
+        self.article.date = "2020-03-10 10:10:10"
+        date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
+        self.article.date = date_time_obj
 
     @staticmethod
     def unify_date_format(date_str):
