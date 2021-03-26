@@ -14,7 +14,7 @@ Scraping as a process contains following steps:
 1. saving necessary information
 
 As a part of the first milestone, you need to implement scrapping logic as a `scrapper.py` module.
-When it is run as a standalone Python program, it should all aforementioned stages.
+When it is run as a standalone Python program, it should perform all aforementioned stages.
 
 ## Executing scrapper
 
@@ -42,7 +42,7 @@ Expected result:
 
 ## Configuring scrapper
 
-Scrapper behaviour is fully defined by a configuration file that is called 
+Scrapper behavior is fully defined by a configuration file that is called 
 `crawler_config.json` and it is placed at the same level as `scrapper.py`. It is JSON file,
 simply speaking it is a set of key-value pairs. 
 
@@ -55,7 +55,7 @@ simply speaking it is a set of key-value pairs.
 
 ## Assessment criteria
 
-You state your abmitions on the mark by editing the file `target_score.txt` at the `line 2`. For example, such content:
+You state your ambitions on the mark by editing the file `target_score.txt` at the `line 2`. For example, such content:
 ```
 # Target score for scrapper.py:
 6
@@ -139,7 +139,7 @@ When config is not correct:
    errors are self-explaining):
    `IncorrectURLError`, `NumberOfArticlesOutOfRangeError`, 
    `IncorrectNumberOfArticlesError`, and throw `UnknownConfigError` if
-   any other inconsstency is found.
+   any other inconsistency is found.
 2. script immediately finishes execution
 
 ### Stage 2. Find necessary number of article URLs
@@ -170,7 +170,7 @@ method:
 crawler.find_articles()
 ```
 
-The method should contain logic for iteraring over the list of seeds, 
+The method should contain logic for iterating over the list of seeds, 
 downloading them and extracting article URLs from it. As a result, 
 the internal attribute `self.urls`
 should be filled with collected URLs.
@@ -203,10 +203,10 @@ implementation. More detailed description of the Article class can be found
 
 ### Stage 3.2 Implement main ArticleParser method
 
-ArticleParser interface includes a single method `parse` that incapsulates the logic
+ArticleParser interface includes a single method `parse` that encapsulates the logic
 of extracting all necessary data from the article webpage. It should do following things:
 
-1. dowload the webpage
+1. download the webpage
 1. initialize BeautifulSoup object on top of downloaded page (we will call it `article_bs`)
 1. fill Article instance by calling private methods to extract text 
    (more details in next sections).
