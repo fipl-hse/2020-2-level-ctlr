@@ -1,7 +1,7 @@
 import os
 import unittest
 from constants import CRAWLER_CONFIG_PATH
-from pipeline import EmptyDirectoryError, validate_given_path
+from pipeline import EmptyDirectoryError, validate_dataset, NotADirectoryError
 
 
 print("Stage 2A: Validating Assets Path")
@@ -26,7 +26,7 @@ class PipelinePathCheck(ExtendedTestCase):
                         """
         self.assertRaisesWithMessage(error_message,
                                      FileNotFoundError,
-                                     validate_given_path,
+                                     validate_dataset,
                                      not_existing_path)
 
     def test_pipe_fails_if_no_files_in_folder_path(self):
@@ -37,7 +37,7 @@ class PipelinePathCheck(ExtendedTestCase):
                         """
         self.assertRaisesWithMessage(error_message,
                                      EmptyDirectoryError,
-                                     validate_given_path,
+                                     validate_dataset,
                                      test_dir)
         os.rmdir(test_dir)
 
@@ -46,7 +46,7 @@ class PipelinePathCheck(ExtendedTestCase):
                         """
         self.assertRaisesWithMessage(error_message,
                                      NotADirectoryError,
-                                     validate_given_path,
+                                     validate_dataset,
                                      CRAWLER_CONFIG_PATH)
 
 
