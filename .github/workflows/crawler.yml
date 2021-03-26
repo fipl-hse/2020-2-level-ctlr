@@ -447,6 +447,6 @@ jobs:
       run: |
         TARGET_SCORE=$(head -5 target_score.txt | tail -1)
         if [[ ${TARGET_SCORE} == 10 ]]; then
-          python pos_freq_pipeline.py
+          python pos_frequency_pipeline.py
         fi
         echo "Your solution is accepted! Proceed to further tasks from your lecturer."
