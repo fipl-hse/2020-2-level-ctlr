@@ -127,7 +127,7 @@ class ArticleParser:
         self.article.date = "2020-03-10 10:10:10"
         date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
         self.article.date = date_time_obj
-        self.article.author = 'Ya Zhurnalist'
+        self.article.author = 'NOT FOUND'
         self.article.topics = ['Me', 'be', 'gay', 'you', 'be', 'gay', 'too:)']
 
     @staticmethod
