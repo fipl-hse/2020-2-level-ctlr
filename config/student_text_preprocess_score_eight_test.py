@@ -33,7 +33,7 @@ class StudentTextPreprocessTest(unittest.TestCase):
 
     def test_tags_correctness(self):
         for article_id, article_text in self.articles.items():
-            tags = re.findall(r"<([A-Z]*)[,=]?", article_text)
+            tags = re.findall(r"<([A-Z]+)[,=]?", article_text)
             for tag in tags:
                 self.assertTrue(tag in TAGS,
                                 msg=f"""Tag {tag} not in list of known mystem tags""")
