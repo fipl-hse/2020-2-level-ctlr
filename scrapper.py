@@ -119,7 +119,7 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         self.article.text = "My name is Jhon. I love programming." \
-                            " Anybody who reads this will die in 3 seconds. Thank You! Goodbye!"
+                            "  Anybody who reads this will die in 3 seconds. Thank You! Goodbye!"
 
 
 
