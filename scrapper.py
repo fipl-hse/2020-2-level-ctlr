@@ -187,4 +187,4 @@ if __name__ == '__main__':
         article_parser = ArticleParser(link, id)
         id += 1
         article_parser.parse()
-        article_parser.article.save_raw(id)
+        article_parser.article.save_raw()
