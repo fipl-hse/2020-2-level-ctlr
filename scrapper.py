@@ -118,14 +118,17 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = 'text'
-        self.article.author = 'Ya Zhurnalist'
-        self.article.topics = []
+        self.article.text = "My name is Jhon. I love programming." \
+                            " Anybody who reads this will die in 3 seconds. Thank You! Goodbye!"
+
+
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.date = "2020-03-10 10:10:10"
         date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
         self.article.date = date_time_obj
+        self.article.author = 'Ya Zhurnalist'
+        self.article.topics = ['Me', 'be', 'gay', 'you', 'be', 'gay', 'too:)']
 
     @staticmethod
     def unify_date_format(date_str):
