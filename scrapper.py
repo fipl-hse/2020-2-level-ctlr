@@ -9,6 +9,8 @@ import json
 import os
 import shutil
 import constants
+from article import Article
+
 
 class LinkWorker:
     def __init__(self, page, relative_link):
@@ -110,10 +112,14 @@ class ArticleParser:
     """
 
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        self.article.text = 'text'
+        self.article.author = 'Ya Zhurnalist'
+        self.article.topics = []
 
     def _fill_article_with_meta_information(self, article_soup):
         pass
@@ -129,8 +135,10 @@ class ArticleParser:
         """
         Parses each article
         """
-        pass
-
+        result = requests.get(self.full_url)
+        soup_object = BeautifulSoup(result.text)
+        self._fill_article_with_text(soup_object)
+        self._fill_article_with_meta_information(soup_object)
 
 def prepare_environment(base_path):
     """
@@ -163,11 +171,19 @@ def validate_config(crawler_path):
     if json_dict["total_articles_to_find_and_parse"] <= 0 or json_dict["total_articles_to_find_and_parse"] > 100:
         raise NumberOfArticlesOutOfRangeError
 
-    return json_dict['base_urls'], ['total_articles_to_find_and_parse'], ['max_number_articles_to_get_from_one_seed']
-
+    return json_dict['base_urls'], json_dict['total_articles_to_find_and_parse'], \
+           json_dict['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
     prepare_environment(constants.PROJECT_ROOT)
-
+    # crawler creation code
+    urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=urls, max_articles=num_urls, max_articles_per_seed=max_seed_number)
+    crawler.find_articles()
+    id = 1
+    for link in crawler.get_search_urls():
+        article_parser = ArticleParser(link, id)
+        id += 1
+        article_parser.parse()
