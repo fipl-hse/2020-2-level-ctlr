@@ -3,7 +3,7 @@ import os
 import json
 import unittest
 from constants import ASSETS_PATH
-from pipeline import CorpusManager, TextProcessingPipeline, validate_given_path
+from pipeline import CorpusManager, TextProcessingPipeline, validate_dataset
 from config.test_params import TEST_FILES_FOLDER
 
 
@@ -23,7 +23,7 @@ class ReferenceTextPreprocessTest(unittest.TestCase):
         with open(os.path.join(ASSETS_PATH, "0_raw.txt"), "w", encoding="utf-8") as r:
             r.write(text)
 
-        validate_given_path(ASSETS_PATH)
+        validate_dataset(ASSETS_PATH)
         corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
         pipe = TextProcessingPipeline(corpus_manager)
         pipe.run()
