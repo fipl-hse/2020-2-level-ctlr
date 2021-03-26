@@ -6,6 +6,6 @@
                   "https://burunen.ru/news/incidents/",
                   "https://burunen.ru/news/politic/"
     ],
-    "total_articles_to_find_and_parse": 20,
+    "total_articles_to_find_and_parse": 10,
     "max_number_articles_to_get_from_one_seed": 10
 }
