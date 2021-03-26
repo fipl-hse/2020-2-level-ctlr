@@ -17,10 +17,10 @@ class EmptyDirectoryError(Exception):
     """
 
 
-class NotADirectoryError(Exception):
-    """
-    Custom error
-    """
+# class NotADirectoryError(Exception):
+#     """
+#     Custom error
+#     """
 
 
 class InconsistentDatasetError(Exception):
@@ -48,6 +48,9 @@ class MorphologicalToken:
     def __str__(self):
         return self.normalized + '<' + self.mystem_tags + '>' + '(' + str(self.pymorphy_tags) + ')'
 
+    def placeholder_public_method(self):
+        pass
+
 
 class CorpusManager:
     """
@@ -73,6 +76,9 @@ class CorpusManager:
         self._scan_dataset()
         return self._storage
 
+    def placeholder_public_method(self):
+        pass
+
 
 class TextProcessingPipeline:
     """
@@ -85,12 +91,15 @@ class TextProcessingPipeline:
         """
         Runs pipeline process scenario
         """
-        print(f'there are {self.corpus.get_articles()} articles to process')
-        for index, article in self.corpus.get_articles().items():
+        print(f'there are {len(self.corpus.get_articles())} articles to process')
+        for article in self.corpus.get_articles().values():
             raw_text = article.get_raw_text()
             tokens = self._process(raw_text)
-            processed = ' '.join(map(lambda token: str(token), tokens))
+            processed = ' '.join(map(str, tokens))
             article.save_processed(processed)
+
+    def placeholder_public_method(self):
+        pass
 
     @staticmethod
     def _process(text) -> List[type(MorphologicalToken)]:
