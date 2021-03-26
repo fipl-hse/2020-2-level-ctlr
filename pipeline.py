@@ -1,9 +1,9 @@
 """
 Pipeline for text processing implementation
 """
-import os
 from typing import List
 
+from pathlib import Path
 from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
 
@@ -64,9 +64,10 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        for file in os.listdir(ASSETS_PATH):
-            if file.endswith('_raw.txt'):
-                index = file.split('_raw.txt')[0]
+        path = Path(ASSETS_PATH)
+        for file in path.iterdir():
+            if str(file).endswith('_raw.txt'):
+                index = str(file).split('_raw.txt')[0]
                 self._storage[index] = Article(url=None, article_id=index)
 
     def get_articles(self):
@@ -138,17 +139,18 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    if not os.path.exists(path_to_validate):
+    path = Path(path_to_validate)
+    if not path.exists():
         raise FileNotFoundError
-    if not os.path.isdir(path_to_validate):
+    if not path.is_dir():
         raise NotADirectoryError
-    if not os.listdir(path_to_validate):
+    if not path.iterdir():
         raise EmptyDirectoryError
     metas, raws = 0, 0
-    for file in os.listdir(ASSETS_PATH):
-        if file.endswith("_raw.txt"):
+    for file in path.iterdir():
+        if str(file).endswith("_raw.txt"):
             raws += 1
-        if file.endswith("_meta.json"):
+        if str(file).endswith("_meta.json"):
             metas += 1
     if not metas == raws:
         raise InconsistentDatasetError
