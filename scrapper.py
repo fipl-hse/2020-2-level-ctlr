@@ -10,6 +10,7 @@ import os
 import shutil
 import constants
 from article import Article
+from datetime import datetime
 
 
 class LinkWorker:
@@ -122,7 +123,7 @@ class ArticleParser:
         self.article.topics = []
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.date = "2020-03-10 10:10:10"
+        self.article.date = '18/09/19 01:55:19'
 
     @staticmethod
     def unify_date_format(date_str):
