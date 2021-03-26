@@ -9,6 +9,7 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
+from pos_frequency_pipeline import POSFrequencyPipeline
 
 
 class EmptyDirectoryError(Exception):
@@ -49,6 +50,11 @@ class MorphologicalToken:
         return self.normalized + '<' + self.mystem_tags + '>' + '(' + str(self.pymorphy_tags) + ')'
 
     def placeholder_public_method(self):
+        """
+        In order to pass lint check,
+        class must contain at least
+        two public methods
+        """
         pass
 
 
@@ -77,6 +83,11 @@ class CorpusManager:
         return self._storage
 
     def placeholder_public_method(self):
+        """
+        In order to pass lint check,
+        class must contain at least
+        two public methods
+        """
         pass
 
 
@@ -99,6 +110,11 @@ class TextProcessingPipeline:
             article.save_processed(processed)
 
     def placeholder_public_method(self):
+        """
+        In order to pass lint check,
+        class must contain at least
+        two public methods
+        """
         pass
 
     @staticmethod
@@ -115,7 +131,7 @@ class TextProcessingPipeline:
             if orig.isalpha():
                 try:
                     token = MorphologicalToken(original_word=orig, normalized_form=word['analysis'][0]['lex'])
-                    token.mystem_tags = word['analysis'][0]['gr']
+                    token.mystem_tags = word['analysis'][0]['gr'].strip()
                     token.pymorphy_tags = pymorphy.parse(orig)[0].tag
                     tokens.append(token)
                 except IndexError:
@@ -129,7 +145,7 @@ def validate_dataset(path_to_validate):
     Validates folder with assets
     """
     if not os.path.exists(path_to_validate):
-        raise UnknownDatasetError
+        raise FileNotFoundError
     if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
     if not os.listdir(path_to_validate):
@@ -148,8 +164,12 @@ def main():
     validate_dataset(ASSETS_PATH)
     print('validated dataset')
     corpus_manager = CorpusManager(ASSETS_PATH)
+    print('onto processing')
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
+    print('onto analytics')
+    visualizer = POSFrequencyPipeline(corpus_manager)
+    visualizer.run()
 
 
 if __name__ == "__main__":
