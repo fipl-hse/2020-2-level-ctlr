@@ -1,7 +1,7 @@
 import os
 import unittest
 from constants import CRAWLER_CONFIG_PATH
-from pipeline import EmptyDirectoryError, validate_dataset, NotADirectoryError
+from pipeline import EmptyDirectoryError, validate_dataset
 
 
 print("Stage 2A: Validating Assets Path")
