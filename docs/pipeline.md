@@ -68,14 +68,14 @@ would mean that you have made tasks for mark `6` and request mentors to check if
         1. dataset exists (there is a folder)
         1. dataset is not empty (there are files inside)
         1. dataset is balanced: there are only files that follow the naming conventions:
-            1. `N_raw.txt`, `N_meta.json`, where N is a valid number
+            1. `N_raw.txt`, where N is a valid number
             1. Numbers of articles are from 1 to N without any slips
    1. pipeline tokenizes text in each file, removes punctuation,
       and casts it to the lower case (*no lemmatization or tagging*)
       Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
       Desired output: 
       [config/test_files/reference_score_four_test.txt](../config/test_files/reference_score_four_test.txt)
-   1. pipeline produces only `N_processed.txt` files in the `tmp/articles`
+   1. pipeline produces `N_processed.txt` files in the `tmp/articles`
 1. Desired mark: **6**:
    1. pylint level: `7/10`
    1. all requirements for the mark **4**
@@ -85,7 +85,7 @@ would mean that you have made tasks for mark `6` and request mentors to check if
       Desired output: 
       [config/test_files/reference_test.txt](../config/test_files/reference_test.txt).
     1. pipeline uses pymystem3 library to perform lemmatization and tagging (more details in the description below) 
-    1. pymystem3 tags are represented in angle brackets (within this tutorial we refer to it as a **pymystem-format**)
+    1. pymystem3 tags are represented in angle brackets
 1. Desired mark: **8**:
    1. pylint level: `10/10`
    1. all requirements for the mark **6**
@@ -93,7 +93,7 @@ would mean that you have made tasks for mark `6` and request mentors to check if
       Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
       Desired output: 
       [config/test_files/reference_score_eight_test.txt](../config/test_files/reference_score_eight_test.txt).
-   1. pymorphy2 tags are represented in brackets (within this tutorial we refer to it as a **pymorphy2-format**)
+   1. pymorphy2 tags are represented in brackets
 1. Desired mark: **10**:
    1. pylint level: `10/10`
    1. all requirements for the mark **8**
