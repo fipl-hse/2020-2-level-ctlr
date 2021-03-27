@@ -110,12 +110,13 @@ class Crawler:
 
     def _process_seed(self, page: str):
         """
-        Extracts specified number of links from the seed page and returns them
+        Extracts specified number of links from the seed page, filters and returns them
         """
         soup = BeautifulSoup(page, "lxml")
 
         seed_articles = self._extract_url(soup)[: self.max_articles_per_seed]
-        links = seed_articles[: self.max_articles - len(self.urls)]
+        rus_links = [x for x in seed_articles if re.search(r"[a-z-]+/$", x)]
+        links = rus_links[: self.max_articles - len(self.urls)]
 
         return links
 
@@ -195,6 +196,10 @@ class ArticleParser:
     @property
     def processed(self) -> bool:
         return self.full_url in self._load_state()
+
+    @property
+    def is_russian(self) -> bool:
+        return bool(re.match(r'[а-яё]+', self.article.title, re.I))
 
     def parse(self):
         """
