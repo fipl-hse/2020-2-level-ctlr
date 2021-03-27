@@ -72,9 +72,9 @@ would mean that you have made tasks for mark `6` and request mentors to check if
             1. Numbers of articles are from 1 to N without any slips
    1. pipeline tokenizes text in each file, removes punctuation,
       and casts it to the lower case (*no lemmatization or tagging*)
-      Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
+      Example raw text: [./config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
       Desired output: 
-      [config/test_files/reference_score_four_test.txt](./config/test_files/reference_score_four_test.txt)
+      [./config/test_files/reference_score_four_test.txt](./config/test_files/reference_score_four_test.txt)
    1. pipeline produces only `N_processed.txt` files in the `tmp/articles`
 1. Desired mark: **6**:
    1. pylint level: `7/10`
