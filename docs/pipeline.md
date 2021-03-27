@@ -63,37 +63,37 @@ would mean that you have made tasks for mark `6` and request mentors to check if
 
 1. Desired mark: **4**:
    1. pylint level: `5/10`
-   1. scrapper validates that raw dataset has a proper structure and fails appropriately if the latter is incorrect.
+   1. pipeline validates that raw dataset has a proper structure and fails appropriately if the latter is incorrect.
       Criteria:
         1. dataset exists (there is a folder)
         1. dataset is not empty (there are files inside)
         1. dataset is balanced: there are only files that follow the naming conventions:
-            1. `N_raw.txt`, `N_meta.json`, where N is a valid number
+            1. `N_raw.txt`, where N is a valid number
             1. Numbers of articles are from 1 to N without any slips
    1. pipeline tokenizes text in each file, removes punctuation,
       and casts it to the lower case (*no lemmatization or tagging*)
-      Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
+      Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
       Desired output: 
-      [config/test_files/reference_score_four_test.txt](./config/test_files/reference_score_four_test.txt)
-   1. pipeline produces only `N_processed.txt` files in the `tmp/articles`
+      [config/test_files/reference_score_four_test.txt](../config/test_files/reference_score_four_test.txt)
+   1. pipeline produces `N_processed.txt` files in the `tmp/articles`
 1. Desired mark: **6**:
    1. pylint level: `7/10`
    1. all requirements for the mark **4**
    1. pipeline produces `N_processed.txt` files for each article, where each word is lemmatized and has
       a properly formatted tag.
-      Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
+      Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
       Desired output: 
-      [config/test_files/reference_test.txt](./config/test_files/reference_test.txt).
+      [config/test_files/reference_test.txt](../config/test_files/reference_test.txt).
     1. pipeline uses pymystem3 library to perform lemmatization and tagging (more details in the description below) 
-    1. pymystem3 tags are represented in angle brackets (within this tutorial we refer to it as a **pymystem-format**)
+    1. pymystem3 tags are represented in angle brackets
 1. Desired mark: **8**:
    1. pylint level: `10/10`
    1. all requirements for the mark **6**
    1. pipeline additionally uses pymorphy2 library to perform tagging (more details in the description below)
-      Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
+      Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
       Desired output: 
-      [config/test_files/reference_score_eight_test.txt](./config/test_files/reference_score_eight_test.txt).
-   1. pymorphy2 tags are represented in brackets (within this tutorial we refer to it as a **pymorphy2-format**)
+      [config/test_files/reference_score_eight_test.txt](../config/test_files/reference_score_eight_test.txt).
+   1. pymorphy2 tags are represented in brackets
 1. Desired mark: **10**:
    1. pylint level: `10/10`
    1. all requirements for the mark **8**
@@ -315,9 +315,9 @@ For mark 4 you need to implement following processing:
 1. punctuation removal,
 1. casting to the lower case (*no lemmatization or tagging*)
 
-Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
+Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
 Desired output: 
-[config/test_files/reference_score_four_test.txt](./config/test_files/reference_score_four_test.txt)
+[config/test_files/reference_score_four_test.txt](../config/test_files/reference_score_four_test.txt)
 
 All processing logic is encapsulated in the following protected method:
 
@@ -392,8 +392,8 @@ token.mystem_tags = result[...]
 
 > NOTE: make sure you have adopted `__str__` method in the `MorphologicalToken` so that once these
 > tokens are written to file, mystem tags appear there in angle brackets. 
-> Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
-> Desired output: [config/test_files/reference_test.txt](./config/test_files/reference_test.txt). 
+> Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
+> Desired output: [config/test_files/reference_test.txt](../config/test_files/reference_test.txt). 
 
 #### Stage 5.3. Implement advanced logic of TextProcessingPipeline (Stages 0-5.3 are required to get the mark 8)
 
@@ -416,9 +416,9 @@ You will need `MorphAnalyzer.parse` [docs](https://pymorphy2.readthedocs.io/en/s
 
 > NOTE: make sure you have adopted `__str__` method in the `MorphologicalToken` so that once these
 > tokens are written to file, pymorphy tags appear there in brackets *after* mystem tags. 
-> Example raw text: [config/test_files/0_raw.txt](./config/test_files/0_raw.txt). 
+> Example raw text: [config/test_files/0_raw.txt](../config/test_files/0_raw.txt). 
 > Desired output: 
-> [config/test_files/reference_score_eight_test.txt](./config/test_files/reference_score_eight_test.txt).
+> [config/test_files/reference_score_eight_test.txt](../config/test_files/reference_score_eight_test.txt).
 
 ### Stage 6. Implement analytical pipeline: POSFrequencyPipeline (Stages 0-6 are required to get the mark 10)
 
