@@ -53,11 +53,14 @@ class UnknownConfigError(Exception):
     """
 
 
+lw = LinkWorker('', '')
+
+
 class Crawler:
     """
     Crawler implementation
     """
-    lw = LinkWorker('', '')
+
 
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
@@ -67,13 +70,16 @@ class Crawler:
 
     @staticmethod  # ?
     def _extract_url(article_bs):
+        global lw
         new_urls = []
         for a in article_bs.find_all('a'):
             link = str(a.get('href'))
+            if link.find('html') == -1:
+                continue
             if link.find('https://') == -1:
                 try:
-                    Crawler.lw.update_link(link)
-                    new_urls.append(Crawler.lw.get_absolute_link())
+                    lw.update_link(link)
+                    new_urls.append(lw.get_absolute_link())
                 except:
                     pass
             else:
@@ -88,23 +94,27 @@ class Crawler:
         Finds articles
         """
         new_urls = []
-
+        global lw
+        lw = LinkWorker(self.seed_urls[0], "")
         for url in self.seed_urls:
             time.sleep(0.25)
+            if len(self.urls) >= self.max_articles:
+                break
             try:
                 response = requests.get(url)
                 parser = BeautifulSoup(response.text, 'lxml')
-                self.lw = LinkWorker(url, "")
-                new_urls.extend(self._extract_url(parser))
+                m_urls = self._extract_url(parser)
+                m_urls = m_urls[0:min(len(m_urls), self.max_articles_per_seed)]
+                new_urls.extend(m_urls)
             except Exception:
                 raise IncorrectURLError
-        self.urls = new_urls
+        self.urls.extend(new_urls)
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        return self.seed_urls
+        return self.urls
 
 
 class ArticleParser:
@@ -119,11 +129,9 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         try:
-            self.article.text = article_soup.find('div', class_="content_cn").text.strip()
-        except Exception:
+            self.article.text = article_soup.find(class_='content_cn').text.strip()
+        except Exception as e:
             self.article.text = 'NOT FOUND'
-
-
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.date = "2020-03-10 10:10:10"
@@ -135,8 +143,6 @@ class ArticleParser:
         except Exception:
             self.article.title = 'NOT FOUND'
         self.article.topics.append(self.article.title)
-
-
 
     @staticmethod
     def unify_date_format(date_str):
@@ -154,12 +160,12 @@ class ArticleParser:
         self._fill_article_with_text(soup_object)
         self._fill_article_with_meta_information(soup_object)
 
+
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     path = os.path.join(base_path, 'tmp', 'articles')
-    # path = base_path
     if os.path.exists(path):
         shutil.rmtree(path)  # remove recursively
     os.makedirs(path)
