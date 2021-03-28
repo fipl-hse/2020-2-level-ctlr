@@ -67,7 +67,7 @@ class Crawler:
             articles_soup = seed_soup.find_all('li')
             for article_bs in articles_soup[:max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == max_articles:
+                if len(self.urls) == self.max_articles:
                     return self.urls
 
     def get_search_urls(self):
