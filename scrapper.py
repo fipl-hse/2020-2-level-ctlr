@@ -118,8 +118,10 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = "My name is Jhon. I love programming." \
-                            "  Anybody who reads this will die in 3 seconds. Thank You! Goodbye!"
+        try:
+            self.article.text = article_soup.find('div', class_="content_cn").text.strip()
+        except Exception:
+            self.article.text = 'NOT FOUND'
 
 
 
@@ -128,7 +130,13 @@ class ArticleParser:
         date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
         self.article.date = date_time_obj
         self.article.author = 'NOT FOUND'
-        self.article.topics = ['Me', 'be', 'gay', 'you', 'be', 'gay', 'too:)']
+        try:
+            self.article.title = article_soup.find('h1').text
+        except Exception:
+            self.article.title = 'NOT FOUND'
+        self.article.topics.append(self.article.title)
+
+
 
     @staticmethod
     def unify_date_format(date_str):
