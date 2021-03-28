@@ -12,7 +12,32 @@ import constants
 from article import Article
 from datetime import datetime
 
-
+def get_month(m):
+    if m.find('нвар') != -1:
+        return '01'
+    if m.find('рал') != -1:
+        return '02'
+    if m.find('арт') != -1:
+        return '03'
+    if m.find('прел') != -1:
+        return '04'
+    if m.find('Ма') != -1:
+        return '05'
+    if m.find('Июн') != -1:
+        return '06'
+    if m.find('Июл') != -1:
+        return '07'
+    if m.find('Авгус') != -1:
+        return '08'
+    if m.find('Сент') != -1:
+        return '09'
+    if m.find('Окт') != -1:
+        return '10'
+    if m.find('Нояб') != -1:
+        return '11'
+    if m.find('Декаб') != -1:
+        return '12'
+    return ''
 class LinkWorker:
     def __init__(self, page, relative_link):
         self.page = page
@@ -134,7 +159,8 @@ class ArticleParser:
             self.article.text = 'NOT FOUND'
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.date = "2020-03-10 10:10:10"
+        date = article_soup.find(class_='claer public_data').find('span').text.strip()
+        self.article.date = ArticleParser.unify_date_format(date)
         date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
         self.article.date = date_time_obj
         self.article.author = 'NOT FOUND'
@@ -149,7 +175,12 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        try:
+            arr = date_str.split(" ")
+            arr[0] = arr[0][0:len(arr[0]) - 1]
+            return arr[3] + '-' + get_month(arr[2]) + '-' + arr[1] + ' ' + arr[0] + ':00'
+        except Exception:
+            return "0000-00-00 00:00:00"
 
     def parse(self):
         """
