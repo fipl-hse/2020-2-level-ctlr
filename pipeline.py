@@ -2,6 +2,9 @@
 Pipeline for text processing implementation
 """
 
+import os
+import re
+
 from typing import List
 
 
@@ -78,11 +81,47 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    is_dataset_exists = True
+    # dataset exists (there is a folder)
+    if not os.path.exists(path_to_validate):
+        is_dataset_exists = False
+        raise NotADirectoryError
+
+    files = os.listdir(path_to_validate)
+    # dataset is not empty (there are files inside)
+    is_dataset_not_empty = True
+    if not files:
+        is_dataset_not_empty = False
+        raise EmptyDirectoryError
+
+    # dataset is balanced: there are only files that follow the naming conventions:
+    is_dataset_balanced = True
+    for file in files:
+        if not os.path.exists(os.path.join(path_to_validate, file)):
+            is_dataset_balanced = False
+            raise FileNotFoundError
+        # N_raw.txt, N_meta.json, where N is a valid number
+        try:
+            is_number_valid = int(file[0])
+        except ValueError:
+            is_dataset_balanced = False
+            raise InconsistentDatasetError
+        # Numbers of articles are from 1 to N without any slips
+        n = 1
+        if file == r'..raw.txt' and int(file[0]) != n:
+            is_dataset_balanced = False
+            raise InconsistentDatasetError
+        n += 1
+    if is_dataset_exists and is_dataset_not_empty and is_dataset_balanced:
+        return None
+    else:
+        raise UnknownDatasetError
 
 
 def main():
     print('Your code goes here')
+    from constants import ASSETS_PATH
+    validate_dataset(ASSETS_PATH)
 
 
 if __name__ == "__main__":
