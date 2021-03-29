@@ -236,7 +236,7 @@ def prepare_environment(base_path):
     """
     if Path(base_path).exists():
         shutil.rmtree(base_path)
-    Path(base_path).mkdir()
+    Path(base_path).mkdir(parents=True, exist_ok=True)
 
 
 def validate_config(crawler_path):
