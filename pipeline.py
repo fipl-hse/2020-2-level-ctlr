@@ -135,8 +135,7 @@ def validate_dataset(path_to_validate):
         ids = []
         for file in files:
             ids.append(int(file.parts[-1].split('_')[0]))
-        if max(ids) != len(files) or len(ids) != len(files) or\
-                not set(ids) == set(range(1, max(ids) + 1)):
+        if len(ids) != len(files) or not set(ids) == set(range(min(ids), max(ids) + 1)):
             raise InconsistentDatasetError
     else:
         raise FileNotFoundError
