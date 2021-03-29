@@ -3,7 +3,7 @@ Crawler implementation
 """
 import datetime
 import json
-import os
+from pathlib import Path
 import random
 import re
 import shutil
@@ -15,7 +15,7 @@ import requests
 import article
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, PROJECT_ROOT
 
-CRAWLER_SAVE_PATH = os.path.join(PROJECT_ROOT, 'intermediate_results.json')
+CRAWLER_SAVE_PATH = Path(PROJECT_ROOT) / 'intermediate_results.json'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74'}
 
@@ -172,7 +172,7 @@ class CrawlerRecursive(Crawler):
         return list(set(self.seed_urls))
 
     def _load_intermediate_results(self):
-        if os.path.exists(CRAWLER_SAVE_PATH):
+        if Path(CRAWLER_SAVE_PATH).exists():
             with open(CRAWLER_SAVE_PATH, 'r', encoding='utf-8') as file:
                 dic = json.load(file)
             if self.seed_urls not in dic['seed_urls'] and not dic['seed_urls']:
@@ -234,9 +234,10 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
+    path = Path(base_path)
+    if path.exists():
         shutil.rmtree(base_path)
-    os.makedirs(base_path)
+    path.mkdir()
 
 
 def validate_config(crawler_path):
