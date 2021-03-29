@@ -85,6 +85,8 @@ def validate_dataset(path_to_validate):
     # dataset exists (there is a folder)
     if not os.path.exists(path_to_validate):
         is_dataset_exists = False
+        raise FileNotFoundError
+    if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
 
     files = os.listdir(path_to_validate)
@@ -97,9 +99,6 @@ def validate_dataset(path_to_validate):
     # dataset is balanced: there are only files that follow the naming conventions:
     is_dataset_balanced = True
     for file in files:
-        if not os.path.exists(os.path.join(path_to_validate, file)):
-            is_dataset_balanced = False
-            raise FileNotFoundError
         # N_raw.txt, N_meta.json, where N is a valid number
         try:
             is_number_valid = int(file[0])
