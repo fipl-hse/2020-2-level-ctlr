@@ -5,9 +5,6 @@ Pipeline for text processing implementation
 from pathlib import Path
 from typing import List
 
-from pymorphy2 import MorphAnalyzer
-from pymystem3 import Mystem
-
 from article import Article
 from constants import ASSETS_PATH
 
@@ -100,7 +97,7 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        # TODO realization
+        #realization
         pass
 
     def public_method(self):
@@ -121,7 +118,7 @@ def validate_dataset(path_to_validate):
         raise NotADirectoryError
     if not list(path.iterdir()):
         raise EmptyDirectoryError
-    # TODO InconsistentDatasetError and UnknownDatasetError
+    #InconsistentDatasetError and UnknownDatasetError
 
 
 def main():
