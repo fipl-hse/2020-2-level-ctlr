@@ -16,6 +16,7 @@ from article import Article
 from constants import PROJECT_ROOT
 from constants import ASSETS_PATH
 from constants import CRAWLER_CONFIG_PATH
+import shutil
 
 
 class IncorrectURLError(Exception):
@@ -100,6 +101,7 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         self.article.text = article_soup.find(name='div', id="article").text
+
         # self.article.text = re.sub(' ', '&nbsp;', self.article.text)
         # self.article.text = re.sub('&nbsp;', ' ', self.article.text)
         # self.article.text = re.sub('­', ' ', self.article.text)
@@ -110,8 +112,11 @@ class ArticleParser:
         categ_tag = all_text.find_all(name='p', class_="news-category")
         self.article.topics = categ_tag[0].text
 
-        self.article.title = article_soup.find(name='title').text
-        #h1_tag = all_text.find_all(name="h1")
+        #self.article.title = article_soup.find(name='title').text
+        self.article.title = article_soup.find(name='h1').text
+
+        # self.article.title = article_soup.select_one('div.news-post > h1').text
+        # h1_tag = all_text.find_all(name="h1")
 
         #self.article.title = h1_tag[0].text
         #self.article.title = re.sub(' ', '&nbsp;', self.article.title)
@@ -149,6 +154,9 @@ def prepare_environment(base_path):
     """
     if not os.path.isdir(base_path):
         os.makedirs(base_path)
+    else:
+        shutil.rmtree(base_path)
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -171,7 +179,7 @@ def validate_config(crawler_path):
     if not isinstance(config, dict) and is_config_not_ok:
         raise UnknownConfigError
 
-    if are_urls_not_ok:
+    if are_urls_not_ok or not ('https://' for i in config['base_urls']):
         raise IncorrectURLError
 
     if is_num_not_ok:
