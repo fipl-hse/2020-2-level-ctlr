@@ -26,7 +26,7 @@ class POSFrequencyPipeline:
             path = Path(ASSETS_PATH) / f'{index}_processed.txt'
             with open(path, encoding='utf-8') as file:
                 contents = file.read()
-                tags_found.extend(re.findall(r"<([A-Z]*)[,=]?", contents))
+                tags_found.extend(re.findall(r"<([A-Z]+)[,=]?", contents))
         frequencies = {}
         for tag in tags_found:
             frequencies[tag] = tags_found.count(tag)
