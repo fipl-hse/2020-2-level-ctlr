@@ -90,7 +90,7 @@ class TextProcessingPipeline:
 
         storage = self.corpus_manager.get_articles()
 
-        for article_id, article in storage.items():
+        for article in storage.values():
             self._text = article
             processed_text = list(map(str, self._process()))
             article.save_processed(' '.join(processed_text))
