@@ -1,3 +1,4 @@
+# pylint: disable=R0903
 """
 Pipeline for text processing implementation
 """
@@ -117,8 +118,7 @@ def validate_dataset(path_to_validate):
     if not path.is_dir():
         if path.is_file():
             raise NotADirectoryError
-        else:
-            raise FileNotFoundError
+        raise FileNotFoundError
 
     if not any(path.iterdir()):
         raise EmptyDirectoryError
