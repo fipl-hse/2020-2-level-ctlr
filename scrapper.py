@@ -46,12 +46,13 @@ class Crawler:
         self.max_articles_per_one_seed = max_articles_per_one_seed
         self.urls = []
 
-    @staticmethod
-    def _extract_url(article_bs, max_articles_per_one_seed, urls):
+    #@staticmethod
+    def _extract_url(self, article_bs, max_articles_per_one_seed, urls):
         future_article_links_soup = article_bs.find_all(class_="grow_single")
         future_article_links_soup = future_article_links_soup[0:max_articles_per_one_seed]
         for future_article_link in future_article_links_soup:
-            urls.append(future_article_link.find('a').get('href'))
+            if len(urls) != self.total_max_articles:
+                urls.append(future_article_link.find('a').get('href'))
 
     def find_articles(self):
         """

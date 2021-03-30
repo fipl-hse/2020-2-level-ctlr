@@ -1,6 +1,5 @@
 {
-    "base_urls": ["https://www.bragazeta.ru/news/category/news/society/",
-        "https://www.bragazeta.ru/news/category/news/economy/"],
-    "total_articles_to_find_and_parse": 6,
-    "max_number_articles_to_get_from_one_seed": 3
+    "base_urls": ["https://www.bragazeta.ru/news/category/news/society/"],
+    "total_articles_to_find_and_parse": 1,
+    "max_number_articles_to_get_from_one_seed": 4
 }
