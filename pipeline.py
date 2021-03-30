@@ -63,7 +63,11 @@ class CorpusManager:
 
         for file in all_files:
             if '_raw.txt' in file:
-                text_id = int(file.split('\\')[-1].split('_')[0])
+                try:
+                    text_id = int(file.split('\\')[-1].split('_')[0])
+                except ValueError:
+                    text_id = int(file.split('/')[-1].split('_')[0])
+
                 raw_files[text_id] = Article(url=None, article_id=text_id)
 
         return raw_files
