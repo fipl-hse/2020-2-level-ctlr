@@ -26,4 +26,4 @@ class POSFrequencyPipeline:
                     frequencies_dict[pos] = frequencies_dict.get(pos, 0) + 1
                 except (KeyError, IndexError):
                     continue
-            visualize(statistics=frequencies_dict, path_to_save=f'/tmp/articles/{article_id}_image.png')
+            visualize(statistics=frequencies_dict, path_to_save=f'tmp/articles/{article_id}_image.png')
