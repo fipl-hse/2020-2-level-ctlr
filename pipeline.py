@@ -11,6 +11,7 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
+from pos_frequency_pipeline import POSFrequencyPipeline
 
 
 class EmptyDirectoryError(Exception):
@@ -128,7 +129,10 @@ def main():
     validate_dataset(ASSETS_PATH)
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
 
-    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    # pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    # pipeline.run()
+
+    pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
 
