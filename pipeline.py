@@ -144,7 +144,7 @@ def validate_dataset(path_to_validate):
         raise FileNotFoundError
     if not path.is_dir():
         raise NotADirectoryError
-    files = [i for i in path.iterdir()]
+    files = list(path.iterdir())
     if not files:
         raise EmptyDirectoryError
     metas, raws = 0, 0
