@@ -1,13 +1,24 @@
 """
 Crawler implementation
 """
-
+import json
+import os
+from time import sleep
+from datetime import datetime
+import random
+import shutil
+import requests
+from bs4 import BeautifulSoup
+from article import Article
+from constants import CRAWLER_CONFIG_PATH
+from constants import ASSETS_PATH
 
 class IncorrectURLError(Exception):
     """
     Custom error
     """
-
+class UnknownConfigError(Exception):
+    "General error"
 
 class NumberOfArticlesOutOfRangeError(Exception):
     """
@@ -19,30 +30,46 @@ class IncorrectNumberOfArticlesError(Exception):
     """
     Custom error
     """
-
+headers={
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        '(KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'}
 
 class Crawler:
     """
     Crawler implementation
     """
-    def __init__(self, seed_urls: list, max_articles: int):
-        pass
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.seed_urls = seed_urls
+        self.max_articles = max_articles
+        self.max_articles_per_seed = max_articles_per_seed
+        self.urls = []
 
     @staticmethod
     def _extract_url(article_bs):
-        pass
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
         Finds articles
         """
-        pass
+        for url in self.seed_urls:
+            sleep(random.randint(5, 10))
+            response = requests.get(url, headers=headers)
+            if not response:
+                continue
+            seed_soup = BeautifulSoup(response.content, features='lxml')
+            articles_soup = seed_soup.find_all('div', class_='td_module_10 td_module_wrap td_animation-stack')
+            for article_bs in articles_soup[:self.max_articles_per_seed]:
+                self.urls.append(self._extract_url(article_bs))
+                if len(self.urls) == self.max_articles:
+                    break
+        return self.urls
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
@@ -50,42 +77,74 @@ class ArticleParser:
     ArticleParser implementation
     """
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.article_id = article_id
+        self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        text = article_soup.find('div', class_="td-post-content td-pb0padding-side").find_all("p")
+        clean_text = [sent.text for sent in text]
+        self.article.text = " ".join(clean_text)
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
+        self.article.author = 'NOT FOUND'
+        self.article.date = self.unify_date_format(article_soup.find( class_='meta-info').text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        unified_date = datetime.strptime(date_str.strip(), "%d.%m.%Y")
+        return unified_date
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        response = requests.get(self.full_url, headers = headers)
+        article_bs = BeautifulSoup(response.content, features='lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
     """
     Validates given config
     """
-    pass
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        config = json.load(file)
+    if not isinstance(config, dict) or not 'base_urls' in config \
+            or not 'total_articles_to_find_and_parse' in config:
+        raise UnknownConfigError
+    if not isinstance(config['base_urls'], list) or not all(isinstance(url, str) for url in config['base_urls']):
+        raise IncorrectURLError
+    if not isinstance(config['total_articles_to_find_and_parse'], int):
+        raise IncorrectNumberOfArticlesError
+    if config['total_articles_to_find_and_parse'] > 100:
+        raise NumberOfArticlesOutOfRangeError
+    return config.values()
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    pass
+    urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
+    articles = crawler.find_articles()
+    prepare_environment(ASSETS_PATH)
+    for ind, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
+        sleep(5)
+        article = parser.parse()
+        article.save_raw()
