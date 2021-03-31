@@ -72,7 +72,8 @@ class Crawler:
             for element in all_links[:max_articles_per_seed]:
                 link = self._extract_url(element)
                 self.urls.append(main_link + link)
-        return []
+                if len(self.urls) == max_articles:
+                    return []
 
     def get_search_urls(self):
         """
@@ -138,7 +139,7 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path) as crawler:
+    with open(crawler_path, 'r') as crawler:
         check_config = json.load(crawler)
     all_seed_urls = check_config.get("base_urls")
     all_articles = check_config.get("total_articles_to_find_and_parse")
