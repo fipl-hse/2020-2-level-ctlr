@@ -2,7 +2,4 @@
 8 #7
 
 # Target score for pipeline.py:
-6
-
-# Skip pipeline checks:
-1
+0
