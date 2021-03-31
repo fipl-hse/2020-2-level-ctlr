@@ -6,10 +6,13 @@ import os
 import re
 from typing import List
 
+import pymorphy2
 from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
+
+morph = pymorphy2.MorphAnalyzer()
 
 
 class EmptyDirectoryError(Exception):
@@ -42,7 +45,7 @@ class MorphologicalToken:
         self.pymorpy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorpy_tags})"
 
 
 class CorpusManager:
@@ -114,6 +117,7 @@ class TextProcessingPipeline:
 
             token = MorphologicalToken(original, normalized)
             token.mystem_tags = tags
+            token.pymorpy_tags = morph.parse(original)[0].tag
             tokenized_text.append(token)
         return tokenized_text
 
