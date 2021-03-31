@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from article import Article
-import constants
+from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH, TO_PARSE_URLS, SEEN_URLS, ARTICLE_URLS, HEADERS
 
 
 class IncorrectURLError(Exception):
@@ -76,9 +76,9 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        if os.path.exists(constants.ARTICLE_URLS):
-            article_urls = set(open(constants.ARTICLE_URLS, encoding='utf-8').read().split('\n'))
-            seen_urls = set(open(constants.SEEN_URLS, encoding='utf-8').read().split('\n'))
+        if os.path.exists(ARTICLE_URLS):
+            article_urls = set(open(ARTICLE_URLS, encoding='utf-8').read().split('\n'))
+            seen_urls = set(open(SEEN_URLS, encoding='utf-8').read().split('\n'))
         else:
             article_urls = set()
             seen_urls = set()
@@ -92,7 +92,7 @@ class Crawler:
                                                r'\d{4}/\d{2}/\d{2}/', res[0]):
                         article_urls.add(res[0])
         if article_urls:
-            with open(constants.ARTICLE_URLS, 'w', encoding='utf-8') as file:
+            with open(ARTICLE_URLS, 'w', encoding='utf-8') as file:
                 file.write('\n'.join(article_urls))
         return article_urls
 
@@ -121,9 +121,9 @@ class Crawler:
                         self.seed_urls.append(res[0])
                         self.seen_urls.add(res[0])
             if idx % 10 == 0:
-                with open(constants.TO_PARSE_URLS, 'w', encoding='utf-8') as file:
+                with open(TO_PARSE_URLS, 'w', encoding='utf-8') as file:
                     file.write('\n'.join(self.seed_urls))
-                with open(constants.SEEN_URLS, 'w', encoding='utf-8') as file:
+                with open(SEEN_URLS, 'w', encoding='utf-8') as file:
                     file.write('\n'.join(self.seen_urls))
         return self.seed_urls
 
@@ -152,7 +152,7 @@ class CrawlerRecursive(Crawler):
         """
         if len(self.urls) >= self.max_articles or not self.seed_urls:
             self.urls = list(self.urls)[:self.max_articles]
-            with open(constants.ARTICLE_URLS, 'w', encoding='utf-8') as file:
+            with open(ARTICLE_URLS, 'w', encoding='utf-8') as file:
                 file.write('\n'.join(self.urls))
             return 1
 
@@ -167,14 +167,14 @@ class CrawlerRecursive(Crawler):
         return None
 
     def _load_previous_state(self):
-        if os.path.exists(constants.TO_PARSE_URLS):
-            self.seed_urls = open(constants.TO_PARSE_URLS).read().split('\n')
+        if os.path.exists(TO_PARSE_URLS):
+            self.seed_urls = open(TO_PARSE_URLS).read().split('\n')
 
-        if os.path.exists(constants.SEEN_URLS):
-            self.seen_urls = set(open(constants.SEEN_URLS).read().split('\n'))
+        if os.path.exists(SEEN_URLS):
+            self.seen_urls = set(open(SEEN_URLS).read().split('\n'))
 
-        if os.path.exists(constants.ARTICLE_URLS):
-            self.urls = set(open(constants.ARTICLE_URLS).read().split('\n'))
+        if os.path.exists(ARTICLE_URLS):
+            self.urls = set(open(ARTICLE_URLS).read().split('\n'))
 
 
 class ArticleParser:
@@ -259,7 +259,7 @@ def get_page(url):
     """
     Returns requests page
     """
-    response = requests.get(url, headers=constants.HEADERS)
+    response = requests.get(url, headers=HEADERS)
     response.encoding = 'utf-8'
     if response.status_code == 200:
         page = response.text
@@ -335,9 +335,9 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    prepare_environment(constants.ASSETS_PATH)
+    prepare_environment(ASSETS_PATH)
 
-    urls, articles_max, articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    urls, articles_max, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = CrawlerRecursive(
         seed_urls=urls,
         max_articles=articles_max,
@@ -345,7 +345,7 @@ if __name__ == '__main__':
     )
     crawler.find_articles()
 
-    articles_urls = open(constants.ARTICLE_URLS).read().split('\n')
+    articles_urls = open(ARTICLE_URLS).read().split('\n')
     i = 1
 
     for article_url in articles_urls:
