@@ -2,7 +2,7 @@
 Pipeline for text processing implementation
 """
 
-from typing import List
+# from typing import List
 
 
 class EmptyDirectoryError(Exception):
@@ -74,11 +74,11 @@ class UnknownDatasetError(Exception):
 #         pass
 
 
-def validate_dataset(path_to_validate):
-    """
-    Validates folder with assets
-    """
-    pass
+# def validate_dataset(path_to_validate):
+#     """
+#     Validates folder with assets
+#     """
+#     pass
 
 
 def main():
