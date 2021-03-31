@@ -50,8 +50,8 @@ class CorpusManager:
     Works with articles and stores them
     """
 
-    def __init__(self, path_to_raw_txt_data: str):
-        self.path_to_raw_txt_data = path_to_raw_txt_data
+    def __init__(self, path_to_dataset: str):
+        self.path_to_dataset = path_to_dataset
         self._storage = {}
         self._scan_dataset()
 
@@ -59,7 +59,7 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        for i in range(len(os.listdir(self.path_to_raw_txt_data)) // 2):
+        for i in range(1, len(os.listdir(self.path_to_dataset)) // 2 + 1):
             self._storage[i] = Article(url=None, article_id=i)
 
     def get_articles(self):
@@ -84,7 +84,7 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         articles = self.corpus_manager.get_articles()
-        for article in articles.values():
+        for article in articles.items():
             article.text = article.get_raw_text()
             self._current_article_id = article.article_id  # todo ?
             self._currant_article = article.text
@@ -135,14 +135,14 @@ def validate_dataset(path_to_validate):
     if not files:
         raise EmptyDirectoryError
 
-    if not os.path.isdir(path_to_validate):
+    if not os.path.exists(os.path.join(path_to_validate, '1_raw.txt')):
         raise NotADirectoryError
 
     if len(files) % 2:  # odd number of files
         raise InconsistentDatasetError
 
     files_number = len(files) // 2
-    for i in range(files_number):
+    for i in range(1, files_number + 1):
         if not (os.path.exists(os.path.join(path_to_validate, f'{i}_meta.json'))
                 or os.path.exists(os.path.join(path_to_validate, f'{i}_raw.txt'))):
             raise InconsistentDatasetError
@@ -151,7 +151,7 @@ def validate_dataset(path_to_validate):
 def main():
     validate_dataset(ASSETS_PATH)
 
-    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_dataset=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
