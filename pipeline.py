@@ -86,7 +86,9 @@ def validate_dataset(path_to_validate):
     if not os.path.exists(path_to_validate):
         is_dataset_exists = False
         raise FileNotFoundError
+    is_directory = True
     if not os.path.isdir(path_to_validate):
+        is_directory = False
         raise NotADirectoryError
 
     files = os.listdir(path_to_validate)
@@ -111,7 +113,7 @@ def validate_dataset(path_to_validate):
             is_dataset_balanced = False
             raise InconsistentDatasetError
         n += 1
-    if is_dataset_exists and is_dataset_not_empty and is_dataset_balanced:
+    if is_dataset_exists and is_directory and is_dataset_not_empty and is_dataset_balanced:
         return None
     else:
         raise UnknownDatasetError
