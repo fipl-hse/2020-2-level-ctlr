@@ -241,7 +241,9 @@ class ArticleParser:
         soup = BeautifulSoup(article_page, 'html.parser')
         self._fill_article_with_text(soup)
         self._fill_article_with_meta_information(soup)
-        return self.article
+        if self.article:
+            return self.article
+        raise BadArticle
 
     @staticmethod
     def _is_author_in_the_end(paragraphs):
