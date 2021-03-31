@@ -13,18 +13,21 @@ from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
 
+
 class IncorrectURLError(Exception):
     """
     Custom error
     """
-class UnknownConfigError(Exception):
-    "General error"
+
 
 class NumberOfArticlesOutOfRangeError(Exception):
     """
     Custom error
     """
-
+class UnknownConfigError(Exception):
+    """
+    "General error"
+    """
 
 class IncorrectNumberOfArticlesError(Exception):
     """
