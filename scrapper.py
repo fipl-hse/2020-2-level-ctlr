@@ -347,7 +347,7 @@ if __name__ == '__main__':
     crawler.find_articles()
 
     articles_urls = open(ARTICLE_URLS).read().split('\n')
-    i = 1
+    i = 0
 
     for article_url in articles_urls:
         print(f'Article #{i}: {article_url} is processed')
