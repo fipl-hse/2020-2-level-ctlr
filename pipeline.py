@@ -4,10 +4,10 @@ Pipeline for text processing implementation
 import os
 import re
 
+from typing import List
+
 from pymystem3 import Mystem
 from pymorphy2 import MorphAnalyzer
-
-from typing import List
 
 from constants import ASSETS_PATH
 from article import Article
@@ -61,7 +61,7 @@ class CorpusManager:
         Register each dataset entry
         """
         storage_dict = {}
-        
+
         for fname in os.listdir(self.path_to_dataset):
             if fname.endswith('_raw.txt'):
                 file_id = fname.split('_raw.txt')[0]
@@ -105,12 +105,9 @@ class TextProcessingPipeline:
         result = Mystem().analyze(self.text)
 
         for token_dict in result:
-            token_text = token_dict['text']
-            if token_text.isalnum:
-                lemma = token_dict['analysis'][0]['lex'] if 'analysis' in token_dict else token_text
-                token = MorphologicalToken(token_text.lower(), lemma)
-                if 'analysis' in token_dict:
-                    token.mystem_tags = token_dict['analysis'][0]['gr']
+            if 'analysis' in token_dict:
+                token = MorphologicalToken(token_dict['text'], token_dict['analysis'][0]['lex'])
+                token.mystem_tags = token_dict['analysis'][0]['gr']
                 token.pymorphy_tags = token.pymorphy_tags = MorphAnalyzer().parse(token.original_word)[0].tag
                 tokens.append(token)
 
