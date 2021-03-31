@@ -3,7 +3,7 @@ Pipeline for text processing implementation
 """
 
 import os
-from typing import List
+# from typing import List
 
 from constants import ASSETS_PATH
 
