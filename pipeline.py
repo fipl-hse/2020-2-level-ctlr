@@ -26,58 +26,58 @@ class UnknownDatasetError(Exception):
     """
 
 
-class MorphologicalToken:
-    """
-    Stores language params for each processed token
-    """
-
-    def __init__(self, original_word, normalized_form):
-        pass
-
-    def __str__(self):
-        return "MorphologicalToken instance here"
-
-
-class CorpusManager:
-    """
-    Works with articles and stores them
-    """
-
-    def __init__(self, path_to_raw_txt_data: str):
-        pass
-
-    def _scan_dataset(self):
-        """
-        Register each dataset entry
-        """
-        pass
-
-    def get_articles(self):
-        """
-        Returns storage params
-        """
-        pass
+# class MorphologicalToken:
+#     """
+#     Stores language params for each processed token
+#     """
+#
+#     def __init__(self, original_word, normalized_form):
+#         pass
+#
+#     def __str__(self):
+#         return "MorphologicalToken instance here"
 
 
-class TextProcessingPipeline:
-    """
-    Process articles from corpus manager
-    """
+# class CorpusManager:
+#     """
+#     Works with articles and stores them
+#     """
+#
+#     def __init__(self, path_to_raw_txt_data: str):
+#         pass
+#
+#     def _scan_dataset(self):
+#         """
+#         Register each dataset entry
+#         """
+#         pass
+#
+#     def get_articles(self):
+#         """
+#         Returns storage params
+#         """
+#         pass
 
-    def __init__(self, corpus_manager: CorpusManager):
-        pass
 
-    def run(self):
-        """
-        Runs pipeline process scenario
-        """
-        pass
-
-    def _process(self) -> List[type(MorphologicalToken)]:
-        """
-        Performs processing of each text
-        """
-        pass
+# class TextProcessingPipeline:
+#     """
+#     Process articles from corpus manager
+#     """
+#
+#     def __init__(self, corpus_manager: CorpusManager):
+#         pass
+#
+#     def run(self):
+#         """
+#         Runs pipeline process scenario
+#         """
+#         pass
+#
+#     def _process(self) -> List[type(MorphologicalToken)]:
+#         """
+#         Performs processing of each text
+#         """
+#         pass
 
 
 def validate_dataset(path_to_validate):
