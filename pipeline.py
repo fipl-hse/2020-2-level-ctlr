@@ -3,7 +3,6 @@ Pipeline for text processing implementation
 """
 
 import os
-from string import digits
 from pathlib import Path
 from typing import List
 from pymystem3 import Mystem
