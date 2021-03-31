@@ -129,19 +129,22 @@ def validate_dataset(path_to_validate):
     """
 
     if not os.path.exists(path_to_validate):
-        raise NotADirectoryError
+        raise FileNotFoundError
 
     files = os.listdir(path_to_validate)
     if not files:
         raise EmptyDirectoryError
+
+    if not os.path.exists(os.path.join(path_to_validate, '1_raw.txt')):
+        raise NotADirectoryError
 
     if len(files) % 2:  # odd number of files
         raise InconsistentDatasetError
 
     files_number = len(files) // 2
     for i in range(1, files_number + 1):
-        if not (os.path.exists(os.path.join(ASSETS_PATH, f'{i}_meta.json'))
-                or os.path.exists(os.path.join(ASSETS_PATH, f'{i}_raw.txt'))):
+        if not (os.path.exists(os.path.join(path_to_validate, f'{i}_meta.json'))
+                or os.path.exists(os.path.join(path_to_validate, f'{i}_raw.txt'))):
             raise InconsistentDatasetError
 
 
