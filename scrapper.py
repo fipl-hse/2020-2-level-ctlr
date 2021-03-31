@@ -191,6 +191,7 @@ class ArticleParser:
         if paragraphs := article_soup.find('div', {'class': 'mg-blog-post-box'}):
             for paragraph in paragraphs.find_all('p'):
                 self.article.text += paragraph.text + ' '
+            self.article.text = self.article.text.strip()
         else:
             raise BadArticle
 
@@ -241,9 +242,9 @@ class ArticleParser:
         soup = BeautifulSoup(article_page, 'html.parser')
         self._fill_article_with_text(soup)
         self._fill_article_with_meta_information(soup)
-        if self.article:
-            return self.article
-        raise BadArticle
+        if not self.article.text:
+            raise BadArticle
+        return self.article
 
     @staticmethod
     def _is_author_in_the_end(paragraphs):
