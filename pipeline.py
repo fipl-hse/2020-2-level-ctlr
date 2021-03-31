@@ -122,6 +122,7 @@ class TextProcessingPipeline:
             tokenized_text.append(token)
         return tokenized_text
 
+
 def validate_dataset(path_to_validate):
     """
     Validates folder with assets
