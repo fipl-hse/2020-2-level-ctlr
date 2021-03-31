@@ -119,20 +119,13 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    try:
-        path = Path(path_to_validate)
-        if not path.exists():
-            raise FileNotFoundError
-        if not path.is_dir():
-            raise NotADirectoryError
-        if not os.listdir(path_to_validate):
-            raise EmptyDirectoryError
-        # raw_ids = [str(raw_path).split('\\')[-1][0] for raw_path in path.rglob('*.txt')]
-        # for raw_id in raw_ids:
-        #     if raw_id not in digits:
-        #         raise InconsistentDatasetError
-    except UnknownDatasetError as message:
-        print(message)
+    path = Path(path_to_validate)
+    if not path.exists():
+        raise FileNotFoundError
+    if not path.is_dir():
+        raise NotADirectoryError
+    if not os.listdir(path_to_validate):
+        raise EmptyDirectoryError
 
 
 def main():
