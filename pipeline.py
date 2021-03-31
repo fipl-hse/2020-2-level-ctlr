@@ -11,7 +11,7 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
-# from pos_frequency_pipeline import POSFrequencyPipeline
+from pos_frequency_pipeline import POSFrequencyPipeline
 
 morph = pymorphy2.MorphAnalyzer()
 
@@ -78,9 +78,9 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
 
-    def __init__(self, corpus_manager: CorpusManager):
+    def __init__(self, corpus_manager):
         self.corpus_manager = corpus_manager
-        self._currant_article = ''
+        self._current_article = None
 
     def run(self):
         """
@@ -89,7 +89,7 @@ class TextProcessingPipeline:
         articles = self.corpus_manager.get_articles()
         for article in articles.values():
             article.text = article.get_raw_text()
-            self._currant_article = article.text
+            self._current_article = article
             tokens = self._process()
             tokens = ' '.join([str(token) for token in tokens])
             article.save_processed(tokens)
@@ -98,7 +98,7 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        text = self._currant_article
+        text = self._current_article.text
         text = ' '.join(re.findall(r'\w+', text.lower()))
         result = Mystem().analyze(text)
         tokenized_text = []
@@ -147,7 +147,7 @@ def main():
     validate_dataset(ASSETS_PATH)
 
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
-    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
 
