@@ -145,10 +145,11 @@ def validate_dataset(path_to_validate):
 
 def main():
     validate_dataset(ASSETS_PATH)
-
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
-    pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
-    pipeline.run()
+    processing_pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    processing_pipeline.run()
+    pos_pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
+    pos_pipeline.run()
 
 
 if __name__ == "__main__":
