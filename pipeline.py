@@ -106,16 +106,11 @@ class TextProcessingPipeline:
 
         for word in result[::2]:  # skip whitespaces
             original = word['text']
-            if re.fullmatch(r'\d+', original):  # catch digits
-                normalized = word['text']
-                tags = 'NUM='
-
-            else:
-                try:
-                    normalized = word['analysis'][0]['lex']
-                except (KeyError, IndexError):
-                    continue
-                tags = word['analysis'][0]['gr']
+            try:
+                normalized = word['analysis'][0]['lex']
+            except (KeyError, IndexError):
+                continue
+            tags = word['analysis'][0]['gr']
 
             token = MorphologicalToken(original, normalized)
             token.mystem_tags = tags
