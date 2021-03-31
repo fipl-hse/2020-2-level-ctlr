@@ -126,7 +126,7 @@ def validate_dataset(path_to_validate):
             raise FileNotFoundError
         if not path.is_dir():
             raise NotADirectoryError
-        if not len(os.listdir(path_to_validate)):
+        if not os.listdir(path_to_validate):
             raise EmptyDirectoryError
         raw_ids = [str(raw_path).split('\\')[-1][0] for raw_path in path.rglob('*.txt')]
         for raw_id in raw_ids:
