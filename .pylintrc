@@ -143,7 +143,6 @@ disable=print-statement,
         bad-continuation,
         unused-argument,
         unnecessary-pass,
-		fixme,
 		too-few-public-methods,
         import-error
 
