@@ -84,7 +84,7 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         articles = self.corpus_manager.get_articles()
-        for i, article in articles.items():
+        for article in articles.items():
             article.text = article.get_raw_text()
             self._current_article_id = article.article_id  # todo ?
             self._currant_article = article.text
