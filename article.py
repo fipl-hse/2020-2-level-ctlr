@@ -30,9 +30,6 @@ class Article:
         self.topics = []
         self.text = ''
 
-<<<<<<< HEAD
-
-=======
     def save_raw(self):
         """
         Saves raw text and article meta data
@@ -49,8 +46,7 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
->>>>>>> 99d55923f801bafc83e31d4e28ebc3bb7662f489
+
     @staticmethod
     def from_meta_json(json_path: str):
         """
