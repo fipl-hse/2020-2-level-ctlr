@@ -48,7 +48,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        article_link = article_bs.find('h2', class_="G1ax").find('a').get('href')
+        article_link = article_bs.find('h2', class_="G3ad").find('a').get('href')
         return 'https://www.e1.ru' + article_link
 
     def find_articles(self):
@@ -63,13 +63,12 @@ class Crawler:
                 sleep(random.randrange(2, 6))
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('article', class_="G1ajx")
+            article_soup = page_soup.find_all('article', class_="G3aj-")
             for article in article_soup[:max_articles_per_seed]:
                 seed_url = self._extract_url(article)
                 self.urls.append(seed_url)
                 if len(self.urls) == max_articles:
                     return self.urls
-
 
     def get_search_urls(self):
         """
@@ -88,16 +87,15 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        article_text = article_soup.find('div', class_="F-af3").find_all('p')
+        article_text = article_soup.find('div', class_="GDagz").find('div').find_all('p')
         for par in article_text:
             self.article.text += par.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h2', class_="CVq3 CVtb KHax").find('span').text
-        self.article.annotation = article_soup.find('p', class_="CVq- KHaj1").find('span').text
+        self.article.title = article_soup.find('h2', class_="C7r1 C7t- KBad").find('span').text
         self.article.author = 'NOT FOUND'
-        self.article.topics = article_soup.find('a', class_="CVrn CVtj KHak5").find('span').text
-        self.article.date = article_soup.find('time', class_="HDkz").find('a').text
+        self.article.topics = article_soup.find('a', class_="C7sl C7uh KBal9").find('span').text
+        self.article.date = article_soup.find('time', class_="HDk-").find('a').text
 
     @staticmethod
     def unify_date_format(date_str):

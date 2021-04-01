@@ -1,15 +1,27 @@
 """
 Pipeline for text processing implementation
 """
+from pymystem3 import Mystem
+from typing import List
+from pathlib import Path
+
+from article import Article
+from constants import ASSETS_PATH
 
 
-class ArticleNotFoundError(Exception):
+class EmptyDirectoryError(Exception):
     """
     Custom error
     """
 
 
-class EmptyDirectoryError(Exception):
+class InconsistentDatasetError(Exception):
+    """
+    Custom error
+    """
+
+
+class UnknownDatasetError(Exception):
     """
     Custom error
     """
@@ -19,80 +31,106 @@ class MorphologicalToken:
     """
     Stores language params for each processed token
     """
-    def __init__(self, normalized_form, tags, original_word):
-        pass
-
-    def to_text(self):
-        """
-        Converts instance to str format
-        """
-        pass
+    def __init__(self, normalized_form, original_word):
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ''
 
     def __str__(self):
-        pass
+        return f"{self.normalized_form}<{self.mystem_tags}>"
 
 
 class CorpusManager:
     """
     Works with articles and stores them
     """
+
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_txt_date = path_to_raw_txt_data
+        self._storage = {}
 
-    def get_articles_meta(self):
-        """
-        Gets article metadata
-        """
-        pass
+        self._scan_dataset()
 
-    def get_raw_text(self, text_id):
+    def _scan_dataset(self):
         """
-        Opens processed text
+        Register each dataset entry
         """
-        pass
+        for file in Path(self.path_to_raw_txt_date).glob('*_raw.txt'):
+            id = str(file).split('\\')[-1].split('_')[0]
+            self._storage[id] = Article(url=None, article_id=id)
 
-    def write_processed_text(self, text_id, processed_text):
+    def get_articles(self):
         """
-        Writes processed text
+        Returns storage params
         """
-        pass
+        return self._storage
 
 
 class TextProcessingPipeline:
     """
     Process articles from corpus manager
     """
+
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self._text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        for article in self.corpus_manager.get_articles().values():
+            self.text_ = article.get_raw_text()
+            processed_text = list(map(str, self._process()))
+            article.save_processed(' '.join(processed_text))
 
-    @staticmethod
-    def normalize_and_tag_text(text) -> str:
+    def _process(self) -> List[type(MorphologicalToken)]:
         """
-        Processes each token and creates MorphToken class instance
+        Performs processing of each text
         """
-        pass
+        text = self.text_
+        result = Mystem().analyze(text)
+        tokens = []
 
-    @staticmethod
-    def transform_tokens_to_text(tokens: list) -> str:
-        """
-        Transforms given list of tokens to str
-        """
-        pass
+        for word in result:
+            try:
+                token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
+                token.mystem_tags = word['analysis'][0]['gr']
+            except (IndexError, KeyError):
+                if not word['text'].isnumeric():
+                    continue
+                token = MorphologicalToken(original_word=word['text'], normalized_form=word['text'])
+
+            tokens.append(token)
+
+            return tokens
 
 
-def validate_given_path(path_to_validate):
+def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    path = Path(path_to_validate)
+
+    if not path.exists():
+        raise FileNotFoundError
+
+    if not path.is_dir():
+        raise NotADirectoryError
+
+    if not list(path.iterdir()):
+        raise EmptyDirectoryError
+
+
+def main():
+    validate_dataset(ASSETS_PATH)
+
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+
+    pipeline.run()
 
 
 if __name__ == "__main__":
     # YOUR CODE HERE
-    pass
+    main()
