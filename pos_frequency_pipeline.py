@@ -6,8 +6,6 @@ import json
 from pathlib import Path
 import re
 
-from pymystem3 import Mystem
-
 from constants import ASSETS_PATH
 from pipeline import CorpusManager
 from visualizer import visualize
@@ -16,7 +14,7 @@ from visualizer import visualize
 class POSFrequencyPipeline:
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self._text_to_process = ''
+        self._processed_text = ''
         self.pos_frequencies = {}
 
     def run(self):
@@ -25,26 +23,25 @@ class POSFrequencyPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for file in articles.values():
-            self._text_to_process = file.get_raw_text()
-            self.pos_frequencies = self._process()
+            path_to_processed = Path(ASSETS_PATH) / '{}_processed.txt'.format(file.article_id)
+            with open(path_to_processed, 'r', encoding='utf-8') as text_file:
+                self._processed_text = text_file.read()
+            self.pos_frequencies = self._calculate_frequencies()
             self._write_to_meta(file.article_id)
             visualize(statistics=self.pos_frequencies,
                       path_to_save=Path(ASSETS_PATH) / '{}_image.png'.format(file.article_id))
 
-    def _process(self):
+    def _calculate_frequencies(self):
         """
         Performs processing of each text
         """
-        result = self._analyse_text()
+        pos = re.findall(r"<([A-Z]+)", self._processed_text)
         pos_freq = {}
-        for word in result:
-            if word.get('analysis'):
-                if word['analysis'][0].get('gr'):
-                    pos = re.findall(r"^[A-Z]+", word["analysis"][0]["gr"])
-                    if pos[0] in pos_freq:
-                        pos_freq[pos[0]] += 1
-                    else:
-                        pos_freq[pos[0]] = 1
+        for tag in pos:
+            if tag in pos_freq:
+                pos_freq[tag] += 1
+            else:
+                pos_freq[tag] = 1
         return pos_freq
 
     def _write_to_meta(self, file_id):
@@ -54,10 +51,6 @@ class POSFrequencyPipeline:
             meta['pos_frequencies'] = self.pos_frequencies
         with open(path, "w", encoding="utf-8") as file:
             json.dump(meta, file)
-
-    def _analyse_text(self):
-        mystem_analyser = Mystem()
-        return mystem_analyser.analyze(self._text_to_process)
 
 
 def main():
