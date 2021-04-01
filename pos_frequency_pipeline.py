@@ -5,8 +5,6 @@ Implementation of POSFrequencyPipeline for score ten only.
 import json
 import re
 
-from pymystem3 import Mystem
-
 from constants import ASSETS_PATH
 from pipeline import CorpusManager
 from visualizer import visualize

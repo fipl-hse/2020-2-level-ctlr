@@ -99,20 +99,19 @@ class TextProcessingPipeline:
         """
         text = self._text.get_raw_text()
         result = Mystem().analyze(text)
+        morph = pymorphy2.MorphAnalyzer()
         tokens = []
 
         for word in result:
-            try:
+            analysis = word['analysis'][0]
+            if 'analysis' in word and 'text' in word and 'lex' in analysis and 'gr' in analysis:
                 token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
                 token.mystem_tags = word['analysis'][0]['gr']
 
-                morph = pymorphy2.MorphAnalyzer()
                 pymorphy_tags = morph.parse(word['text'])
                 token.pymorphy_tags = pymorphy_tags[0].tag
 
-            except (IndexError, KeyError):
-                if not word['text'].isnumeric():
-                    continue
+            elif 'analysis' in word and word['text'].isnumeric():
                 token = MorphologicalToken(original_word=word['text'], normalized_form=word['text'])
 
             tokens.append(token)
