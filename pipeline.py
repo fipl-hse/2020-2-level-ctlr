@@ -3,6 +3,7 @@
 Pipeline for text processing implementation
 """
 
+import re
 from pathlib import Path
 from typing import List
 
@@ -60,7 +61,7 @@ class CorpusManager:
         Register each dataset entry
         """
         for file in Path(self.path_to_raw_txt_data).glob('*_raw.txt'):
-            file_id = str(file).split('\\')[-1].split('_')[0]
+            file_id = re.search(r'\d+', str(file).split('\\')[-1]).group()
             self._storage[file_id] = Article(url=None, article_id=file_id)
 
     def get_articles(self):
@@ -82,10 +83,11 @@ class TextProcessingPipeline:
         """
         Runs pipeline process scenario
         """
-        for article in self.corpus_manager.get_articles().values():
+        for article in tuple(self.corpus_manager.get_articles().values()):
             self._text = article.get_raw_text()
             tokens = self._process()
             article.save_processed(' '.join(tokens))
+            print('work is done')
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -93,18 +95,14 @@ class TextProcessingPipeline:
         """
         tokens = []
         result = Mystem().analyze(self._text)
-        for word in result:
+        for word in tuple(result):
             try:
                 token = MorphologicalToken(original_word=word['text'].lower(),
                                            normalized_form=word['analysis'][0]['lex'])
                 token.mystem_tags = word['analysis'][0]['gr']
                 token.pymorphy_tags = MorphAnalyzer().parse(word['text'])[0].tag
             except (KeyError, IndexError):
-                if word['text'].isalnum():
-                    token = MorphologicalToken(original_word=word['text'].lower(),
-                                               normalized_form=word['text'].lower())
-                else:
-                    continue
+                continue
             tokens.append(str(token))
         return tokens
 
@@ -132,8 +130,8 @@ def main():
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
-    pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
-    pipeline.run()
+    pos_pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
+    pos_pipeline.run()
 
 
 if __name__ == "__main__":

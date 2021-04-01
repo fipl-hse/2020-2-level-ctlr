@@ -2,6 +2,7 @@
 Implementation of POSFrequencyPipeline for score ten only.
 """
 import re
+from pathlib import Path
 
 from pymystem3 import Mystem
 
@@ -17,6 +18,7 @@ class POSFrequencyPipeline:
         Runs POSFrequency pipeline process scenario
         """
         for article_id, article in self.corpus_manager.get_articles().items():
+            #for file in Path(self.path_to_raw_txt_data).glob('*_processed.txt'):
             text = article.get_raw_text()
             frequencies_dict = {}
             result = Mystem().analyze(text)
