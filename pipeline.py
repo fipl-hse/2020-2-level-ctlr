@@ -55,6 +55,7 @@ class CorpusManager:
         self.path_to_raw_txt_data = path_to_raw_txt_data
         self._storage = {}
         self._scan_dataset()
+        print(self._storage)
 
     def _scan_dataset(self):
         """
@@ -84,7 +85,6 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         for article in tuple(self.corpus_manager.get_articles().values()):
-            print(self.corpus_manager.get_articles())
             self._text = article.get_raw_text()
             tokens = self._process()
             article.save_processed(' '.join(tokens))
