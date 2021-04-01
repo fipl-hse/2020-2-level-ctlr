@@ -63,7 +63,7 @@ class CorpusManager:
         storage = {}
         i = 1
         for filename in os.listdir(self.path_to_raw_txt_data):
-            if filename.endswith('_raw.txt'):
+            if re.fullmatch(r'\d+_raw.txt', filename):
                 storage[i] = Article(url=None, article_id=i)
                 storage[i].text = storage[i].get_raw_text()
                 i += 1
@@ -140,13 +140,21 @@ def validate_dataset(path_to_validate):
     if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
 
-    if len(files) % 2:  # odd number of files
-        raise InconsistentDatasetError
-
-    files_number = len(files) // 2
-    for i in range(1, files_number + 1):
-        if not (os.path.exists(os.path.join(path_to_validate, f'{i}_meta.json'))
-                or os.path.exists(os.path.join(path_to_validate, f'{i}_raw.txt'))):
+    i_raw = 0
+    i_meta = 0
+    for filename in sorted(files, key=lambda x: int(re.match(r'\d+', x).group())):
+        if re.fullmatch(r'\d+_raw.txt', filename):
+            idx = int(re.match(r'\d+', filename).group())
+            if idx != i_raw + 1:
+                raise InconsistentDatasetError
+            i_raw += 1
+        elif re.fullmatch(r'\d+_meta.json', filename):
+            idx = int(re.match(r'\d+', filename).group())
+            if idx != i_meta + 1:
+                raise InconsistentDatasetError
+            i_meta += 1
+    else:
+        if i_raw != i_meta:
             raise InconsistentDatasetError
 
 
