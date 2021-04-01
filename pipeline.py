@@ -41,6 +41,9 @@ class MorphologicalToken:
     def __str__(self):
         return "{}<{}>({})".format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
 
+    def public_method(self):
+        pass
+
 
 class CorpusManager:
     """
@@ -65,6 +68,9 @@ class CorpusManager:
         Returns storage params
         """
         return self._storage
+
+    def public_method(self):
+        pass
 
 
 class TextProcessingPipeline:
@@ -98,6 +104,9 @@ class TextProcessingPipeline:
                 token.mystem_tags = analyzed_word['analysis'][0]['gr']
                 tokens.append(str(token))
         return tokens
+
+    def public_method(self):
+        pass
 
 
 def validate_dataset(path_to_validate):
