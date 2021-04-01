@@ -67,7 +67,6 @@ class Crawler:
                 self.urls.append(url)
             else:
                 break
-
         return self.urls
 
     def get_search_urls(self):

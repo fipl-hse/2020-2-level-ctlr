@@ -2,7 +2,9 @@
 Pipeline for text processing implementation
 """
 
+import os
 from typing import List
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
@@ -78,11 +80,41 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    path_to_validate = ASSETS_PATH
+    files_check = True
+    consistency_check = True
+
+    if not os.path.exists(path_to_validate):
+        raise NotADirectoryError
+
+    consistency = os.listdir(path_to_validate)
+    if not consistency:
+        files_check = False
+
+    if len(consistency) // 2 != 0:
+        consistency_check = False
+
+    id_check = True
+    files_number = len(consistency) // 2
+    ids = []
+
+    for file in consistency:
+        ids.append(int(file[0]))
+        if len(ids) != files_number:
+            id_check = False
+        if not file == r'..meta.json' or not file == r'..raw.txt' or not id_check:
+            consistency_check = False
+
+    if not consistency_check:
+        raise InconsistentDatasetError
+
+    if files_check and consistency_check:
+        return None
 
 
 def main():
     print('Your code goes here')
+    validate_dataset(ASSETS_PATH)
 
 
 if __name__ == "__main__":
