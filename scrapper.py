@@ -61,8 +61,6 @@ class Crawler:
         for seed in self.seed_urls:
             sleep(random.randint(4, 8))
             response = requests.get(seed, headers=headers)
-            if not response:
-                continue
             seed_soup = BeautifulSoup(response.content, features='lxml')
             articles_soup = seed_soup.find_all('li')
             for article_bs in articles_soup[:max_articles_per_seed]:
