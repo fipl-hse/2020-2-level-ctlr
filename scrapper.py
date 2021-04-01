@@ -166,6 +166,6 @@ if __name__ == '__main__':
     prepare_environment(constants.ASSETS_PATH)
 
     for i, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=i)
+        parser = ArticleParser(full_url=article_url, article_id=i+1)
         parser.parse()
         parser.article.save_raw()
