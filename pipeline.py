@@ -3,7 +3,7 @@ Pipeline for text processing implementation
 """
 
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import List
 from pymystem3 import Mystem
 from pymorphy2 import MorphAnalyzer
@@ -61,7 +61,7 @@ class CorpusManager:
         """
         raw_matches_paths = Path(self.path_to_raw_txt_data).rglob('*.txt')
         for raw_file_path in raw_matches_paths:
-            id_article = str(raw_file_path).split('\\')[-1][0]
+            id_article = PurePath(str(raw_file_path)).name.split('_')[0]
             self._storage[id_article] = Article(url=None, article_id=id_article)
 
     def get_articles(self):
