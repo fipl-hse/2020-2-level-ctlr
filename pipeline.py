@@ -61,9 +61,8 @@ class CorpusManager:
         Register each dataset entry
         """
         for file in Path(self.path_to_raw_txt_data).glob('*_raw.txt'):
-            print(str(file))
-            # file_id = str(file).split('\\')[-1].split('_')[0]
-            file_id = re.search(r'\d+', str(file).split('\\')[-1]).group()
+            file_id = str(file).split('\\')[-1].split('_')[0]
+            # file_id = re.search(r'\d+', str(file).split('\\')[-1]).group()
             self._storage[file_id] = Article(url=None, article_id=file_id)
 
     def get_articles(self):
