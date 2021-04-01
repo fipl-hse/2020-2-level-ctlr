@@ -65,6 +65,7 @@ class CorpusManager:
         for filename in os.listdir(self.path_to_raw_txt_data):
             if filename.endswith('_raw.txt'):
                 storage[i] = Article(url=None, article_id=i)
+                storage[i].text = storage[i].get_raw_text()
                 i += 1
         return storage
 
@@ -91,7 +92,6 @@ class TextProcessingPipeline:
         articles = self.corpus_manager.get_articles()
         for article in articles.values():
             self._current_article = article
-            self._current_article.text = self._current_article.get_raw_text()
             tokens = self._process()
             tokens = ' '.join([str(token) for token in tokens])
             article.save_processed(tokens)
