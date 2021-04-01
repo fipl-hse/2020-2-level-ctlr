@@ -87,14 +87,14 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        text = article_soup.find('div', class_="td-post-content td-pb0padding-side").find_all("p")
+        text = article_soup.find('div', class_="td-post-content td-pb-padding-side").find_all("p")
         clean_text = [sent.text for sent in text]
         self.article.text = " ".join(clean_text)
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
         self.article.author = 'NOT FOUND'
-        self.article.date = self.unify_date_format(article_soup.find( class_='meta-info').text)
+        self.article.date = self.unify_date_format(article_soup.find('div', class_='meta-info').text)
 
     @staticmethod
     def unify_date_format(date_str):
