@@ -185,7 +185,7 @@ if __name__ == '__main__':
     article_id = 0
     for article_url in urls:
         article_id += 1
-        parser = ArticleParser(article_url, article_id)
-        sleep(random.randint(2, 4))
-        article = parser.parse()
-        article.save_raw()
+    parser = ArticleParser(article_url, article_id)
+    sleep(random.randint(2, 4))
+    article = parser.parse()
+    article.save_raw()
