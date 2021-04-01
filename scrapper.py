@@ -77,6 +77,7 @@ class Crawler:
                 except AttributeError:
                     continue
                 self.urls.append(link)
+
         return self.urls
 
     def get_search_urls(self):
