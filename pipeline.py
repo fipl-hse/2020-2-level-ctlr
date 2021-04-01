@@ -63,7 +63,7 @@ class CorpusManager:
         storage_dict = {}
 
         for fname in os.listdir(self.path_to_dataset):
-            if fname.endswith('_raw.txt'):
+            if re.match(r'^[1-9]\d{0,2}_raw\.txt$', fname):
                 file_id = fname.split('_raw.txt')[0]
                 file_id = int(file_id)
                 storage_dict[file_id] = Article(url=None, article_id=file_id)
@@ -105,11 +105,18 @@ class TextProcessingPipeline:
         result = Mystem().analyze(self.text)
 
         for token_dict in result:
-            if 'analysis' in token_dict:
-                token = MorphologicalToken(token_dict['text'], token_dict['analysis'][0]['lex'])
-                token.mystem_tags = token_dict['analysis'][0]['gr']
-                token.pymorphy_tags = token.pymorphy_tags = MorphAnalyzer().parse(token.original_word)[0].tag
+            if 'analysis' in token_dict and token_dict['analysis'] and 'lex' in token_dict['analysis'][0]:
+                token = MorphologicalToken(token_dict['text'].lower(), token_dict['analysis'][0]['lex'])
+                token.mystem_tags = token_dict['analysis'][0].get('gr', '')
                 tokens.append(token)
+
+        for token in tokens:
+            result_pymorphy = MorphAnalyzer().parse(token.original_word)
+            if result_pymorphy:
+                try:
+                    token.pymorphy_tags = result_pymorphy[0].tag
+                except AttributeError:
+                    continue
 
         return tokens
 
