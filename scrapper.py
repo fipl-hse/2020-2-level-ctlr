@@ -140,9 +140,12 @@ class CrawlerRecursive(Crawler):
                     if len(self.urls) < self.total_max_articles:
                         self.urls.append(link)
                         self.seed_urls.append(link)
+                self.seed_urls = list(set(self.seed_urls))
                 self._save_intermediate_results()
                 if len(self.urls) >= self.total_max_articles:
                     return self.urls[:self.total_max_articles]
+            else:
+                self._save_intermediate_results()
         return self.find_articles()
 
     def get_search_urls(self):
@@ -169,6 +172,8 @@ class CrawlerRecursive(Crawler):
                 for tag in soup_page.find_all('a', class_="page-numbers"):
                     link = tag.get('href')
                     self.seed_urls.append(link)
+        if list(set(self.seed_urls))[0] != self.seed_urls[0]:
+            return list(set(self.seed_urls))[1:]
         return list(set(self.seed_urls))
 
     def _load_intermediate_results(self):
