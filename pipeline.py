@@ -5,6 +5,7 @@ Pipeline for text processing implementation
 import os
 from pathlib import Path
 from typing import List
+from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
 import article
 from constants import ASSETS_PATH
@@ -102,6 +103,7 @@ class TextProcessingPipeline:
                 token = MorphologicalToken(original_word=analyzed_word['text'].lower(),
                                            normalized_form=analyzed_word['analysis'][0]['lex'])
                 token.mystem_tags = analyzed_word['analysis'][0]['gr']
+                token.pymorphy_tags = MorphAnalyzer.parse(token.original_word)[0].tag
                 tokens.append(str(token))
         return tokens
 
