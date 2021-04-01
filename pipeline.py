@@ -100,10 +100,10 @@ class TextProcessingPipeline:
         tokens = []
         for analyzed_word in result:
             if analyzed_word.get('analysis'):  # чтобы были только слова
-                token = MorphologicalToken(original_word=analyzed_word['text'].lower(),
+                token = MorphologicalToken(original_word=analyzed_word['text'],
                                            normalized_form=analyzed_word['analysis'][0]['lex'])
                 token.mystem_tags = analyzed_word['analysis'][0]['gr']
-                token.pymorphy_tags = MorphAnalyzer.parse(token.original_word)[0].tag
+                token.pymorphy_tags = MorphAnalyzer().parse(word=token.original_word)[0].tag
                 tokens.append(str(token))
         return tokens
 
