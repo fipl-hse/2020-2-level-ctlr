@@ -132,10 +132,9 @@ def validate_dataset(path_to_validate):
 
         files = []
         files_ids = []
-        for one_file in dir_content:
-            if '_raw.txt' in str(one_file):
-                files.append(one_file)
-                files_ids.append(int(str(one_file)[0]))
+        for one_file in Path(path_to_validate).rglob('*_raw.text'):
+            files.append(one_file)
+            files_ids.append(int(one_file.name.split('_')[0]))
         if len(files) != len(files_ids) or set(files_ids) != set(range(1, len(files) + 1)):
             raise InconsistentDatasetError
 
