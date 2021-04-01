@@ -103,8 +103,7 @@ class TextProcessingPipeline:
         tokens = []
 
         for word in result:
-            analysis = word['analysis'][0]
-            if 'analysis' in word and 'text' in word and 'lex' in analysis and 'gr' in analysis:
+            if 'analysis' in word and 'text' in word and 'lex' in word['analysis'][0] and 'gr' in word['analysis'][0]:
                 token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
                 token.mystem_tags = word['analysis'][0]['gr']
 
