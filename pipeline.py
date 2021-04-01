@@ -103,15 +103,19 @@ class TextProcessingPipeline:
         tokens = []
 
         for word in result:
-            if 'analysis' in word and 'text' in word and 'lex' in word['analysis'][0] and 'gr' in word['analysis'][0]:
-                token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
-                token.mystem_tags = word['analysis'][0]['gr']
 
-                pymorphy_tags = morph.parse(word['text'])
-                token.pymorphy_tags = pymorphy_tags[0].tag
+            if not word.get('analysis') or not word.get('text'):
+                continue
 
-            elif 'analysis' in word and word['text'].isnumeric():
-                token = MorphologicalToken(original_word=word['text'], normalized_form=word['text'])
+            word_analysis = word['analysis'][0]
+            if not word_analysis.get('lex') or not word_analysis.get('gr'):
+                continue
+
+            token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
+            token.mystem_tags = word['analysis'][0]['gr']
+
+            pymorphy_tags = morph.parse(word['text'])
+            token.pymorphy_tags = pymorphy_tags[0].tag
 
             tokens.append(token)
 
