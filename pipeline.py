@@ -116,12 +116,34 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    path = Path(path_to_validate)
+    if not isinstance(path_to_validate, str):
+        raise UnknownDatasetError
+    if path.exists():
+        if not path.is_dir():
+            raise NotADirectoryError
+        if not list(path.iterdir()):
+            raise EmptyDirectoryError
+        counter_raw = 0
+        counter_meta = 0
+        for element in path.iterdir():
+            if str(element).endswith('_raw.txt'):
+                counter_raw += 1
+            if str(element).endswith('_meta.json'):
+                counter_meta += 1
+        if not counter_raw == counter_meta:
+            raise InconsistentDatasetError
+    else:
+        raise FileNotFoundError
 
 
 def main():
     print('Your code goes here')
 
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager)
+    pipeline.run()
 
 if __name__ == "__main__":
     main()
