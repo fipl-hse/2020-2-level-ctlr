@@ -149,7 +149,7 @@ def validate_dataset(path_to_validate):
 
         if raw_path.exists() and meta_path.exists() and not prev_not_exists:
             continue
-        elif not raw_path.exists() and not meta_path.exists():
+        if not raw_path.exists() and not meta_path.exists():
             prev_not_exists = True
             continue
         raise InconsistentDatasetError
