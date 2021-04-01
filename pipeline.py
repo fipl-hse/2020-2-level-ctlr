@@ -153,9 +153,8 @@ def validate_dataset(path_to_validate):
             if idx != i_meta + 1:
                 raise InconsistentDatasetError
             i_meta += 1
-    else:
-        if i_raw != i_meta:
-            raise InconsistentDatasetError
+    if i_raw != i_meta:
+        raise InconsistentDatasetError
 
 
 def main():
