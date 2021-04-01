@@ -123,8 +123,8 @@ def validate_dataset(path_to_validate):
     raw_files = list(checked_path.rglob('*.txt'))
     meta_files = list(checked_path.rglob('*.json'))
     raw_numbers = list(map(lambda file: int(file.name.split('_')[0]), raw_files))
-    indexes = [i for i in range(min(raw_numbers), max(raw_numbers) + 1)]
-    if len(raw_files) != len(meta_files) or sorted(raw_numbers) != indexes:
+    correct_indexes = list(range(min(raw_numbers), max(raw_numbers) + 1))
+    if len(raw_files) != len(meta_files) or sorted(raw_numbers) != correct_indexes:
         raise InconsistentDatasetError
 
 
