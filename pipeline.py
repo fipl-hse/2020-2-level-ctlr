@@ -119,11 +119,15 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
+    # dataset exists
     is_dataset_exists = True
-    # dataset exists (there is a folder)
-    if not os.path.isdir(path_to_validate):
+    if not os.path.exists(path_to_validate):
         is_dataset_exists = False
         raise FileNotFoundError
+    is_directory = True
+    if not os.path.isdir(path_to_validate):
+        is_directory = False
+        raise NotADirectoryError
 
     files = os.listdir(path_to_validate)
     # dataset is not empty (there are files inside)
@@ -150,7 +154,7 @@ def validate_dataset(path_to_validate):
                 is_dataset_balanced = False
                 raise InconsistentDatasetError
 
-    if is_dataset_exists and is_dataset_not_empty and is_dataset_balanced:
+    if is_dataset_exists and is_directory and is_dataset_not_empty and is_dataset_balanced:
         return None
     else:
         raise UnknownDatasetError
