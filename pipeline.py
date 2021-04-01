@@ -84,6 +84,7 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         for article in tuple(self.corpus_manager.get_articles().values()):
+            print(self.corpus_manager.get_articles())
             self._text = article.get_raw_text()
             tokens = self._process()
             article.save_processed(' '.join(tokens))
