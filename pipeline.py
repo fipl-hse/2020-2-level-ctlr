@@ -137,7 +137,8 @@ def validate_dataset(path_to_validate):
 
     json_inds = [file.parts[-1].split('_')[0] for file in path.rglob('*.json')]
     txt_inds = [file.parts[-1].split('_')[0] for file in path.rglob('*_raw.txt')]
-    if len(list(path.iterdir())) % 2 or txt_inds != json_inds:
+
+    if set(txt_inds) != set(json_inds):
         raise InconsistentDatasetError
 
 
