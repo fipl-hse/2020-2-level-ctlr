@@ -106,6 +106,7 @@ class Article:
         Returns path for requested raw article
         """
         article_txt_name = "{}_raw.txt".format(self.article_id)
+        print(article_txt_name, article_id)
         return os.path.join(ASSETS_PATH, article_txt_name)
 
     def _get_processed_text_path(self):
