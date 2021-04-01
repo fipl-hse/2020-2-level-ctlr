@@ -2,30 +2,43 @@
 Implementation of POSFrequencyPipeline for score ten only.
 """
 import re
-from pathlib import Path
+import json
 
-from pymystem3 import Mystem
-
+from constants import ASSETS_PATH
 from visualizer import visualize
 
 
 class POSFrequencyPipeline:
-    def __init__(self, corpus_manager):
-        self.corpus_manager = corpus_manager
+    def __init__(self, assets):
+        self.assets = assets
+        self._processed_text = ''
+        self.frequencies_dict = {}
 
     def run(self):
         """
         Runs POSFrequency pipeline process scenario
         """
-        for article_id, article in self.corpus_manager.get_articles().items():
-            #for file in Path(self.path_to_raw_txt_data).glob('*_processed.txt'):
-            text = article.get_raw_text()
-            frequencies_dict = {}
-            result = Mystem().analyze(text)
-            for word in result:
-                try:
-                    pos = re.search(r'[A-Z]+', word['analysis'][0]['gr']).group()
-                    frequencies_dict[pos] = frequencies_dict.get(pos, 0) + 1
-                except (KeyError, IndexError):
-                    continue
-            visualize(statistics=frequencies_dict, path_to_save=f'.\\tmp\\articles\\{article_id}_image.png')
+        for article_id, article in self.assets.get_articles().items():
+            processed_path = article._get_processed_text_path()
+
+            with open(processed_path, 'r') as file:
+                self._processed_text = file.read()
+            self._process()
+            self._add_pos_to_metadata(article_id)
+            visualize(statistics=self.frequencies_dict, path_to_save=f'.\\tmp\\articles\\{article_id}_image.png')
+
+    def _process(self):
+        result = re.findall(r'<[A-Z]+?', self._processed_text)
+        for pos in result:
+            self.frequencies_dict[pos[1:]] = self.frequencies_dict.get(pos[1:], 0) + 1
+
+    def _add_pos_to_metadata(self, file_id):
+        path = f'{ASSETS_PATH}\\{file_id}_meta.json'
+
+        with open(path, 'r', encoding='utf-8') as file:
+            meta = json.load(file)
+
+        meta['pos_frequencies'] = self.frequencies_dict
+
+        with open(path, 'w', encoding='utf-8') as fp:
+            json.dump(meta, fp, ensure_ascii=False, indent=2)
