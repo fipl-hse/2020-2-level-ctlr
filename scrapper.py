@@ -203,8 +203,6 @@ class ArticleParser:
         paragraphs = article_soup.find('div', {'class': 'mg-blog-post-box'})
         if res := paragraphs.find('p', {'class': 'has-text-align-right'}):
             self.article.author = res.text
-        elif could_be_author := self._is_author_in_the_end(paragraphs):
-            self.article.author = could_be_author
         else:
             self.article.author = 'NOT FOUND'
 
@@ -245,15 +243,6 @@ class ArticleParser:
         if not self.article.text:
             raise BadArticle
         return self.article
-
-    @staticmethod
-    def _is_author_in_the_end(paragraphs):
-        if paragraphs.find_all('p'):
-            could_be_author = paragraphs.find_all('p')[-1].text
-            if len(could_be_author.split()) == 2 \
-                    and all(name.isalpha() for name in could_be_author.split()):
-                return could_be_author
-        return None
 
 
 def get_page(url):
