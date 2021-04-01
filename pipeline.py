@@ -2,7 +2,7 @@
 Pipeline for text processing implementation
 """
 
-import os
+from pathlib import Path
 import re
 from typing import List
 
@@ -62,8 +62,8 @@ class CorpusManager:
         """
         storage = {}
         i = 1
-        for filename in os.listdir(self.path_to_raw_txt_data):
-            if re.fullmatch(r'\d+_raw.txt', filename):
+        for filename in Path(self.path_to_raw_txt_data).iterdir():
+            if re.fullmatch(r'\d+_raw.txt', str(filename)):
                 storage[i] = Article(url=None, article_id=i)
                 storage[i].text = storage[i].get_raw_text()
                 i += 1
@@ -129,31 +129,29 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
+    path_to_validate = Path(path_to_validate)
 
-    if not os.path.exists(path_to_validate):
+    if not path_to_validate.exists():
         raise FileNotFoundError
 
-    files = os.listdir(path_to_validate)
-    if not files:
+    if not any(True for _ in path_to_validate.iterdir()):
         raise EmptyDirectoryError
 
-    if not os.path.isdir(path_to_validate):
+    if not path_to_validate.is_dir():
         raise NotADirectoryError
 
-    i_raw = 0
-    i_meta = 0
-    for filename in sorted(files, key=lambda x: int(re.match(r'\d+', x).group())):
-        if re.fullmatch(r'\d+_raw.txt', filename):
-            idx = int(re.match(r'\d+', filename).group())
-            if idx != i_raw + 1:
-                raise InconsistentDatasetError
-            i_raw += 1
-        elif re.fullmatch(r'\d+_meta.json', filename):
-            idx = int(re.match(r'\d+', filename).group())
-            if idx != i_meta + 1:
-                raise InconsistentDatasetError
-            i_meta += 1
-    if i_raw != i_meta:
+    max_files_number = max(len(list(path_to_validate.glob('*.txt'))),
+                           len(list(path_to_validate.glob('*.json'))))
+    prev_not_exists = False
+    for i in range(1, max_files_number + 1):
+        raw_path = path_to_validate / f'{i}_raw.txt'
+        meta_path = path_to_validate / f'{i}_meta.json'
+
+        if raw_path.exists() and meta_path.exists() and not prev_not_exists:
+            continue
+        elif not raw_path.exists() and not meta_path.exists():
+            prev_not_exists = True
+            continue
         raise InconsistentDatasetError
 
 
