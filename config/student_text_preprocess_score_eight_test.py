@@ -4,7 +4,7 @@ import unittest
 from constants import ASSETS_PATH
 
 
-TAGS = ["A", "ADV", "S", "V", "PR", "ANUM", "CONJ", "SPRO", "APRO", "PART", "NUM", "ADVPRO", "INTJ"]
+TAGS = ["A", "ADV", "S", "V", "PR", "ANUM", "CONJ", "SPRO", "APRO", "PART", "NUM", "ADVPRO",]
 
 
 class StudentTextPreprocessTest(unittest.TestCase):
