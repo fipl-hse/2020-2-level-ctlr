@@ -1,3 +1,4 @@
+# pylint: disable=R0903
 """
 Pipeline for text processing implementation
 """
@@ -43,9 +44,6 @@ class MorphologicalToken:
     def __str__(self):
         return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
-    def public_method(self):
-        pass
-
 
 class CorpusManager:
     """
@@ -72,9 +70,6 @@ class CorpusManager:
         """
         return self._storage
 
-    def public_method(self):
-        pass
-
 
 class TextProcessingPipeline:
     """
@@ -82,7 +77,7 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self.processed_text = ''
+        self.text = ''
 
     def run(self):
         """
@@ -90,7 +85,7 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for proc_article in articles.values():
-            self.processed_text = proc_article.get_raw_text()
+            self.text = proc_article.get_raw_text()
             tokens = self._process()
             proc_article.save_processed(' '.join(map(str, tokens)))
 
@@ -99,18 +94,16 @@ class TextProcessingPipeline:
         Performs processing of each text
         """
         pymorphy = MorphAnalyzer()
-        result = Mystem().analyze(self.processed_text)
+        result = Mystem().analyze(self.text)
         tokens = []
         for token in result:
-            if token.get('analysis'):
-                morph_token = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
-                morph_token.mystem_tags = token['analysis'][0]['gr']
-                morph_token.pymorphy_tags = pymorphy.parse(morph_token.original_word)[0].tag
-                tokens.append(morph_token)
+            if token.get('analysis') and token.get('text'):
+                if token['analysis'][0].get('lex') and token['analysis'][0].get('gr'):
+                    morph_token = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
+                    morph_token.mystem_tags = token['analysis'][0]['gr']
+                    morph_token.pymorphy_tags = pymorphy.parse(morph_token.original_word)[0].tag
+                    tokens.append(morph_token)
         return tokens
-
-    def public_method(self):
-        pass
 
 
 def validate_dataset(path_to_validate):
@@ -127,9 +120,11 @@ def validate_dataset(path_to_validate):
     if not list(checked_path.iterdir()):
         raise EmptyDirectoryError
 
-    raw_files = [file for file in checked_path.iterdir() if 'raw.txt' in str(file)]
-    meta_files = [file for file in checked_path.iterdir() if 'meta.json' in str(file)]
-    if len(raw_files) != len(meta_files):
+    raw_files = list(checked_path.rglob('*.txt'))
+    meta_files = list(checked_path.rglob('*.json'))
+    raw_numbers = list(map(lambda file: int(file.name.split('_')[0]), raw_files))
+    indexes = [i for i in range(min(raw_numbers), max(raw_numbers) + 1)]
+    if len(raw_files) != len(meta_files) or sorted(raw_numbers) != indexes:
         raise InconsistentDatasetError
 
 
