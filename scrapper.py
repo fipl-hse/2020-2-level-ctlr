@@ -100,11 +100,12 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find(name='div', id="article").text
+        text = article_soup.find(name='div', id="article").text
+        self.article.text = re.sub('[,.-:!?<"–]', ' ', text)
 
-        # self.article.text = re.sub(' ', '&nbsp;', self.article.text)
+        self.article.text = re.sub(' ', '', self.article.text)
         # self.article.text = re.sub('&nbsp;', ' ', self.article.text)
-        # self.article.text = re.sub('­', ' ', self.article.text)
+        self.article.text = re.sub('­', '', self.article.text)
 
     def _fill_article_with_meta_information(self, article_soup):
 
