@@ -63,7 +63,7 @@ class CorpusManager:
         storage = {}
         i = 1
         for filename in Path(self.path_to_raw_txt_data).iterdir():
-            if re.fullmatch(r'\d+_raw.txt', str(filename)):
+            if re.fullmatch(r'.+\d+_raw.txt', str(filename)):
                 storage[i] = Article(url=None, article_id=i)
                 storage[i].text = storage[i].get_raw_text()
                 i += 1
