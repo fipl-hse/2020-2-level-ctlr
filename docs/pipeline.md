@@ -322,7 +322,7 @@ Desired output:
 All processing logic is encapsulated in the following protected method:
 
 ```py
-def _process(self):
+def _process(self, text):
     pass
 ```
 
@@ -370,7 +370,7 @@ result of morphology analysis. Inspect the `result` as you need.
 All processing logic is encapsulated in the following protected method:
 
 ```py
-def _process(self):
+def _process(self, text):
     pass
 ```
 
