@@ -4,7 +4,6 @@ Pipeline for text processing implementation
 from pymystem3 import Mystem
 from typing import List
 from pathlib import Path
-
 from article import Article
 from constants import ASSETS_PATH
 
