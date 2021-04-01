@@ -114,7 +114,12 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text
 
-        self.article.author = article_soup.find('div', {'class': 'author-name'}).text.strip('\n')
+        author = article_soup.find('div', {'class': 'author-name'}).text.strip('\n')
+        if 'Советская Сибирь' in author:
+            self.article.author = 'NOT FOUND'
+        else:
+            self.article.author = author
+
 
         raw_topics = article_soup.find_all('div', {'class': 'on-footer-row'})
         self.article.topics.extend(list(map(lambda x: x.find('a').text, raw_topics[1:])))

@@ -47,8 +47,8 @@ class POSFrequencyPipeline:
 
         meta['pos_frequencies'] = self.pos_frequencies
 
-        with open(path, 'w', encoding='utf-8') as file:
-            json.dump(meta, file)
+        with open(path, 'w', encoding='utf-8') as fp:
+            json.dump(meta, fp, ensure_ascii=False, indent=2)
 
 
 def main():
