@@ -13,8 +13,6 @@ from article import Article
 from constants import ASSETS_PATH
 from pos_frequency_pipeline import POSFrequencyPipeline
 
-morph = pymorphy2.MorphAnalyzer()
-
 
 class EmptyDirectoryError(Exception):
     """
@@ -56,15 +54,19 @@ class CorpusManager:
 
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_data = path_to_raw_txt_data
-        self._storage = {}
-        self._scan_dataset()
+        self._storage = self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        for i in range(1, len(os.listdir(self.path_to_raw_txt_data)) // 2 + 1):
-            self._storage[i] = Article(url=None, article_id=i)
+        storage = {}
+        i = 1
+        for filename in os.listdir(self.path_to_raw_txt_data):
+            if filename.endswith('_raw.txt'):
+                storage[i] = Article(url=None, article_id=i)
+                i += 1
+        return storage
 
     def get_articles(self):
         """
@@ -88,8 +90,8 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for article in articles.values():
-            article.text = article.get_raw_text()
             self._current_article = article
+            self._current_article.text = self._current_article.get_raw_text()
             tokens = self._process()
             tokens = ' '.join([str(token) for token in tokens])
             article.save_processed(tokens)
@@ -98,22 +100,27 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
+        morph = pymorphy2.MorphAnalyzer()
+
         text = self._current_article.text
         text = ' '.join(re.findall(r'\w+', text.lower()))
         result = Mystem().analyze(text)
         tokenized_text = []
 
         for word in result[::2]:  # skip whitespaces
-            original = word['text']
-            try:
-                normalized = word['analysis'][0]['lex']
-            except (KeyError, IndexError):
+            if 'analysis' not in word or word['analysis'] == []:
                 continue
+
+            original = word['text']
+            normalized = word['analysis'][0]['lex']
             tags = word['analysis'][0]['gr']
 
             token = MorphologicalToken(original, normalized)
             token.mystem_tags = tags
-            token.pymorpy_tags = morph.parse(original)[0].tag
+
+            if pymorpy_res := morph.parse(original):
+                token.pymorpy_tags = pymorpy_res[0].tag
+
             tokenized_text.append(token)
         return tokenized_text
 

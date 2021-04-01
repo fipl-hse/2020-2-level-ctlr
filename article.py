@@ -83,6 +83,13 @@ class Article:
         with open(self._get_processed_text_path(), 'w', encoding='utf-8') as file:
             file.write(processed_text)
 
+    def get_processed(self):
+        """
+        Gets a processed text for requested article
+        """
+        with open(self._get_processed_text_path(), encoding='utf-8') as file:
+            return file.read()
+
     def _get_meta(self):
         """
         Gets all article params
