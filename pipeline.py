@@ -1,3 +1,4 @@
+# pylint: disable=R0903
 """
 Pipeline for text processing implementation
 """
@@ -43,9 +44,6 @@ class MorphologicalToken:
     def __str__(self):
         return "{}<{}>({})".format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
 
-    def public_method(self):
-        pass
-
 
 class CorpusManager:
     """
@@ -72,9 +70,6 @@ class CorpusManager:
         """
         return self._storage
 
-    def public_method(self):
-        pass
-
 
 class TextProcessingPipeline:
     """
@@ -82,7 +77,7 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self.text_to_process = ''
+        self._text_to_process = ''
 
     def run(self):
         """
@@ -90,12 +85,9 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for file in articles.values():
-            self.text_to_process = file.get_raw_text()
+            self._text_to_process = file.get_raw_text()
             morph_tokens = self._process()
-            processed_text = []
-            for token in morph_tokens:
-                processed_text.append(str(token))
-            file.save_processed(' '.join(processed_text))
+            file.save_processed(' '.join(map(str, morph_tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -103,20 +95,19 @@ class TextProcessingPipeline:
         """
         mystem_analyser = Mystem()
         pymorphy_analyser = MorphAnalyzer()
-        result = mystem_analyser.analyze(self.text_to_process)
+        result = mystem_analyser.analyze(self._text_to_process)
         morph_tokens = []
         for word in result:
-            if word.get('analysis'):
-                morph_token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
-                morph_token.mystem_tags = word['analysis'][0]['gr']
-                morph_tokens.append(morph_token)
+            if word.get('analysis') and word.get('text'):
+                if word['analysis'][0].get('lex') and word['analysis'][0].get('gr'):
+                    morph_token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
+                    morph_token.mystem_tags = word['analysis'][0]['gr']
+                    morph_tokens.append(morph_token)
         for token in morph_tokens:
-            token_pymorhy = pymorphy_analyser.parse(token.original_word)[0]
-            token.pymorphy_tags = token_pymorhy.tag
+            tokens_pymorhy = pymorphy_analyser.parse(token.original_word)
+            if tokens_pymorhy:
+                token.pymorphy_tags = tokens_pymorhy[0].tag
         return morph_tokens
-
-    def public_method(self):
-        pass
 
 
 def validate_dataset(path_to_validate):
@@ -132,9 +123,7 @@ def validate_dataset(path_to_validate):
         files = list(path.rglob('*_raw.txt'))
         if not files:
             raise EmptyDirectoryError
-        ids = []
-        for file in files:
-            ids.append(int(file.parts[-1].split('_')[0]))
+        ids = list(map(lambda file: int(file.parts[-1].split('_')[0]), files))
         if len(ids) != len(files) or not set(ids) == set(range(min(ids), max(ids) + 1)):
             raise InconsistentDatasetError
     else:
