@@ -123,7 +123,7 @@ def validate_dataset(path_to_validate):
     # dataset exists (there is a folder)
     if not os.path.isdir(path_to_validate):
         is_dataset_exists = False
-        raise NotADirectoryError
+        raise FileNotFoundError
 
     files = os.listdir(path_to_validate)
     # dataset is not empty (there are files inside)
