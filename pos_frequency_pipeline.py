@@ -16,26 +16,26 @@ class POSFrequencyPipeline:
     def __init__(self, assets):
         self.assets = assets
         self.pos_frequencies = {}
-        self._text = ''
+        self._processed_text = ''
 
     def run(self):
         storage = self.assets.get_articles()
 
         for article_id, article in storage.items():
-            self._text = article.get_raw_text()
+            processed_path = article._get_processed_text_path()
+
+            with open(processed_path, 'r') as file:
+                self._processed_text = file.read()
             self._process()
             self._add_pos_to_metadata(article_id)
             visualize(statistics=self.pos_frequencies, path_to_save=f'{ASSETS_PATH}\\{article_id}_image.png')
 
     def _process(self):
-        result = Mystem().analyze(self._text)
+        result = re.findall(r'<[A-Z]*', self._processed_text)
         pos = {}
 
-        for word in result:
-            if 'analysis' in word and word['analysis']:
-                tags = word['analysis'][0]['gr']
-                pos_tag = re.match(r'[A-z]+', tags).group()
-                pos[pos_tag] = pos.get(pos_tag, 0) + 1
+        for pos_tag in result:
+            pos[pos_tag[1:]] = pos.get(pos_tag[1:], 0) + 1
 
         self.pos_frequencies = pos
 

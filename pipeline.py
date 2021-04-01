@@ -42,7 +42,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return self.normalized_form + f'<{self.mystem_tags}>' + f'({self.pymorphy_tags})'
+        return f'{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})'
 
 
 class CorpusManager:
@@ -58,17 +58,11 @@ class CorpusManager:
         Register each dataset entry
         """
         path = Path(self.path_to_raw_txt_data)
-        all_files = [str(f_path) for f_path in path.iterdir()]
         raw_files = {}
 
-        for file in all_files:
-            if '_raw.txt' in file:
-                try:
-                    text_id = int(file.split('\\')[-1].split('_')[0])
-                except ValueError:
-                    text_id = int(file.split('/')[-1].split('_')[0])
-
-                raw_files[text_id] = Article(url=None, article_id=text_id)
+        for file in path.rglob('*.txt'):
+            text_id = int(file.parts[-1].split('_')[0])
+            raw_files[text_id] = Article(url=None, article_id=text_id)
 
         return raw_files
 
@@ -108,16 +102,20 @@ class TextProcessingPipeline:
         tokens = []
 
         for word in result:
-
-            if 'analysis' in word and word['analysis']:
-                token = MorphologicalToken(original_word=word, normalized_form=word['analysis'][0]['lex'])
+            try:
+                token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
                 token.mystem_tags = word['analysis'][0]['gr']
 
                 morph = pymorphy2.MorphAnalyzer()
                 pymorphy_tags = morph.parse(word['text'])
                 token.pymorphy_tags = pymorphy_tags[0].tag
 
-                tokens.append(token)
+            except (IndexError, KeyError):
+                if not word['text'].isnumeric():
+                    continue
+                token = MorphologicalToken(original_word=word['text'], normalized_form=word['text'])
+
+            tokens.append(token)
 
         return tokens
 
@@ -134,10 +132,12 @@ def validate_dataset(path_to_validate):
     if not path.is_dir():
         raise NotADirectoryError
 
-    if not list(path.iterdir()):
+    if not list(path.rglob('*_raw.txt')):
         raise EmptyDirectoryError
 
-    if len(list(path.iterdir())) % 2:
+    json_inds = [file.parts[-1].split('_')[0] for file in path.rglob('*.json')]
+    txt_inds = [file.parts[-1].split('_')[0] for file in path.rglob('*_raw.txt')]
+    if len(list(path.iterdir())) % 2 or txt_inds != json_inds:
         raise InconsistentDatasetError
 
 
