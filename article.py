@@ -105,12 +105,12 @@ class Article:
         """
         Returns path for requested raw article
         """
-        article_txt_name = "{}_raw".format(self.article_id)
+        article_txt_name = "{}_raw.txt".format(self.article_id)
         return os.path.join(ASSETS_PATH, article_txt_name)
 
     def _get_processed_text_path(self):
         """
         Returns path for requested processed article
         """
-        article_txt_name = "{}_processed".format(self.article_id)
+        article_txt_name = "{}_processed.txt".format(self.article_id)
         return os.path.join(ASSETS_PATH, article_txt_name)
