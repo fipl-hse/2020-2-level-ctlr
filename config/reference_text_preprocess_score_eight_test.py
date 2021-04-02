@@ -31,7 +31,7 @@ class ReferenceTextPreprocessTest(unittest.TestCase):
         pipe.run()
 
     def setUp(self) -> None:
-        with open('../config/test_files/reference_score_eight_test.txt', 'r', encoding='utf-8') as rf:
+        with open('config/test_files/reference_score_eight_test.txt', 'r', encoding='utf-8') as rf:
             self.reference = rf.read()
         with open(os.path.join(ASSETS_PATH, "1_processed.txt"), "r", encoding='utf-8') as pr:
             self.processed = pr.read()
