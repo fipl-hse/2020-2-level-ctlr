@@ -110,11 +110,11 @@ class TextProcessingPipeline:
             if current_word.get('analysis') and current_word.get('text'):
                 if current_word["text"] == "опек+":
                     current_word["text"] = "опек"
-                    if current_word['analysis'][0].get('lex') and current_word['analysis'][0].get('gr'):
-                        morph_token = MorphologicalToken(current_word['text'], current_word['analysis'][0]['lex'])
-                        morph_token.mystem_tags = current_word['analysis'][0]['gr']
-                        morph_token.pymorphy_tags = morph_analyzer.parse(morph_token.original_word)[0].tag
-                        tokens.append(morph_token)
+                if current_word['analysis'][0].get('lex') and current_word['analysis'][0].get('gr'):
+                    morph_token = MorphologicalToken(current_word['text'], current_word['analysis'][0]['lex'])
+                    morph_token.mystem_tags = current_word['analysis'][0]['gr']
+                    morph_token.pymorphy_tags = morph_analyzer.parse(morph_token.original_word)[0].tag
+                    tokens.append(morph_token)
         return tokens
 
     def public_method(self):
