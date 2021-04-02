@@ -5,6 +5,7 @@ import json
 import os
 import re
 import datetime
+import shutil
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
@@ -121,8 +122,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
