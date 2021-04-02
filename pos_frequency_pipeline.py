@@ -36,7 +36,7 @@ class POSFrequencyPipeline:
         Counts frequencies for parts of speech in a text
         """
         pos_frequencies = {}
-        found_pos = re.findall(r"^[A-Z]+", self.text)
+        found_pos = re.findall(r"<([A-Z]+)", self.text)
         for pos in found_pos:
             pos_frequencies[pos] = pos_frequencies.get(pos, 0) + 1
         return pos_frequencies
