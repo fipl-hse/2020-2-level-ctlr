@@ -4,9 +4,9 @@ Pipeline for text processing implementation
 
 from typing import List
 from pathlib import Path
-from article import Article
 from pymystem3 import Mystem
 from pymorphy2 import MorphAnalyzer
+from article import Article
 from constants import ASSETS_PATH
 
 
@@ -41,6 +41,9 @@ class MorphologicalToken:
     def __str__(self):
         return f'{self.normalized_form}<{self.mystem_tags}>({self.pymorph_tags})'
 
+    def public_method(self):
+        pass
+
 
 class CorpusManager:
     """
@@ -66,6 +69,9 @@ class CorpusManager:
         Returns storage params
         """
         return self._storage
+
+    def public_method(self):
+        pass
 
 
 class TextProcessingPipeline:
@@ -139,6 +145,6 @@ def main():
 if __name__ == "__main__":
     main()
     validate_dataset(ASSETS_PATH)
-    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
-    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    corpus_manager_0 = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager_0)
     pipeline.run()
