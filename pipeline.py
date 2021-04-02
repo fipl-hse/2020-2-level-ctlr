@@ -81,7 +81,8 @@ class TextProcessingPipeline:
         """
         Runs pipeline process scenario
         """
-        for file in self.corpus_manager.get_articles().values():
+        articles = self.corpus_manager.get_articles()
+        for file in articles.values():
             self._text = file.get_raw_text()
             tokens = self._process()
             file.save_processed(' '.join(map(str, tokens)))
@@ -110,22 +111,24 @@ def validate_dataset(path_to_validate):
     """
     if not isinstance(path_to_validate, str):
         raise UnknownDatasetError
+
     path = Path(path_to_validate)
+
     if not path.exists():
         raise FileNotFoundError
-    if path.exists():
-        if not path.is_dir():
-            raise NotADirectoryError
-        if not list(path.iterdir()):
-            raise EmptyDirectoryError
 
-        files = []
-        files_ids = []
-        for file in Path(path_to_validate).rglob('*_raw.text'):
-            files.append(file)
-            files_ids.append(int(file.name.split('_')[0]))
-        if len(files) != len(files_ids) or set(files_ids) != set(range(1, len(files) + 1)):
-            raise InconsistentDatasetError
+    if not path.is_dir():
+        raise NotADirectoryError
+    if not list(path.iterdir()):
+        raise EmptyDirectoryError
+
+    files = []
+    files_ids = []
+    for file in Path(path_to_validate).rglob('*_raw.text'):
+        files.append(file)
+        files_ids.append(int(file.name.split('_')[0]))
+    if len(files) != len(files_ids) or set(files_ids) != set(range(1, len(files) + 1)):
+        raise InconsistentDatasetError
 
 
 def main():
