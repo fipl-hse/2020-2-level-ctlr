@@ -6,46 +6,34 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from pymystem3 import Mystem
-
-from article import Article
 from constants import ASSETS_PATH
 from pipeline import CorpusManager
 from visualizer import visualize
 
 
 class POSFrequencyPipeline:
+    """
+    Extracts POS frequencies and creates distribution plots with them.
+    """
+
+    frequencies: Counter
+
     def __init__(self, assets: CorpusManager):
         self.assets = assets
-        self.text = ""
-        self.frequencies = Counter()
 
     def run(self):
-        for idx in self.assets.get_articles():
-            article = Article(url=None, article_id=idx)
-            self.text = article.get_raw_text()
-            self.frequencies += self._process()
+        for idx in self.assets.get_articles().keys():
+            processed_text_path = Path(ASSETS_PATH) / f"{idx}_processed.txt"
+            with open(processed_text_path, encoding="utf-8") as file:
+                text = file.read()
+
+            self.frequencies = Counter(re.findall(r"(?<=<)[A-Z]+", text))
             self._update_meta(idx)
+
             visualize(
                 statistics=self.frequencies,
                 path_to_save=Path(ASSETS_PATH) / f"{idx}_image.png",
             )
-
-    def sample(self):
-        raise NotImplementedError
-
-    def _process(self):
-        result = Mystem().analyze(self.text)
-
-        frequencies = Counter()
-
-        for token in result:
-
-            if token.get("analysis"):
-                pos = re.match(r"^[A-Z]+", token["analysis"][0]["gr"]).group()
-                frequencies.update([pos])
-
-        return frequencies
 
     def _update_meta(self, idx):
         path = Path(ASSETS_PATH) / f"{idx}_meta.json"

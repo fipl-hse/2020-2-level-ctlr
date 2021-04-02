@@ -20,14 +20,8 @@ from bs4 import BeautifulSoup
 from requests import RequestException
 
 from article import Article
-from constants import (
-    ASSETS_PATH,
-    COOKIES,
-    CRAWLER_CONFIG_PATH,
-    CRAWLER_STATE,
-    HEADERS,
-    PARSER_STATE,
-)
+from constants import (ASSETS_PATH, COOKIES, CRAWLER_CONFIG_PATH,
+                       CRAWLER_STATE, HEADERS, PARSER_STATE)
 
 logging.config.fileConfig(fname="crawler_logging.ini", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
@@ -199,7 +193,7 @@ class ArticleParser:
 
     @property
     def is_russian(self) -> bool:
-        return bool(re.match(r'[а-яё]+', self.article.title, re.I))
+        return bool(re.match(r"[а-яё]+", self.article.title, re.I))
 
     def parse(self):
         """
@@ -283,12 +277,12 @@ def validate_config(crawler_path: str) -> Tuple[List[str], int, int]:
     """
     Validates given config
     """
-    with open(crawler_path) as file:
-        config: dict = json.load(file)
-
     Check = namedtuple("Check", ["status", "error"])
 
     try:
+        with open(crawler_path) as file:
+            config: dict = json.load(file)
+
         total_num = config["total_articles_to_find_and_parse"]
         url_check = re.compile(r"^(https?://)?[0-9a-z]+\.[-_0-9a-z]+\.[0-9a-z/]+", re.I)
 
