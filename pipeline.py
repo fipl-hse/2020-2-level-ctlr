@@ -95,6 +95,9 @@ class TextProcessingPipeline:
                 text.append(str(token))
             file.save_processed(' '.join(text))
 
+    def public_method(self):
+        pass
+
 
 
     def _process(self) -> List[type(MorphologicalToken)]:
@@ -118,7 +121,7 @@ def validate_dataset(path_to_validate):
     Validates folder with assets
     """
     if not isinstance(path_to_validate, str):
-        UnknownDatasetError
+        raise UnknownDatasetError
     path = Path(path_to_validate)
     if path.exists():
         if not path.is_dir():
