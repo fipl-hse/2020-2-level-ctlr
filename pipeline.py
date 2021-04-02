@@ -125,22 +125,21 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    checked_path = Path(path_to_validate)
-    if not checked_path.exists():
+    path = Path(path_to_validate)
+
+    if not isinstance(path_to_validate, str):
+        raise UnknownDatasetError
+    if path.exists():
+        if not path.is_dir():
+            raise NotADirectoryError
+        raws = list(path.rglob('*_raw.txt'))
+        if not raws:
+            raise EmptyDirectoryError
+        metas = list(path.rglob('*.json'))
+        if len(raws) != len(metas):
+            raise InconsistentDatasetError
+    else:
         raise FileNotFoundError
-
-    if not checked_path.is_dir():
-        raise NotADirectoryError
-
-    if not list(checked_path.iterdir()):
-        raise EmptyDirectoryError
-
-    raw_files = list(checked_path.rglob('*.txt'))
-    meta_files = list(checked_path.rglob('*.json'))
-    raw_numbers = list(map(lambda file: int(file.name.split('_')[0]), raw_files))
-    correct_indexes = list(range(min(raw_numbers), max(raw_numbers) + 1))
-    if len(raw_files) != len(meta_files) or sorted(raw_numbers) != correct_indexes:
-        raise InconsistentDatasetError
 
 
 def main():
