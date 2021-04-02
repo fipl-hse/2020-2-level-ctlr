@@ -8,7 +8,6 @@ from datetime import datetime
 import random
 import shutil
 import requests
-from requests import HTTPError
 from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
@@ -62,21 +61,22 @@ class Crawler:
         Finds articles
         """
         for url in self.seed_urls:
-            try:
-                response = requests.get(url, headers=headers)
-            except HTTPError:
-                print('something wrong the url...')
-                continue
-            sleep(random.randint(5, 10))
             response = requests.get(url, headers=headers)
             if not response:
-                continue
-            seed_soup = BeautifulSoup(response.content, features='lxml')
-            articles_soup = seed_soup.find_all('div', class_='item-details')
-            for article_bs in articles_soup[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == self.max_articles:
-                    break
+                raise IncorrectURLError
+            if response.status_code == 200:
+                sleep(random.randrange(2, 6))
+            page_soup = BeautifulSoup(response.content, features='lxml')
+            article_soup = page_soup.find_all('div', class_='item-details')
+            for article_bs in article_soup[:self.max_articles_per_seed]:
+                try:
+                    link = self._extract_url(article_bs)
+                    if len(self.urls) == self.max_articles:
+                        break
+                except AttributeError:
+                    continue
+                self.urls.append(link)
+
         return self.urls
 
     def get_search_urls(self):
