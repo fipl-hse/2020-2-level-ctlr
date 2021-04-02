@@ -18,11 +18,11 @@ class ReferenceTextPreprocessTest(unittest.TestCase):
         os.mkdir(ASSETS_PATH)
         with open(os.path.join(TEST_FILES_FOLDER, '0_meta.json')) as f:
             admin_meta = json.load(f)
-        with open(os.path.join(ASSETS_PATH, "0_meta.json"), "w", encoding='utf-8') as f:
+        with open(os.path.join(ASSETS_PATH, "1_meta.json"), "w", encoding='utf-8') as f:
             json.dump(admin_meta, f)
 
         text = 'Красивая - мама красиво, мыла раму во второй реке.'
-        with open(os.path.join(ASSETS_PATH, "0_raw.txt"), "w", encoding="utf-8") as r:
+        with open(os.path.join(ASSETS_PATH, "1_raw.txt"), "w", encoding="utf-8") as r:
             r.write(text)
 
         validate_dataset(ASSETS_PATH)
@@ -33,7 +33,7 @@ class ReferenceTextPreprocessTest(unittest.TestCase):
     def setUp(self) -> None:
         with open('config/test_files/reference_score_eight_test.txt', 'r', encoding='utf-8') as rf:
             self.reference = rf.read()
-        with open(os.path.join(ASSETS_PATH, "0_processed.txt"), "r", encoding='utf-8') as pr:
+        with open(os.path.join(ASSETS_PATH, "1_processed.txt"), "r", encoding='utf-8') as pr:
             self.processed = pr.read()
         self.re_pattern = r"\w+<*>\(*\)"
 
