@@ -113,7 +113,7 @@ def validate_dataset(path_to_validate):
     path = Path(path_to_validate)
     if not path.exists():
         raise FileNotFoundError
-    if path.exists(path_to_validate):
+    if path.exists():
         if not path.is_dir():
             raise NotADirectoryError
         if not list(path.iterdir()):
