@@ -115,15 +115,15 @@ class ArticleParser:
         # find author
         self.article.author = article_soup.find('div', {"id": "content"}).find('a', {"class": "red"}).text
 
-    # @staticmethod
-    # def unify_date_format(date_str):
-    #     """
-    #     Unifies date format: strftime("%Y-%m-%d %H:%M:%S")
-    #     """
-    #     date = '-'.join(date_str.split('.')[::-1])
-    #     date_time = str(datetime.strptime(date, "%Y-%m-%d"))
-    #
-    #     return datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+
+    def unify_date_format(date_str):
+         """
+         Unifies date format: strftime("%Y-%m-%d %H:%M:%S")
+         """
+         date = '-'.join(date_str.split('.')[::-1])
+         date_time = str(datetime.strptime(date, "%Y-%m-%d"))
+
+         return datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
 
     def parse(self):
         """
