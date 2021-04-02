@@ -111,7 +111,7 @@ class TextProcessingPipeline:
                 if token.get('analysis')[0].get('lex') and token.get('analysis')[0].get('gr'):
                     morph = MorphologicalToken(token.get('text'), token.get('analysis')[0].get('lex'))
                     morph.mystem_tags = token.get('analysis')[0].get('gr')
-                    morph.pymorph_tags = MorphAnalyzer().parse(morph.original_word[0].tag)
+                    morph.pymorph_tags = MorphAnalyzer().parse(morph.original_word)[0].tag
                     morph_tokens.append(morph)
         return morph_tokens
 
