@@ -58,8 +58,8 @@ class CorpusManager:
         Register each dataset entry
         """
         path = Path(self.path_to_raw_txt_date)
-        for file in path.glob('*_raw.txt'):
-            article_id = str(file).split('\\')[-1].split('_')[0]
+        for file in path.rglob('*_raw.txt'):
+            article_id = int(file.name.split('_')[0])
             self._storage[article_id] = Article(url=None, article_id=article_id)
 
     def get_articles(self):
@@ -75,7 +75,7 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self.text = ''
+        self._text = ''
 
     def run(self):
         """
@@ -83,19 +83,19 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for file in articles.values():
-            self.text = file.get_raw_text()
+            self._text = file.get_raw_text()
             tokens = self._process()
-            file.save_processed(' '.join(map(str, tokens)))
+            file.save_processed(' '.join(tokens))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        result = Mystem().analyze(self.text)
+        result = Mystem().analyze(self._text)
         tokens = []
 
         for token in result:
-            if token.get('analysis') and token.get('text'):
+            if token.get('analysis'):
                 morph_token = MorphologicalToken(original_word=token['text'],
                                                  normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
@@ -124,7 +124,7 @@ def validate_dataset(path_to_validate):
 
     files = []
     files_ids = []
-    for file in Path(path_to_validate).rglob('*_raw.text'):
+    for file in Path(path_to_validate).rglob('*_raw.txt'):
         files.append(file)
         files_ids.append(int(file.name.split('_')[0]))
     if len(files) != len(files_ids) or set(files_ids) != set(range(1, len(files) + 1)):
