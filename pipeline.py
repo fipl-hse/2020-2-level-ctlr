@@ -60,7 +60,7 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        for one_file in Path(self.path_to_data).rglob('*_raw.text'):
+        for one_file in Path(self.path_to_data).rglob('*_raw.txt'):
             key_number = int(one_file.name.split('_')[0])
             self._storage[key_number] = article.Article(url=None, article_id=key_number)
 
@@ -132,7 +132,7 @@ def validate_dataset(path_to_validate):
 
         files = []
         files_ids = []
-        for one_file in Path(path_to_validate).rglob('*_raw.text'):
+        for one_file in Path(path_to_validate).rglob('*_raw.txt'):
             files.append(one_file)
             files_ids.append(int(one_file.name.split('_')[0]))
         if len(files) != len(files_ids) or set(files_ids) != set(range(1, len(files) + 1)):
