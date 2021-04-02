@@ -84,7 +84,7 @@ class TextProcessingPipeline:
         for file in self.corpus_manager.get_articles().values():
             self._text = file.get_raw_text()
             tokens = self._process()
-            file.save_processed(' '.join(tokens))
+            file.save_processed(' '.join(map(str, tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -94,12 +94,13 @@ class TextProcessingPipeline:
         tokens = []
 
         for token in result:
-            if token.get('analysis'):
+            if token.get('analysis') and token.get('text'):
                 morph_token = MorphologicalToken(original_word=token['text'],
-                                             normalized_form=token['analysis'][0]['lex'])
+                                                 normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
                 morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
                 tokens.append(str(morph_token))
+
         return tokens
 
 
