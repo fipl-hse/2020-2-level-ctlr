@@ -98,7 +98,7 @@ class TextProcessingPipeline:
         """
         result = Mystem().analyze(self.text)
         morph = MorphAnalyzer()
-        word_filter = re.compile(r"\W+")
+        word_filter = re.compile(r"[^\w-]+")
 
         processed_text: List[MorphologicalToken] = []
 
