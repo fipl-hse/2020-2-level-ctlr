@@ -3,7 +3,6 @@ Pipeline for text processing implementation
 """
 
 import os
-import re
 from typing import List
 
 import pymorphy2
@@ -42,7 +41,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return '{}<{}>{}'.format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
+        return '{}<{}>{}'.format(str(self.normalized_form), str(self.mystem_tags), str(self.pymorphy_tags))
 
 
 class CorpusManager:
@@ -52,6 +51,8 @@ class CorpusManager:
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_data = path_to_raw_txt_data
         self._storage = {}
+
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
@@ -79,6 +80,7 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
+        self.raw_text = ''
 
     def run(self):
         """
@@ -87,9 +89,11 @@ class TextProcessingPipeline:
         article_storage = self.corpus_manager.get_articles()
         for article in article_storage.values():
             self.raw_text = article.get_raw_text()
-            final_tokens = _process()
-            tokens = ' '.join([str(token) for token in final_tokens])
-            article.save_processed(tokens)
+            final_tokens = self._process()
+            final_info = []
+            for token in final_tokens:
+                final_info.append(token.__str__())
+            article.save_processed(' '.join(final_info))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -98,15 +102,15 @@ class TextProcessingPipeline:
         mystem_tool = Mystem()
         morphy_tool = pymorphy2.MorphAnalyzer()
         result = mystem_tool.analyze(self.raw_text)
-        text = re.sub('[^a-z \n]', '', result.lower()).split()
         tokens = []
-        for word in text:
+        for word in result:
             if word["analysis"]:
                 token = MorphologicalToken(original_word=word["text"], normalized_form=word["analysis"][0]["lex"])
-                token.mystem_tags = word(["analysis"][0]["gr"])
+                token.mystem_tags = word["analysis"][0]["gr"]
                 tokens.append(token)
         for token in tokens:
             token.pymorphy_tags = morphy_tool.parse(token.original_word)[0].tag
+        print(tokens)
         return tokens
 
 
@@ -114,11 +118,13 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    path_to_validate = ASSETS_PATH
     check_files = True
     check_consistency = True
 
     if not os.path.exists(path_to_validate):
+        raise FileNotFoundError
+
+    if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
 
     consistency = os.listdir(path_to_validate)
@@ -126,7 +132,7 @@ def validate_dataset(path_to_validate):
         check_files = False
 
     if not check_files:
-        EmptyDirectoryError
+        raise EmptyDirectoryError
 
     id_meta = []
     id_article = []
@@ -143,14 +149,12 @@ def validate_dataset(path_to_validate):
 
     if check_files and check_consistency:
         return None
-    else:
-        UnknownDatasetError
 
 
 def main():
     print('Your code goes here')
     validate_dataset(ASSETS_PATH)
-    corpus_manager = CorpusManager(ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
