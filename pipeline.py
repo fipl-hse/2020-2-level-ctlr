@@ -85,7 +85,7 @@ class TextProcessingPipeline:
         for file in articles.values():
             self._text = file.get_raw_text()
             tokens = self._process()
-            file.save_processed(' '.join(tokens))
+            file.save_processed(' '.join(map(str, tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -112,7 +112,6 @@ def validate_dataset(path_to_validate):
 
     if not isinstance(path_to_validate, str):
         raise UnknownDatasetError
-
     if path.exists():
         if not path.is_dir():
             raise NotADirectoryError
