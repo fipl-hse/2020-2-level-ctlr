@@ -97,7 +97,7 @@ class TextProcessingPipeline:
             for token in tokens:
                 processed_txt.append(str(token))
             article.save_processed(' '.join(processed_txt))
-            print(processed_txt)
+            #print(processed_txt)
 
 
 

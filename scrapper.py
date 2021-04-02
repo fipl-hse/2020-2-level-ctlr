@@ -113,7 +113,7 @@ class ArticleParser:
         categ_tag = all_text.find_all(name='p', class_="news-category")
         self.article.topics = categ_tag[0].text
 
-        self.article.title = article_soup.find(name='h1').text
+        self.article.title = article_soup.find(name='title').text
 
 
         # self.article.title = article_soup.select_one('div.news-post > h1').text
