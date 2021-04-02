@@ -5,8 +5,8 @@ import json
 import os
 from datetime import datetime
 from time import sleep
-import requests
 import random
+import requests
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 from article import Article
