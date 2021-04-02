@@ -2,10 +2,15 @@
 Pipeline for text processing implementation
 """
 
-from typing import List
-from constants import ASSETS_PATH
-
 import os
+import re
+from typing import List
+
+import pymorphy2
+from pymystem3 import Mystem
+
+from article import Article
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
@@ -31,10 +36,13 @@ class MorphologicalToken:
     Stores language params for each processed token
     """
     def __init__(self, original_word, normalized_form):
-        pass
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return '{}<{}>{}'.format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
 
 
 class CorpusManager:
@@ -42,19 +50,27 @@ class CorpusManager:
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_txt_data = path_to_raw_txt_data
+        self._storage = {}
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        pass
+        articles_for_store = []
+        all_files = os.listdir(self.path_to_raw_txt_data)
+        for file in all_files:
+            if file == r'..raw.txt':
+                articles_for_store.append(file)
+        for article in articles_for_store:
+            article_id = article.split('_')[0]
+            self._storage[article_id] = Article(url=None, article_id=article_id)
 
     def get_articles(self):
         """
         Returns storage params
         """
-        pass
+        return self._storage
 
 
 class TextProcessingPipeline:
@@ -62,19 +78,36 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        article_storage = self.corpus_manager.get_articles()
+        for article in article_storage.values():
+            self.raw_text = article.get_raw_text()
+            final_tokens = _process()
+            tokens = ' '.join([str(token) for token in final_tokens])
+            article.save_processed(tokens)
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        mystem_tool = Mystem()
+        morphy_tool = pymorphy2.MorphAnalyzer()
+        result = mystem_tool.analyze(self.raw_text)
+        text = re.sub('[^a-z \n]', '', result.lower()).split()
+        tokens = []
+        for word in text:
+            if word["analysis"]:
+                token = MorphologicalToken(original_word=word["text"], normalized_form=word["analysis"][0]["lex"])
+                token.mystem_tags = word(["analysis"][0]["gr"])
+                tokens.append(token)
+        for token in tokens:
+            token.pymorphy_tags = morphy_tool.parse(token.original_word)[0].tag
+        return tokens
 
 
 def validate_dataset(path_to_validate):
@@ -95,18 +128,15 @@ def validate_dataset(path_to_validate):
     if not check_files:
         EmptyDirectoryError
 
-    if len(consistency) // 2 != 0:
-        check_consistency = False
-
-    check_id = True
-    number_of_files = len(consistency) // 2
-    ids = []
+    id_meta = []
+    id_article = []
     for file in consistency:
-        ids.append(int(file[0]))
-        if len(ids) != number_of_files:
-            check_id = False
-        if not file == r'..meta.json' or not file == r'..raw.txt' or not check_id:
-            check_consistency = False
+        if file == '*.json':
+            id_meta.append(file.split('_')[0])
+        elif file == '*._raw.txt':
+            id_article.append(file.split('_')[0])
+    if set(id_meta) != set(id_article):
+        check_consistency = False
 
     if not check_consistency:
         raise InconsistentDatasetError
@@ -117,10 +147,13 @@ def validate_dataset(path_to_validate):
         UnknownDatasetError
 
 
-
 def main():
     print('Your code goes here')
     validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline.run()
+
 
 if __name__ == "__main__":
     main()
