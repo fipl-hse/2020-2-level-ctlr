@@ -1,4 +1,3 @@
-# pylint: disable=R0903
 """
 Implementation of POSFrequencyPipeline for score ten only.
 """
