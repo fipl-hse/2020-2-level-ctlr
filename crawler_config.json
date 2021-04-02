@@ -1,5 +1,5 @@
 {
     "base_urls": ["http://kamvesti.com/category/новости/"],
-    "total_articles_to_find_and_parse": 3,
-    "max_number_articles_to_get_from_one_seed": 3
+    "total_articles_to_find_and_parse": 1,
+    "max_number_articles_to_get_from_one_seed": 1
 }
