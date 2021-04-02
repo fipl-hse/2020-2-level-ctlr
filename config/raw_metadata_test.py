@@ -1,9 +1,13 @@
-import re
-import os
+import html
 import json
+import os
+import re
 import unittest
+
 import requests
+
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+from crawler_config import Config
 
 
 class RawDataValidator(unittest.TestCase):
@@ -42,13 +46,19 @@ class RawDataValidator(unittest.TestCase):
                             msg="""Articles ids are not homogeneous. E.g. numbers are not from 1 to N""")
 
     def test_validate_metadata(self):
+        config = Config(CRAWLER_CONFIG_PATH)
+        session = requests.Session()
+
+        session.headers.update(config['headers'])
+        session.cookies.update(config['cookies'])
+
         # can i open this URL?
         for metadata in self.metadata:
-            self.assertTrue(requests.get(metadata[1]['url']),
+            self.assertTrue(session.get(metadata[1]['url']),
                             msg="Can not open URL: <{}>. Check how you collect URLs".format(
                                 metadata[1]['url']))
 
-            html_source = requests.get(metadata[1]['url']).text
+            html_source = html.unescape(session.get(metadata[1]['url']).text)
 
             self.assertTrue(metadata[1]['title'] in
                             html_source,
