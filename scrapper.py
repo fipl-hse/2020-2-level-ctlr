@@ -3,8 +3,6 @@ Crawler implementation
 """
 import os
 import json
-import random
-from time import sleep
 import requests
 from bs4 import BeautifulSoup
 from article import Article
@@ -58,16 +56,19 @@ class Crawler:
             response = requests.get(url, headers=HEADERS)
             if not response:
                 raise IncorrectURLError
-            if response.status_code == 200:
-                sleep(random.randrange(2, 6))
-            response.encoding = 'utf-8'
+
             page_soup = BeautifulSoup(response.content, features='lxml')
             article_soup = page_soup.find_all('article', class_="G9alp")
+
             for articles in article_soup[:max_num_per_seed]:
                 seed_url = self._extract_url(articles)
                 self.urls.append(seed_url)
+
                 if len(self.urls) == max_num_articles:
-                    return self.urls
+                    break
+
+            if len(self.urls) == max_num_articles:
+                break
 
     def get_search_urls(self):
         """
