@@ -2,6 +2,7 @@
 Pipeline for text processing implementation
 """
 import re
+from collections import namedtuple
 from pathlib import Path
 from typing import List
 
@@ -66,7 +67,7 @@ class CorpusManager:
         path = Path(self.path_to_raw_txt_data)
 
         for idx in path.glob(r"*_raw.txt"):
-            article_id = re.match(r"^\d+", idx.parts[-1]).group()
+            article_id = int(re.match(r"^\d+", idx.parts[-1]).group())
             self._storage[article_id] = Article(url=None, article_id=article_id)
 
     def get_articles(self):
@@ -74,9 +75,6 @@ class CorpusManager:
         Returns storage params
         """
         return self._storage
-
-    def sample(self):
-        raise NotImplementedError
 
 
 class TextProcessingPipeline:
@@ -92,14 +90,10 @@ class TextProcessingPipeline:
         """
         Runs pipeline process scenario
         """
-        for idx in self.corpus_manager.get_articles():
-            article = Article(url=None, article_id=idx)
+        for article in self.corpus_manager.get_articles().values():
             self.text = article.get_raw_text()
             processed_text = self._process()
             article.save_processed(" ".join(map(str, processed_text)))
-
-    def sample(self):
-        raise NotImplementedError
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -112,13 +106,14 @@ class TextProcessingPipeline:
 
         for token in result:
 
-            if token.get("analysis"):
-                morph_token = MorphologicalToken(
-                    token["text"], token["analysis"][0]["lex"]
-                )
-                morph_token.mystem_tags = token["analysis"][0]["gr"]
-                morph_token.pymorphy_tags = morph.parse(token["text"])[0].tag
-                processed_text.append(morph_token)
+            if token.get("analysis") and token.get("text"):
+                if token["analysis"][0].get("lex"):
+                    morph_token = MorphologicalToken(
+                        token["text"], token["analysis"][0]["lex"]
+                    )
+                    morph_token.mystem_tags = token["analysis"][0]["gr"]
+                    morph_token.pymorphy_tags = morph.parse(token["text"])[0].tag
+                    processed_text.append(morph_token)
 
         return processed_text
 
@@ -128,12 +123,33 @@ def validate_dataset(path_to_validate):
     Validates folder with assets
     """
     path = Path(path_to_validate)
+    Check = namedtuple("Check", ["status", "error"])
 
-    if not path.is_dir():
-        raise NotADirectoryError
+    paths = tuple(path.glob("*_raw.txt")), tuple(path.glob("*_meta.json"))
+    sorted_paths = [
+        sorted(arr, key=lambda x: int(re.match(r"^\d+", x.name).group()))
+        for arr in paths
+    ]
+    valid_order = [str(x) for x in range(1, max(len(paths[0]), len(paths[1])) + 1)]
 
-    if not any(path.iterdir()):
-        raise EmptyDirectoryError
+    is_num_raw_meta_equal = len(paths[0]) == len(paths[1])
+    are_nums_consequent = list(
+        all(x.name.startswith(n) for x in p)
+        for *p, n in zip(*sorted_paths, valid_order)
+    )
+
+    checks = (
+        Check(path.is_dir(), NotADirectoryError),
+        Check(path.exists(), FileNotFoundError),
+        Check(any(path.iterdir()), EmptyDirectoryError),
+        Check(
+            is_num_raw_meta_equal or all(are_nums_consequent), InconsistentDatasetError
+        ),
+    )
+
+    for check in checks:
+        if not check.status:
+            raise check.error("Error occurred while checking config.")
 
 
 def main():
