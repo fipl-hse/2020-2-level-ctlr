@@ -137,7 +137,6 @@ def validate_dataset(path_to_validate):
 
 
 def main():
-    print('Your code goes here')
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
