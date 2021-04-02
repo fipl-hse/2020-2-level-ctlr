@@ -95,7 +95,7 @@ class TextProcessingPipeline:
         tokens = []
 
         for token in result:
-            if token.get('analysis'):
+            if token.get('analysis') and token.get('text'):
                 morph_token = MorphologicalToken(original_word=token['text'],
                                                  normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
@@ -109,25 +109,20 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
+    path = Path(path_to_validate)
+
     if not isinstance(path_to_validate, str):
         raise UnknownDatasetError
 
-    path = Path(path_to_validate)
-
-    if not path.exists():
+    if path.exists():
+        if not path.is_dir():
+            raise NotADirectoryError
+        if not list(path.rglob('*_raw.txt')):
+            raise EmptyDirectoryError
+        if len(list(path.rglob('*_raw.txt'))) != len(list(path.rglob('*.json'))):
+            raise InconsistentDatasetError
+    else:
         raise FileNotFoundError
-
-    if not path.is_dir():
-        raise NotADirectoryError
-    if not list(path.iterdir()):
-        raise EmptyDirectoryError
-
-    raw_files = list(path.rglob('*.txt'))
-    meta_files = list(path.rglob('*.json'))
-    raw_numbers = list(map(lambda file: int(file.name.split('_')[0]), raw_files))
-    correct_indexes = list(range(min(raw_numbers), max(raw_numbers) + 1))
-    if len(raw_files) != len(meta_files) or sorted(raw_numbers) != correct_indexes:
-        raise InconsistentDatasetError
 
 
 def main():
