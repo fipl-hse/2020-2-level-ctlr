@@ -65,9 +65,9 @@ class Crawler:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
             links = article_bs.find_all('div', class_='title')
-            for article in links:
+            for articles in links:
                 if len(self.urls) <= self.max_articles and article not in self.urls:
-                    seed_url = self._extract_url(article)
+                    seed_url = self._extract_url(articles)
                     self.urls.append(seed_url)
 
     def get_search_urls(self):
@@ -94,7 +94,6 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1').text.strip()
-        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -150,9 +149,11 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    seed_urls_list, max_num_articles, max_num_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
+    crawler = Crawler(seed_urls=seed_urls_list,
+                      max_articles=max_num_articles,
+                      max_articles_per_seed=max_num_articles_per_seed)
     crawler.find_articles()
 
     prepare_environment(ASSETS_PATH)
