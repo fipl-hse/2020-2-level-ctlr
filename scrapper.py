@@ -1,4 +1,4 @@
-"""
+""""
 Crawler implementation
 """
 import json
@@ -16,6 +16,7 @@ HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36 '
         }
+
 
 class IncorrectURLError(Exception):
     """
@@ -148,6 +149,7 @@ def prepare_environment(base_path):
     if not os.path.isdir(base_path):
         os.makedirs(base_path)
 
+
 def validate_config(crawler_path):
     """
     Validates given config
@@ -175,6 +177,7 @@ def validate_config(crawler_path):
     max_articles_per_seed = crawler['max_number_articles_to_get_from_one_seed']
     return seed_urls, max_articles, max_articles_per_seed
 
+
 if __name__ == '__main__':
     import constants
 
@@ -185,7 +188,7 @@ if __name__ == '__main__':
     article_id = 0
     for article_url in urls:
         article_id += 1
-    parser = ArticleParser(article_url, article_id)
-    sleep(random.randint(2, 4))
-    article = parser.parse()
-    article.save_raw()
+        parser = ArticleParser(article_url, article_id)
+        sleep(random.randint(2, 4))
+        article = parser.parse()
+        article.save_raw()

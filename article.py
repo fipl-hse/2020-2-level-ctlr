@@ -94,13 +94,13 @@ class Article:
             'author': self.author,
             'topic': self.topic
         }
-    
+
     def _date_to_text(self):
         """
         Converts datetime object to text
         """
         return self.date
-    
+
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article

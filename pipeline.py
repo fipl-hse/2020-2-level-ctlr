@@ -8,6 +8,7 @@ from pymystem3 import Mystem
 from article import Article
 from constants import ASSETS_PATH
 
+
 class EmptyDirectoryError(Exception):
     """
     Custom error
@@ -39,8 +40,8 @@ class MorphologicalToken:
     def __str__(self):
         return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
-        def public_method(self):
-            pass
+    # def public_method(self):
+    #     pass
 
 
 class CorpusManager:
@@ -67,8 +68,8 @@ class CorpusManager:
         """
         return self._storage
 
-        def public_method(self):
-            pass
+    # def public_method(self):
+    #     pass
 
 
 class TextProcessingPipeline:
