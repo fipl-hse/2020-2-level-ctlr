@@ -4,6 +4,7 @@ Pipeline for text processing implementation
 import os
 import re
 
+from pathlib import Path
 from typing import List
 
 from pymorphy2 import MorphAnalyzer
@@ -62,11 +63,10 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        number = 0
-        for name in os.listdir(self.data_path):
-            if re.match(r'\d+_raw', name):
-                self._storage[number] = Article(url=None, article_id=number)
-                number += 1
+        path = Path(self.data_path)
+        for file in path.rglob('*.txt'):
+            number = int(file.parts[-1].split('_')[0])
+            self._storage[number] = Article(url=None, article_id=number)
 
     def get_articles(self):
         """
