@@ -32,6 +32,7 @@ class StudentTextPreprocessTest(unittest.TestCase):
                                 msg=f"{sequence} --- < markup symbol should be in processed text")
                 self.assertTrue(sequence[sequence.index("<") - 1].isalpha(),
                                 msg=f"{sequence} --- In tagged sequence there should be char symbol before < ")
+                break
 
     def test_tags_correctness(self):
         for article_id, article_text in self.articles.items():
