@@ -58,8 +58,8 @@ class CorpusManager:
         Register each dataset entry
         """
         path = Path(self.path_to_raw_txt_date)
-        for file in path.rglob('*.txt'):
-            article_id = int(file.name.split('_')[0])
+        for file in path.glob('*_raw.txt'):
+            article_id = str(file).split('\\')[-1].split('_')[0]
             self._storage[article_id] = Article(url=None, article_id=article_id)
 
     def get_articles(self):
@@ -75,7 +75,7 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self._text = ''
+        self.text = ''
 
     def run(self):
         """
@@ -83,7 +83,7 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for file in articles.values():
-            self._text = file.get_raw_text()
+            self.text = file.get_raw_text()
             tokens = self._process()
             file.save_processed(' '.join(map(str, tokens)))
 
@@ -91,7 +91,7 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        result = Mystem().analyze(self._text)
+        result = Mystem().analyze(self.text)
         tokens = []
 
         for token in result:
