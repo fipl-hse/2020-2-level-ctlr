@@ -98,6 +98,7 @@ class TextProcessingPipeline:
         """
         result = Mystem().analyze(self.text)
         morph = MorphAnalyzer()
+        word_filter = re.compile(r"\W+")
 
         processed_text: List[MorphologicalToken] = []
 
@@ -106,7 +107,8 @@ class TextProcessingPipeline:
             if token.get("analysis") and token.get("text"):
                 if token["analysis"][0].get("lex"):
                     morph_token = MorphologicalToken(
-                        token["text"], token["analysis"][0]["lex"]
+                        word_filter.sub("", token["text"]),
+                        word_filter.sub("", token["analysis"][0]["lex"])
                     )
                     morph_token.mystem_tags = token["analysis"][0]["gr"]
                     morph_token.pymorphy_tags = morph.parse(token["text"])[0].tag
