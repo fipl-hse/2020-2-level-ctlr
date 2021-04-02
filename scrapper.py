@@ -63,10 +63,10 @@ class Crawler:
             response.encoding = 'utf-8'
             page_soup = BeautifulSoup(response.content, features='lxml')
             article_soup = page_soup.find_all('article', class_="G9alp")
-            for article in article_soup[:max_articles_per_seed]:
-                seed_url = self._extract_url(article)
+            for articles in article_soup[:max_num_per_seed]:
+                seed_url = self._extract_url(articles)
                 self.urls.append(seed_url)
-                if len(self.urls) == max_articles:
+                if len(self.urls) == max_num_articles:
                     return self.urls
 
     def get_search_urls(self):
@@ -83,7 +83,7 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(full_url, article_id)
+        self.article = Article(url=full_url, article_id=article_id)
 
     def _fill_article_with_text(self, article_soup):
         article_text = article_soup.find('div', class_="GFahz").find('div').find_all('p')
@@ -156,11 +156,11 @@ def validate_config(crawler_path):
 
 
 if __name__ == '__main__':
-    #YOUR CODE HERE
-    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=seed_urls,
-                      max_articles=max_articles,
-                      max_articles_per_seed=max_articles_per_seed)
+    # YOUR CODE HERE
+    seed_urls_list, max_num_articles, max_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=seed_urls_list,
+                      max_articles=max_num_articles,
+                      max_articles_per_seed=max_num_per_seed)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for article_id, article_url in enumerate(crawler.urls, 1):
