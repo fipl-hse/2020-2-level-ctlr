@@ -1,3 +1,4 @@
+import html
 import re
 import os
 import json
@@ -45,7 +46,8 @@ class RawDataValidator(unittest.TestCase):
                             msg="Can not open URL: <{}>. Check how you collect URLs".format(
                                 metadata[1]['url']))
 
-            html_source = requests.get(metadata[1]['url']).text
+            # html_source = requests.get(metadata[1]['url']).text
+            html_source = html.unescape(requests.get(metadata[1]['url']).text)
 
             self.assertTrue(metadata[1]['title'] in
                             html_source[:round(len(html_source)*0.5)],
