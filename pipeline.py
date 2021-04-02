@@ -113,12 +113,6 @@ def validate_dataset(path_to_validate):
     if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
 
-    files_number = len(files) // 2
-    for i in range(1, files_number + 1):
-        if not (os.path.exists(os.path.join(path_to_validate, f'{i}_meta.json'))
-                or os.path.exists(os.path.join(path_to_validate, f'{i}_raw.txt'))):
-            raise InconsistentDatasetError
-
 
 def main():
     validate_dataset(ASSETS_PATH)
