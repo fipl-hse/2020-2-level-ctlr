@@ -87,8 +87,8 @@ class Crawler:
         a_list = soup.find_all('a')
 
         self.seed_urls = []
-        for a in a_list:
-            self.seed_urls.append(a.get("href"))
+        for element in a_list:
+            self.seed_urls.append(element.get("href"))
 
 
 class ArticleParser:
