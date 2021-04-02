@@ -64,8 +64,8 @@ class CorpusManager:
         """
         path = Path(self.data_path)
         for file in path.rglob('*.txt'):
-            number = int(file.parts[-1].split('_')[0])
-            self._storage[number] = Article(url=None, article_id=number)
+            idx = int(file.parts[-1].split('_')[0])
+            self._storage[idx] = Article(url=None, article_id=idx)
 
     def get_articles(self):
         """
