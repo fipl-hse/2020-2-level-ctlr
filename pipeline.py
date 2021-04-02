@@ -62,8 +62,8 @@ class CorpusManager:
         path = Path(self.path_to_raw_txt_date)
 
         for one_file in path.glob('*_raw.txt'):
-            idx = str(one_file).split('\\')[-1].split('_')[0]
-            self._storage[idx] = Article(url=None, article_id=idx)
+            ind = str(one_file).split('\\')[-1].split('_')[0]
+            self._storage[ind] = Article(url=None, article_id=ind)
 
     def get_articles(self):
         """
@@ -116,18 +116,18 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    paths = Path(path_to_validate)
-    if not paths.exists():
+    checked_path = Path(path_to_validate)
+    if not checked_path.exists():
         raise FileNotFoundError
 
-    if not paths.is_dir():
+    if not checked_path.is_dir():
         raise NotADirectoryError
 
-    if not list(paths.iterdir()):
+    if not list(checked_path.iterdir()):
         raise EmptyDirectoryError
 
-    raw_files = list(paths.rglob('*.txt'))
-    meta_files = list(paths.rglob('*.json'))
+    raw_files = list(checked_path.rglob('*.txt'))
+    meta_files = list(checked_path.rglob('*.json'))
     raw_numbers = list(map(lambda file: int(file.name.split('_')[0]), raw_files))
     correct_indexes = list(range(min(raw_numbers), max(raw_numbers) + 1))
     if len(raw_files) != len(meta_files) or sorted(raw_numbers) != correct_indexes:
