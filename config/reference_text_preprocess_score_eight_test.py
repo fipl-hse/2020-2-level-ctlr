@@ -13,7 +13,7 @@ TAGS = ["A", "ADV", "S", "V", "PR", "ANUM"]
 class ReferenceTextPreprocessTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        with open(os.path.join(TEST_FILES_FOLDER, '1_meta.json')) as f:
+        with open(os.path.join(TEST_FILES_FOLDER, '0_meta.json')) as f:
             admin_meta = json.load(f)
         with open(os.path.join(ASSETS_PATH, "1_meta.json"), "w", encoding='utf-8') as f:
             json.dump(admin_meta, f)
