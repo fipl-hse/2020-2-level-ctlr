@@ -40,7 +40,7 @@ class MorphologicalToken:
         self.pymorpy_tags = ''
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return f"{self.normalized_form}<{self.mystem_tags}>"
 
 
 class CorpusManager:
@@ -72,20 +72,31 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-
-        pass
+        self.corpus_manager = corpus_manager
+        self.article = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        articles = self.corpus_manager.get_articles()
+        for article in articles.values():
+            self.article = article.get_raw_text()
+            tokens = self._process()
+            article.save_processed(' '.join(map(str, tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        result = Mystem().analyze(self.article)
+        tokenized = []
+        for elem in result:
+            if elem.get('analysis'):
+                token = MorphologicalToken(elem['text'], elem['analysis'][0]['lex'])
+                token.mystem_tags = elem['analysis'][0]['gr']
+                tokenized.append(token)
+        return tokenized
 
 
 def validate_dataset(path_to_validate):
@@ -102,9 +113,6 @@ def validate_dataset(path_to_validate):
     if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
 
-    if len(files) % 2:
-        raise InconsistentDatasetError
-
     files_number = len(files) // 2
     for i in range(1, files_number + 1):
         if not (os.path.exists(os.path.join(path_to_validate, f'{i}_meta.json'))
@@ -113,7 +121,6 @@ def validate_dataset(path_to_validate):
 
 
 def main():
-    # print('Your code goes here')
     validate_dataset(ASSETS_PATH)
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
