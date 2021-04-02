@@ -45,9 +45,6 @@ class MorphologicalToken:
     def __str__(self):
         return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
-    def sample(self):
-        raise NotImplementedError
-
 
 class CorpusManager:
     """
