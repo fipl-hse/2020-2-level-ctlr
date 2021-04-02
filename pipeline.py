@@ -4,11 +4,13 @@ Pipeline for text processing implementation
 import os
 import re
 
-from article import Article
-from constants import ASSETS_PATH
+from typing import List
+
 from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
-from typing import List
+
+from article import Article
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
@@ -42,6 +44,9 @@ class MorphologicalToken:
     def __str__(self):
         return str(self.normalized_form) + '<' + str(self.mystem_tags) + '>' + '(' + str(self.pymorphy_tags) + ')'
 
+    def public_method(self):
+        pass
+
 
 class CorpusManager:
     """
@@ -69,6 +74,9 @@ class CorpusManager:
         """
         return self._storage
 
+    def public_method(self):
+        pass
+
 
 class TextProcessingPipeline:
     """
@@ -91,7 +99,6 @@ class TextProcessingPipeline:
                 list_of_strs.append(token.__str__())
             article.save_processed(' '.join(list_of_strs))
 
-
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
@@ -108,6 +115,9 @@ class TextProcessingPipeline:
                 token.pymorphy_tags = morph_analyzer.parse(stem_dict['text'])[0].tag
                 list_of_tokens.append(token)
         return list_of_tokens
+
+    def public_method(self):
+        pass
 
 
 def validate_dataset(path_to_validate):
@@ -132,7 +142,7 @@ def validate_dataset(path_to_validate):
     if raws != metas:
         raise InconsistentDatasetError
 
-    if not len(os.listdir(path_to_validate)):
+    if not os.listdir(path_to_validate):
         raise EmptyDirectoryError
 
 
