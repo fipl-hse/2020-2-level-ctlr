@@ -5,10 +5,11 @@ import json
 import os
 from time import sleep
 import random
+from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 from article import Article
-from datetime import datetime
+
 
 
 HEADERS = {
