@@ -20,6 +20,7 @@ class Article:
     Article class implementation.
     Stores article metadata and knows how to work with articles
     """
+
     def __init__(self, url, article_id):
         self.url = url
         self.article_id = article_id
@@ -46,7 +47,7 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
+
     @staticmethod
     def from_meta_json(json_path: str):
         """
@@ -94,13 +95,13 @@ class Article:
             'author': self.author,
             'topics': self.topics
         }
-    
+
     def _date_to_text(self):
         """
         Converts datetime object to text
         """
         return self.date.strftime("%Y-%m-%d %H:%M:%S")
-    
+
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article
