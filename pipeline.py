@@ -43,6 +43,9 @@ class MorphologicalToken:
     def __str__(self):
         return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
+    def public_method(self):
+        pass
+
 
 class CorpusManager:
     """
@@ -69,6 +72,9 @@ class CorpusManager:
         """
         return self._storage
 
+    def public_method_2(self):
+        pass
+
 
 class TextProcessingPipeline:
     """
@@ -83,13 +89,13 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         articles = self.corpus_manager.get_articles()
-        for element in articles.values():
-            self.text = element.get_raw_text()
+        for article in articles.values():
+            self.text = article.get_raw_text()
             morph_tokens = self._process()
             processed_text = []
             for token in morph_tokens:
                 processed_text.append(str(token))
-            element.save_processed(' '.join(processed_text))
+            article.save_processed(' '.join(processed_text))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -101,16 +107,16 @@ class TextProcessingPipeline:
         morphs = []
 
         for token in result:
-
             if token.get('analysis') and token.get('text'):
                 if token['analysis'][0].get('lex') and token['analysis'][0].get('gr'):
-                    morph = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
-                    morph.mystem_tags = token['analysis'][0]['gr']
-                    morphs.append(morph)
-        for token in morphs:
-            tokens_pymorhy = pymorphy.parse(token.original_word)
-            token.pymorphy_tags = tokens_pymorhy[0].tag
+                    morph_token = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
+                    morph_token.mystem_tags = token['analysis'][0]['gr']
+                    morph_token.pymorphy_tags = pymorphy.parse(morph_token.original_word)[0].tag
+                    morphs.append(morph_token)
         return morphs
+
+    def public_method_3(self):
+        pass
 
 
 def validate_dataset(path_to_validate):
@@ -124,17 +130,11 @@ def validate_dataset(path_to_validate):
     if path.exists():
         if not path.is_dir():
             raise NotADirectoryError
-        files = list(path.rglob('*_raw.txt'))
-        if not files:
+        raws = list(path.rglob('*_raw.txt'))
+        if not raws:
             raise EmptyDirectoryError
-        raws = []
-        metas = []
-        for element in path.iterdir():
-            if str(element).endswith('_raw.txt'):
-                raws.append(element)
-            if str(element).endswith('_meta.json'):
-                metas.append(element)
-        if not len(raws) == len(metas):
+        metas = list(path.rglob('*.json'))
+        if len(raws) != len(metas):
             raise InconsistentDatasetError
     else:
         raise FileNotFoundError
