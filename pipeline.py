@@ -65,8 +65,8 @@ class CorpusManager:
         number = 0
         for name in os.listdir(self.data_path):
             if re.match(r'\d+_raw', name):
-                number += 1
                 self._storage[number] = Article(url=None, article_id=number)
+                number += 1
 
     def get_articles(self):
         """
