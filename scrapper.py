@@ -183,10 +183,10 @@ if __name__ == '__main__':
     crawler1 = Crawler(seed_urls1, max_articles1, max_articles_per_seed1)
     urls1 = crawler1.find_articles()
     prepare_environment(constants.ASSETS_PATH)
-    article_id1 = 0
+    articleid1 = 0
     for article_url in urls1:
-        article_id1 += 1
-        parser = ArticleParser(article_url, article_id1)
+        articleid1 += 1
+        parser = ArticleParser(article_url, articleid1)
         sleep(random.randint(2, 4))
         article = parser.parse()
         article.save_raw()
