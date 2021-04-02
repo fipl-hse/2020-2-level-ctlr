@@ -10,12 +10,10 @@ TAGS = ["A", "ADV", "S", "V", "PR", "ANUM", "CONJ", "SPRO", "APRO", "PART", "NUM
 class StudentTextPreprocessTest(unittest.TestCase):
     def setUp(self) -> None:
         self.articles = dict()
-        """for article in os.listdir(ASSETS_PATH):
+        for article in os.listdir(ASSETS_PATH):
             if article.endswith("_processed.txt"):
                 with open(os.path.join(ASSETS_PATH, article), "r", encoding="utf-8") as txt:
-                    self.articles[int(article[:-14])] = txt.read()"""
-        with open(os.path.join(ASSETS_PATH, "1_processed.txt"), "r", encoding="utf-8") as txt:
-            self.articles[1] = txt.read()
+                    self.articles[int(article[:-14])] = txt.read()
 
     @staticmethod
     def custom_split(string) -> list:
@@ -32,7 +30,6 @@ class StudentTextPreprocessTest(unittest.TestCase):
                                 msg=f"{sequence} --- < markup symbol should be in processed text")
                 self.assertTrue(sequence[sequence.index("<") - 1].isalpha(),
                                 msg=f"{sequence} --- In tagged sequence there should be char symbol before < ")
-                break
 
     def test_tags_correctness(self):
         for article_id, article_text in self.articles.items():
