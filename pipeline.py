@@ -3,6 +3,7 @@ Pipeline for text processing implementation
 """
 
 from typing import List
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
