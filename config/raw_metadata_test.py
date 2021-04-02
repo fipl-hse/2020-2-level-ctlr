@@ -4,6 +4,7 @@ import os
 import json
 import unittest
 import requests
+from crawler_config import Config
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
@@ -43,16 +44,11 @@ class RawDataValidator(unittest.TestCase):
                             msg="""Articles ids are not homogeneous. E.g. numbers are not from 1 to N""")
 
     def test_validate_metadata(self):
-        with open(CRAWLER_CONFIG_PATH) as file:
-            config = json.load(file)
-
+        config = Config(CRAWLER_CONFIG_PATH)
         session = requests.Session()
 
-        if config['headers']:
-            session.headers.update(config['headers'])
-
-        if config['cookies']:
-            session.cookies.update(config['cookies'])
+        session.headers.update(config['headers'])
+        session.cookies.update(config['cookies'])
 
         # can i open this URL?
         for metadata in self.metadata:
