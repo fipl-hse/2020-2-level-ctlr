@@ -8,6 +8,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from article import Article
+from datetime import datetime
 
 
 HEADERS = {
@@ -115,17 +116,17 @@ class ArticleParser:
         # find author
         self.article.author = article_soup.find('div', {"id": "content"}).find('a', {"class": "red"}).text
 
-    #@staticmethod
-    #def unify_date_format(date_str):
-    #     """
-    #     Unifies date format: strftime("%Y-%m-%d %H:%M:%S")
-    #     """
-    #     date = '-'.join(date_str.split('.')[::-1])
-    #     date_time = str(datetime.strptime(date, "%Y-%m-%d"))
-    #
-    #     return datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+    @staticmethod
+    def unify_date_format(date_str):
+        """
+        Unifies date format: strftime("%Y-%m-%d %H:%M:%S")
+        """
+        date = '-'.join(date_str.split('.')[::-1])
+        date_time = str(datetime.strptime(date, "%Y-%m-%d"))
 
-    def _parse(self):
+        return datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+
+    def parse(self):
         """
         Parses each article
         """
@@ -188,5 +189,5 @@ if __name__ == '__main__':
         ARTICLE_ID += 1
         parser = ArticleParser(article_url, ARTICLE_ID)
         sleep(random.randint(2, 4))
-        article = parser._parse()
+        article = parser.parse()
         article.save_raw()
