@@ -51,7 +51,9 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('a').attrs['href']
+        url_article = article_bs.find('h3', class_='entry-title td-module-title').find('a')
+        link = url_article.attrs['href']
+        return link
 
     def find_articles(self):
         """
@@ -63,7 +65,7 @@ class Crawler:
             if not response:
                 continue
             seed_soup = BeautifulSoup(response.content, features='lxml')
-            articles_soup = seed_soup.find_all('div', class_='td_module_10 td_module_wrap td_animation-stack')
+            articles_soup = seed_soup.find_all('div', class_='item-details')
             for article_bs in articles_soup[:self.max_articles_per_seed]:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
@@ -94,15 +96,32 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
         self.article.author = 'NOT FOUND'
-        self.article.date = self.unify_date_format(article_soup.find('div', class_='meta-info').text)
+        date = article_soup.find(class_="meta-info").text.split(",")[0]
+        self.article.date = ArticleParser.unify_date_format(date)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        unified_date = datetime.strptime(date_str.strip(), "%d.%m.%Y")
-        return unified_date
+        months = {
+            'января': 1,
+            'февраля': 2,
+            'марта': 3,
+            'апреля': 4,
+            'мая': 5,
+            'июня': 6,
+            'июля': 7,
+            'августа': 8,
+            'сентября': 9,
+            'октября': 10,
+            'ноября': 11,
+            'декабря': 12,
+        }
+        date = date_str.split()
+        date[1] = months[date[1]]
+        date = datetime(int(date[2]), int(date[1]), int(date[0]))
+        return date
 
     def parse(self):
         """
