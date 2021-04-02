@@ -3,6 +3,7 @@ import os
 import json
 import unittest
 import requests
+from bs4 import BeautifulSoup
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
 
 
@@ -46,6 +47,7 @@ class RawDataValidator(unittest.TestCase):
                                 metadata[1]['url']))
 
             html_source = requests.get(metadata[1]['url']).text
+            soup = BeautifulSoup(requests.get(metadata[1]['url']).content, features='lxml')
 
             self.assertTrue(metadata[1]['title'] in
                             html_source[:round(len(html_source)*0.5)],
@@ -54,7 +56,7 @@ class RawDataValidator(unittest.TestCase):
 
             # author is presented? NOT FOUND otherwise?
             try:
-                self.assertTrue(metadata[1]['author'] in html_source)
+                self.assertTrue(metadata[1]['author'] in soup.find('div', {"id": "content"}).find('a', {"class": "red"}).text)
             except AssertionError:
                 self.assertEqual(metadata[1]['author'], 'NOT FOUND',
                                  msg="""Author field <{}> (url <{}>) is incorrect. 
@@ -73,3 +75,4 @@ class RawDataValidator(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
