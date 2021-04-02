@@ -90,7 +90,7 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        result = Mystem().analyze(self.text)
+        result = Mystem().analyze(self._text)
         tokens = []
 
         for token in result:
