@@ -1,5 +1,6 @@
 import re
 import os
+import shutil
 import json
 import unittest
 from constants import ASSETS_PATH
