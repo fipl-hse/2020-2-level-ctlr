@@ -40,7 +40,8 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
+        # return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
+        return f"{self.normalized_form}<{self.mystem_tags}>"
 
 
 class CorpusManager:
