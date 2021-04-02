@@ -110,7 +110,6 @@ class TextProcessingPipeline:
                 tokens.append(token)
         for token in tokens:
             token.pymorphy_tags = morphy_tool.parse(token.original_word)[0].tag
-        print(tokens)
         return tokens
 
 
