@@ -14,6 +14,7 @@ class StudentTextPreprocessTest(unittest.TestCase):
             if article.endswith("_processed.txt"):
                 with open(os.path.join(ASSETS_PATH, article), "r", encoding="utf-8") as txt:
                     self.articles[int(article[:-14])] = txt.read()
+                    break
 
     @staticmethod
     def custom_split(string) -> list:

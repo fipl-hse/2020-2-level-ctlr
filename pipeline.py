@@ -136,7 +136,7 @@ def main():
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
-    pos_pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
+    pos_pipeline = POSFrequencyPipeline(assets=corpus_manager)
     pos_pipeline.run()
 
 
