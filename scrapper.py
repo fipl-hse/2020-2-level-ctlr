@@ -8,10 +8,12 @@ from datetime import datetime
 import random
 import shutil
 import requests
+from requests import HTTPError
 from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
+
 
 
 class IncorrectURLError(Exception):
@@ -60,6 +62,11 @@ class Crawler:
         Finds articles
         """
         for url in self.seed_urls:
+            try:
+                response = requests.get(url, headers=headers)
+            except HTTPError:
+                print('something wrong the url...')
+                continue
             sleep(random.randint(5, 10))
             response = requests.get(url, headers=headers)
             if not response:
