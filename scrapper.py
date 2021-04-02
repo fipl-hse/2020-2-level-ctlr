@@ -168,8 +168,8 @@ if __name__ == '__main__':
     crawler.find_articles()
     prepare_environment(constants.PROJECT_ROOT)
 
-    for i, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=i + 1)
+    for i, url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(full_url=url, article_id=i)
         article = parser.parse()
         article.save_raw()
         sleep(random.randrange(2, 6))
