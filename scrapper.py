@@ -163,7 +163,7 @@ if __name__ == '__main__':
                       max_articles_per_seed=max_num_per_seed)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
-    for article_id, article_url in enumerate(crawler.urls, 1):
-        parser = ArticleParser(article_url, article_id)
+    for article_id_num, article_url in enumerate(crawler.urls, 1):
+        parser = ArticleParser(full_url=article_url, article_id=article_id_num)
         article = parser.parse()
         article.save_raw()
