@@ -15,7 +15,6 @@ class StudentTextPreprocessTest(unittest.TestCase):
             if article.endswith("_processed.txt"):
                 with open(os.path.join(ASSETS_PATH, article), "r", encoding="utf-8") as txt:
                     self.articles[int(article[:-14])] = txt.read()
-                    break
         print('set up is finished')
 
     @staticmethod
@@ -33,8 +32,6 @@ class StudentTextPreprocessTest(unittest.TestCase):
                                 msg=f"{sequence} --- < markup symbol should be in processed text")
                 self.assertTrue(sequence[sequence.index("<") - 1].isalpha(),
                                 msg=f"{sequence} --- In tagged sequence there should be char symbol before < ")
-                break
-            break
 
     def test_tags_correctness(self):
         for article_id, article_text in self.articles.items():
