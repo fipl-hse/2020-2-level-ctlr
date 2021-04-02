@@ -113,12 +113,19 @@ def validate_dataset(path_to_validate):
     path = Path(path_to_validate)
     if not path.exists():
         raise FileNotFoundError
-    if not path.is_dir():
-        raise NotADirectoryError
-    if not list(path.iterdir()):
-        raise EmptyDirectoryError
+    if path.exists(path_to_validate):
+        if not path.is_dir():
+            raise NotADirectoryError
+        if not list(path.iterdir()):
+            raise EmptyDirectoryError
 
-    # InconsistentDatasetError
+        files = []
+        files_ids = []
+        for file in Path(path_to_validate).rglob('*_raw.text'):
+            files.append(file)
+            files_ids.append(int(file.name.split('_')[0]))
+        if len(files) != len(files_ids) or set(files_ids) != set(range(1, len(files) + 1)):
+            raise InconsistentDatasetError
 
 
 def main():
