@@ -1,11 +1,13 @@
 import html
-import re
-import os
 import json
+import os
+import re
 import unittest
+
 import requests
-from crawler_config import Config
+
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+from crawler_config import Config
 
 
 class RawDataValidator(unittest.TestCase):
