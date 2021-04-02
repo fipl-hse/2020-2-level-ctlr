@@ -9,6 +9,8 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
+from constants import CRAWLER_CONFIG_PATH
+import json
 
 
 class EmptyDirectoryError(Exception):
@@ -56,8 +58,11 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        last = len(os.listdir(self.path_to_raw_txt_data)) // 2
-        for i in range(1, last + 1):
+        with open(CRAWLER_CONFIG_PATH, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        number = config['total_articles_to_find_and_parse']
+
+        for i in range(1, number + 1):
             self._storage[i] = Article(url=None, article_id=i)
 
     def get_articles(self):
