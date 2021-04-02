@@ -1,6 +1,7 @@
 """
 Pipeline for text processing implementation
 """
+from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
 from typing import List
 from pathlib import Path
@@ -34,9 +35,10 @@ class MorphologicalToken:
         self.original_word = original_word
         self.normalized_form = normalized_form
         self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
 
 class CorpusManager:
@@ -47,14 +49,13 @@ class CorpusManager:
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_date = path_to_raw_txt_data
         self._storage = {}
-
         self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        for file in Path(self.path_to_raw_txt_date).glob('*_raw.txt'):
+        for file in Path(self.path_to_raw_txt_date).rglob('*_raw.txt'):
             id = str(file).split('\\')[-1].split('_')[0]
             self._storage[id] = Article(url=None, article_id=id)
 
@@ -72,14 +73,14 @@ class TextProcessingPipeline:
 
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self._text = ''
+        self.raw_text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
         for article in self.corpus_manager.get_articles().values():
-            self.text_ = article.get_raw_text()
+            self.raw_text = article.get_raw_text()
             processed_text = list(map(str, self._process()))
             article.save_processed(' '.join(processed_text))
 
@@ -87,22 +88,21 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        text = self.text_
-        result = Mystem().analyze(text)
+        result = Mystem().analyze(self.raw_text)
         tokens = []
 
         for word in result:
             try:
                 token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
                 token.mystem_tags = word['analysis'][0]['gr']
+                tokens.append(token)
             except (IndexError, KeyError):
                 if not word['text'].isnumeric():
                     continue
-                token = MorphologicalToken(original_word=word['text'], normalized_form=word['text'])
+            for token in tokens:
+                token.pymorphy_tags = MorphAnalyzer().parse(token.original_word)[0].tag
 
-            tokens.append(token)
-
-            return tokens
+        return tokens
 
 
 def validate_dataset(path_to_validate):

@@ -9,5 +9,5 @@ ASSETS_PATH = os.path.join(PROJECT_ROOT, 'tmp', 'articles')
 CRAWLER_CONFIG_PATH = os.path.join(PROJECT_ROOT, 'crawler_config.json')
 HEADERS = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
-    'Chrome/88.0.4324.182 YaBrowser/21.2.4.165 Yowser/2.5 Safari/537.36'
+    'Chrome/89.0.4389.90 Safari/537.36'
     }
