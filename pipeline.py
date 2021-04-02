@@ -1,10 +1,11 @@
 """
 Pipeline for text processing implementation
 """
+
+from pathlib import Path
+from typing import List
 from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
-from typing import List
-from pathlib import Path
 from article import Article
 from constants import ASSETS_PATH
 
@@ -56,8 +57,8 @@ class CorpusManager:
         Register each dataset entry
         """
         for file in Path(self.path_to_raw_txt_date).rglob('*_raw.txt'):
-            id = str(file).split('\\')[-1].split('_')[0]
-            self._storage[id] = Article(url=None, article_id=id)
+            id_each = str(file).split('\\')[-1].split('_')[0]
+            self._storage[id] = Article(url=None, article_id=id_each)
 
     def get_articles(self):
         """
@@ -103,6 +104,9 @@ class TextProcessingPipeline:
                 token.pymorphy_tags = MorphAnalyzer().parse(token.original_word)[0].tag
 
         return tokens
+
+    def public_method(self):
+        pass
 
 
 def validate_dataset(path_to_validate):

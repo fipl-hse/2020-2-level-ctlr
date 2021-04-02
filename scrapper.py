@@ -1,15 +1,14 @@
 """
 Crawler implementation
 """
-import json
 import os
+import json
 import random
+from time import sleep
 import requests
-
 from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, HEADERS, ASSETS_PATH
-from time import sleep
 
 
 class IncorrectURLError(Exception):
