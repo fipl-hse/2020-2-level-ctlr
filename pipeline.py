@@ -99,7 +99,7 @@ class TextProcessingPipeline:
                 morph_token = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
                 morph_token.pymorphy_tags = MorphAnalyzer().parse(morph_token.original_word)[0].tag
-                tokens.append(str(morph_token))
+                tokens.append(morph_token)
 
         return tokens
 
