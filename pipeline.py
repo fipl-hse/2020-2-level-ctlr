@@ -60,8 +60,8 @@ class CorpusManager:
         Register each dataset entry
         """
         for file in Path(self.path_to_raw_txt_date).rglob('*_raw.txt'):
-            id_each = str(file).split('\\')[-1].split('_')[0]
-            self._storage[id] = Article(url=None, article_id=id_each)
+            id_each = int(file.parts[-1].split('_')[0])
+            self._storage[id_each] = Article(url=None, article_id=id_each)
 
     def get_articles(self):
         """
@@ -95,19 +95,15 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        result = Mystem().analyze(self.raw_text)
+        process = Mystem().analyze(self.raw_text)
         tokens = []
 
-        for word in result:
-            try:
-                token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
-                token.mystem_tags = word['analysis'][0]['gr']
-                tokens.append(token)
-            except (IndexError, KeyError):
-                if not word['text'].isnumeric():
-                    continue
-            for token in tokens:
-                token.pymorphy_tags = MorphAnalyzer().parse(token.original_word)[0].tag
+        for tok in process:
+            if tok.get('analysis') and tok.get('text'):
+                morph_token = MorphologicalToken(original_word=tok['text'], normalized_form=tok['analysis'][0]['lex'])
+                morph_token.mystem_tags = tok['analysis'][0]['gr']
+                morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
+                tokens.append(morph_token)
 
         return tokens
 
