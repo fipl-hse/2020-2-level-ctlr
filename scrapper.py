@@ -66,7 +66,7 @@ class Crawler:
             article_bs = BeautifulSoup(response.content, features='lxml')
             links = article_bs.find_all('div', class_='title')
             for articles in links:
-                if len(self.urls) <= self.max_articles and article not in self.urls:
+                if len(self.urls) <= self.max_articles and articles not in self.urls:
                     seed_url = self._extract_url(articles)
                     self.urls.append(seed_url)
 
