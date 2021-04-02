@@ -83,7 +83,7 @@ class TextProcessingPipeline:
         """
         Runs pipeline process scenario
         """
-        for article in tuple(self.corpus_manager.get_articles().values()):
+        for article in self.corpus_manager.get_articles().values():
             self._text = article.get_raw_text()
             tokens = self._process()
             article.save_processed(' '.join(tokens))
@@ -94,14 +94,17 @@ class TextProcessingPipeline:
         """
         tokens = []
         result = Mystem().analyze(self._text)
-        for word in tuple(result):
+        for word in result:
             try:
                 token = MorphologicalToken(original_word=word['text'].lower(),
                                            normalized_form=word['analysis'][0]['lex'])
                 token.mystem_tags = word['analysis'][0]['gr']
-                token.pymorphy_tags = MorphAnalyzer().parse(word['text'])[0].tag
+                if MorphAnalyzer().parse(word['text']):
+                    token.pymorphy_tags = MorphAnalyzer().parse(word['text'])[0].tag
+
             except (KeyError, IndexError):
                 continue
+
             tokens.append(str(token))
         return tokens
 
@@ -110,7 +113,6 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    # FileNotFoundError, NotADirectoryError, InconsistentDatasetError, EmptyDirectoryError, UnknownDatasetError
     path = Path(path_to_validate)
 
     if not path.is_dir():
@@ -120,6 +122,11 @@ def validate_dataset(path_to_validate):
 
     if not any(path.iterdir()):
         raise EmptyDirectoryError
+
+    meta_files = [str(file).split('_')[0] for file in path.glob('*_meta.json')]
+    raw_files = [str(file).split('_')[0] for file in path.glob('*_raw.txt')]
+    if set(raw_files) != set(meta_files):
+        raise InconsistentDatasetError
 
 
 def main():

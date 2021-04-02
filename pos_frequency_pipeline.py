@@ -19,10 +19,11 @@ class POSFrequencyPipeline:
         Runs POSFrequency pipeline process scenario
         """
         for article_id, article in self.assets.get_articles().items():
-            processed_path = article._get_processed_text_path()
 
+            processed_path = article._get_processed_text_path()
             with open(processed_path, 'r') as file:
                 self._processed_text = file.read()
+
             self._process()
             self._add_pos_to_metadata(article_id)
             visualize(statistics=self.frequencies_dict, path_to_save=f'.\\tmp\\articles\\{article_id}_image.png')
@@ -34,11 +35,9 @@ class POSFrequencyPipeline:
 
     def _add_pos_to_metadata(self, file_id):
         path = f'{ASSETS_PATH}\\{file_id}_meta.json'
-
         with open(path, 'r', encoding='utf-8') as file:
             meta = json.load(file)
 
         meta['pos_frequencies'] = self.frequencies_dict
-
         with open(path, 'w', encoding='utf-8') as fp:
             json.dump(meta, fp, ensure_ascii=False, indent=2)
