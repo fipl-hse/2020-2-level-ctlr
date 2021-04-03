@@ -1,14 +1,14 @@
 """
 Pipeline for text processing implementation
 """
-
+import os
 from typing import List
 from pathlib import Path
 from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
 from article import Article
 from constants import ASSETS_PATH
-import os
+
 
 class EmptyDirectoryError(Exception):
     """
@@ -60,8 +60,8 @@ class CorpusManager:
         Register each dataset entry
         """
         path = Path(self.path_to_dataset)
-        for f  in path.glob('*_raw.txt'):
-            ind = int(f.parts[-1].split('_')[0])
+        for file  in path.glob('*_raw.txt'):
+            ind = int(file.parts[-1].split('_')[0])
             self._storage[ind] = Article(url=None, article_id=ind)
         self._storage[ind] = Article(url=None, article_id=ind)
 
@@ -72,7 +72,6 @@ class CorpusManager:
         return self._storage
 
     def get_sth(self):
-
          pass
 
 class TextProcessingPipeline:
