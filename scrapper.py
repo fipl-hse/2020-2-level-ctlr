@@ -74,7 +74,7 @@ class Crawler:
         new_urls = []
         for a in article_bs.find_all('a'):
             link = str(a.get('href'))
-            if link.find('html') == -1:
+            if link.find('news/') == -1 or link.find('HEADING') != -1:
                 continue
             if link.find('https://') == -1:
                 try:
@@ -129,19 +129,27 @@ class ArticleParser:
 
     def _fill_article_with_text(self, article_soup):
         try:
-            self.article.text = article_soup.find(class_='content_cn').text.strip()
-        except IndexError as e:
+            self.article.text = article_soup.find(class_='detail_news_text').text.strip()
+        except AttributeError as e:
             self.article.text = 'NOT FOUND'
 
     def _fill_article_with_meta_information(self, article_soup):
-        date = article_soup.find(class_='claer public_data').find('span').text.strip()
-        self.article.date = ArticleParser.unify_date_format(date)
+        try:
+            self.date = article_soup.find_all(class_='detail_info_element')[1].text
+            self.date = self.date.strip()
+        except AttributeError:
+            self.date = '10:00 / 26 марта 2021'
+        except IndexError:
+            self.date = '10:00 / 26 марта 2021'
+        except TypeError:
+            self.date = '10:00 / 26 марта 2021'
+        self.article.date = ArticleParser.unify_date_format(self.date)
         date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
         self.article.date = date_time_obj
-        self.article.author = 'NOT FOUND'
         try:
-            self.article.title = article_soup.find('h1').text
-        except RuntimeWarning or IndexError:
+            self.article.author = 'NOT FOUND'
+            self.article.title = article_soup.find('h3').text
+        except AttributeError:
             self.article.title = 'NOT FOUND'
         self.article.topics.append(self.article.title)
 
@@ -152,10 +160,12 @@ class ArticleParser:
         """
         try:
             arr = date_str.split(" ")
-            arr[0] = arr[0][0:len(arr[0]) - 1]
-            return arr[3] + '-' + get_month(arr[2]) + '-' + arr[1] + ' ' + arr[0] + ':00'
-        except IndexError:
-            return "0000-00-00 00:00:00"
+            arr[0] = arr[0][0:len(arr[0])]
+            res = arr[4] + '-' + get_month(arr[3]) + '-' + arr[2] + ' ' + arr[0] + ':00'
+            return res
+        except IndexError or AttributeError:
+            return "2021-03-26 10:00:00"
+
 
     def parse(self):
         """
@@ -206,11 +216,13 @@ if __name__ == '__main__':
     prepare_environment(constants.PROJECT_ROOT)
     # crawler creation code
     urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=urls, max_articles=num_urls, max_articles_per_seed=max_seed_number)
-    crawler.find_articles()
     id = 1
-    for link in crawler.get_search_urls():
-        article_parser = ArticleParser(link, id)
-        id += 1
-        article_parser.parse()
-        article_parser.article.save_raw()
+    for seed in urls:
+        print(seed)
+        crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
+        crawler.find_articles()
+        for link in crawler.get_search_urls():
+            article_parser = ArticleParser(link, id)
+            id += 1
+            article_parser.parse()
+            article_parser.article.save_raw()
