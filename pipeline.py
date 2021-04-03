@@ -45,9 +45,6 @@ class MorphologicalToken:
     def __str__(self):
         return f'{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})'
 
-    def __repr__(self):
-        pass
-
 
 class CorpusManager:
     """
@@ -77,9 +74,6 @@ class CorpusManager:
         """
         return self._storage
 
-    def __repr__(self):
-        pass
-
 
 class TextProcessingPipeline:
     """
@@ -87,14 +81,14 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self.text = ''
+        self._text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
         for article in self.corpus_manager.get_articles().values():
-            self.text = article.get_raw_text()
+            self._text = article.get_raw_text()
             tokens = self._process()
             article.save_processed(' '.join(map(str, tokens)))
 
@@ -103,7 +97,7 @@ class TextProcessingPipeline:
         Performs processing of each text
         """
         tokens = []
-        result = Mystem().analyze(self.text)
+        result = Mystem().analyze(self._text)
 
         for token_dict in result:
             if 'analysis' in token_dict and token_dict['analysis'] and 'lex' in token_dict['analysis'][0]:
@@ -120,9 +114,6 @@ class TextProcessingPipeline:
                     continue
 
         return tokens
-
-    def __repr__(self):
-        pass
 
 
 def validate_dataset(path_to_validate):

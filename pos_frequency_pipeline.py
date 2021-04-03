@@ -20,7 +20,7 @@ class POSFrequencyPipeline:
             freq_dict = self._calculate_pos_frequency()
             self._write_to_meta_file(article.article_id, freq_dict)
             graph_image_path = pathlib.Path(ASSETS_PATH) / f'{article.article_id}_image.png'
-            visualize(freq_dict, graph_image_path)
+            visualize(statistics=freq_dict, path_to_save=graph_image_path)
 
     @staticmethod
     def _get_processed_text(article_id):
