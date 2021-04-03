@@ -10,6 +10,7 @@ from config.test_params import TEST_FILES_FOLDER
 TAGS = ["A", "ADV", "S", "V", "PR", "ANUM"]
 
 
+
 class ReferenceTextPreprocessTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

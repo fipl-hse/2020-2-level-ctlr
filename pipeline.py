@@ -142,12 +142,11 @@ def validate_dataset(path_to_validate):
 
 
 def main():
-    print('Your code goes here')
-
-
-if __name__ == "__main__":
-    main()
     validate_dataset(ASSETS_PATH)
     corpus_manager_0 = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager_0)
     pipeline.run()
+    print('ok')
+
+if __name__ == "__main__":
+    main()
