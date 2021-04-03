@@ -105,7 +105,6 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('a', itemprop='url').text.strip()
-        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -175,7 +174,6 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
     urls = crawler.find_articles
-    print(urls)
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind + 1)
