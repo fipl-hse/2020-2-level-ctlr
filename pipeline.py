@@ -1,7 +1,7 @@
 """
 Pipeline for text processing implementation
 """
-import os
+from pathlib import Path
 import re
 from pymystem3 import Mystem
 from pymorphy2 import MorphAnalyzer
@@ -25,7 +25,7 @@ class UnknownDatasetError(Exception):
     Custom error
     """
 
-class MorphologicalToken:
+class MorphologicalToken: # pylint: disable=too-few-public-methods
     """
     Stores language params for each processed token
     """
@@ -39,7 +39,7 @@ class MorphologicalToken:
         return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorthy_tags})"
 
 
-class CorpusManager:
+class CorpusManager: # pylint: disable=too-few-public-methods
     """
     Works with articles and stores them
     """
@@ -52,7 +52,7 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        files_txt = [file for file in os.listdir(self.path_to_raw_txt_data) if file.endswith(".txt")]
+        files_txt = [str(file.name) for file in Path(self.path_to_raw_txt_data).glob('**/*.txt')]
         for file in files_txt:
             file_ind = file[0]
             self._storage[file_ind] = Article(None, file_ind)
@@ -65,7 +65,7 @@ class CorpusManager:
         return self._storage
 
 
-class TextProcessingPipeline:
+class TextProcessingPipeline: # pylint: disable=too-few-public-methods
     """
     Process articles from corpus manager
     """
@@ -77,7 +77,7 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         articles = self.corpus_manager.get_articles()  # dict with key - num, value - article instance
-        for art_num, article in articles.items():
+        for article in articles.values():
             raw_text = article.get_raw_text()
             tokens = [i.__str__() for i in  self._process(raw_text)]
             article.save_processed(" ".join(tokens))
@@ -90,10 +90,10 @@ class TextProcessingPipeline:
         raw_tokens = Mystem().analyze(text)
         morphological_tokens = []
         for word in raw_tokens:
-            if word["text"].isalpha():
+            if word["text"].isalpha() and word["analysis"]:
                 morph_token = MorphologicalToken(word["text"], word["analysis"][0]["lex"])
                 morph_token.mystem_tags = word["analysis"][0]["gr"]
-                morph_token.pymorthy_tags = str(MorphAnalyzer().parse(word["analysis"][0]["lex"])[0].tag)
+                morph_token.pymorthy_tags = str(MorphAnalyzer().parse(word["text"])[0].tag)
 
                 morphological_tokens.append(morph_token)
         return morphological_tokens
@@ -103,15 +103,14 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    if not os.path.isdir(path_to_validate):
-        raise UnknownDatasetError
-    files_dir = os.listdir(path_to_validate)
-    if not files_dir:
+    path = Path(path_to_validate)
+    if not path.exists():
+        raise FileNotFoundError
+    if not path.is_dir():
+        raise NotADirectoryError
+    checks = list(path.glob('**/*.txt'))
+    if not checks:
         raise EmptyDirectoryError
-
-    checks = [p_name.endswith(".txt") or p_name.endswith(".json") for p_name in files_dir]
-    if not all(checks):
-        raise InconsistentDatasetError
 
 def main():
     validate_dataset(ASSETS_PATH)
