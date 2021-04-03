@@ -53,8 +53,9 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url = article_bs.contents[1]
-        return url.get('href')
+        url_article = article_bs.find('div', class_='article-link').find('a')
+        link = url_article.attrs['href']
+        return 'http://krassever.ru' + link
 
     @property
     def find_articles(self):
@@ -104,7 +105,7 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('a', itemprop='url').text.strip()
-        self.article.author = article_soup.find('span', itemprop='name').text
+        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -130,10 +131,11 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    assets_path = os.path.join(base_path, 'tmp', 'articles')
-    if os.path.exists(assets_path):
-        shutil.rmtree(os.path.dirname(assets_path))
-    os.makedirs(assets_path)
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+    else:
+        shutil.rmtree(base_path)
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -172,8 +174,8 @@ if __name__ == '__main__':
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
-    art = crawler.find_articles()
-    print(art)
+    urls = crawler.find_articles
+    print(urls)
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(full_url=article_url, article_id=ind + 1)
