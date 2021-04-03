@@ -1,8 +1,10 @@
 """
 Pipeline for text processing implementation
 """
-
+import os
 from typing import List
+from constants import ASSETS_PATH
+from pathlib import Path
 
 
 class EmptyDirectoryError(Exception):
@@ -28,12 +30,13 @@ class MorphologicalToken:
     Stores language params for each processed token
     """
     def __init__(self, original_word, normalized_form):
-        pass
+        self.original_word = original_word
+        self.normalized_form = normalized_form
 
     def __str__(self):
         return "MorphologicalToken instance here"
 
-    def some_function_for_lint(self):
+    def some_public_method(self):
         pass
 
 
@@ -42,7 +45,8 @@ class CorpusManager:
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_txt_data = path_to_raw_txt_data
+        self._storage = {}
 
     def _scan_dataset(self):
         """
@@ -54,9 +58,9 @@ class CorpusManager:
         """
         Returns storage params
         """
-        pass
+        return self._storage
 
-    def some_function_for_lint(self):
+    def some_public_method(self):
         pass
 
 
@@ -79,7 +83,7 @@ class TextProcessingPipeline:
         """
         pass
 
-    def some_function_for_lint(self):
+    def some_public_method(self):
         pass
 
 
@@ -87,12 +91,20 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    if not os.path.exists(path_to_validate):
+        raise FileNotFoundError
+
+    if not os.path.isdir(path_to_validate):
+        raise NotADirectoryError
+
+    path = Path(path_to_validate)
+    if not path.listdir(path_to_validate):
+        raise EmptyDirectoryError
 
 
 def main():
-    print('Your code goes here')
-
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_dataset=ASSETS_PATH)
 
 if __name__ == "__main__":
     main()
