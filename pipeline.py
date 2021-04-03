@@ -4,13 +4,11 @@ Pipeline for text processing implementation
 import os
 from typing import List
 
-import pymorphy2
 from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
-from constants import CRAWLER_CONFIG_PATH
-import json
+from pathlib import Path
 
 
 class EmptyDirectoryError(Exception):
@@ -58,11 +56,9 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        with open(CRAWLER_CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        number = config['total_articles_to_find_and_parse']
-
-        for i in range(1, number + 1):
+        path = Path(self.path_to_raw_txt_data)
+        for elem in path.rglob('*.txt'):
+            i = int(elem.parts[-1].split('_')[0])
             self._storage[i] = Article(url=None, article_id=i)
 
     def get_articles(self):
