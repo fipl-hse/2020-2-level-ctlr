@@ -79,6 +79,9 @@ class TextProcessingPipeline:
         """
         pass
 
+    def some_function_for_lint(self):
+        pass
+
 
 def validate_dataset(path_to_validate):
     """
