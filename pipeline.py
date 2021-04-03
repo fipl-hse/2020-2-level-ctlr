@@ -33,6 +33,9 @@ class MorphologicalToken:
     def __str__(self):
         return "MorphologicalToken instance here"
 
+    def some_function_for_lint(self):
+        pass
+
 
 class CorpusManager:
     """
@@ -51,6 +54,9 @@ class CorpusManager:
         """
         Returns storage params
         """
+        pass
+
+    def some_function_for_lint(self):
         pass
 
 
