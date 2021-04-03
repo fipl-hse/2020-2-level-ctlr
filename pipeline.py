@@ -1,8 +1,8 @@
 """
 Pipeline for text processing implementation
 """
-import os
 import re
+import pathlib
 
 from typing import List
 
@@ -11,6 +11,7 @@ from pymorphy2 import MorphAnalyzer
 
 from constants import ASSETS_PATH
 from article import Article
+from pos_frequency_pipeline import POSFrequencyPipeline
 
 
 class EmptyDirectoryError(Exception):
@@ -62,11 +63,11 @@ class CorpusManager:
         """
         storage_dict = {}
 
-        for fname in os.listdir(self.path_to_dataset):
-            if re.match(r'^[1-9]\d{0,2}_raw\.txt$', fname):
-                file_id = fname.split('_raw.txt')[0]
-                file_id = int(file_id)
-                storage_dict[file_id] = Article(url=None, article_id=file_id)
+        for path in pathlib.Path(self.path_to_dataset).glob('*_raw.txt'):
+            fname = path.name
+            file_id = fname.split('_')[0]
+            if file_id.isdigit() and 0 <= int(file_id) <= 1000:
+                storage_dict[int(file_id)] = Article(url=None, article_id=file_id)
 
         return storage_dict
 
@@ -128,20 +129,21 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    is_directory = os.path.isdir(path_to_validate)
+    is_directory = pathlib.Path(path_to_validate).is_dir()
     if not is_directory:
-        if os.path.isfile(path_to_validate):
+        if pathlib.Path(path_to_validate).is_file():
             raise NotADirectoryError
         raise FileNotFoundError
 
-    is_dir_filled = len(os.listdir(path_to_validate)) > 0
+    is_dir_filled = len(list(pathlib.Path(path_to_validate).glob('*'))) > 0
     if not is_dir_filled:
         raise EmptyDirectoryError
 
     txt_files_num = 0
     json_files_num = 0
 
-    for fname in os.listdir(path_to_validate):
+    for path in pathlib.Path(path_to_validate).glob('*'):
+        fname = path.name
         if re.match(r'^[1-9]\d{0,2}_raw\.txt$', fname):
             txt_files_num += 1
         elif re.match(r'^[1-9]\d{0,2}_meta\.json$', fname):
@@ -163,6 +165,8 @@ def main():
     corpus_manager = CorpusManager(ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager)
     pipeline.run()
+    pos_freq_pipeline = POSFrequencyPipeline(corpus_manager)
+    pos_freq_pipeline.run()
 
 
 if __name__ == "__main__":
