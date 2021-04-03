@@ -6,10 +6,9 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from time import sleep
-import random
-import shutil
 from article import Article
 import os
+import shutil
 
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
@@ -59,15 +58,19 @@ class Crawler:
         """
         Finds articles
         """
-        self.get_search_urls()
         for url in self.seed_urls:
-            response = requests.get(str(url))
+            response = requests.get(url, headers=headers)
+
             if not response:
                 raise IncorrectURLError
-            if len(self.urls) < self.max_articles:
-                self.urls.append(url)
-            else:
-                break
+
+            page_soup = BeautifulSoup(response.content, features='lxml')
+            div_tag = page_soup.find('div', class_='news')
+            article_soup = div_tag.find_all('a')
+            for article_bs in article_soup[:self.max_articles_per_seed]:
+                if len(self.urls) <= self.max_articles and article_bs not in self.urls:
+                    seed_url = self._extract_url(article_bs)
+                    self.urls.append(seed_url)
         return self.urls
 
     def get_search_urls(self):
@@ -121,9 +124,11 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+    else:
         shutil.rmtree(base_path)
-    os.makedirs(base_path)
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -165,10 +170,8 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=urls_list, max_articles=total_art, max_articles_per_seed=max_number)
     urls = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
-    article_id = 0
-    for article_url in urls:
-        article_id += 1
-        parser = ArticleParser(article_url, article_id)
-        sleep(random.randint(2, 4))
-        article = parser.parse()
-        article.save_raw()
+
+    for id, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(article_url, article_id=id+1)
+        sleep(5)
+        parser.parse()
