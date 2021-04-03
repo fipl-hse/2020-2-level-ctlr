@@ -132,11 +132,13 @@ def validate_dataset(path_to_validate):
 
         raw_files = []
         meta_files = []
+        indexes = []
         for one_file in Path(path_to_validate).rglob('*_raw.txt'):
             raw_files.append(one_file)
+            indexes.append(int(one_file.name.split('_')[0]))
         for one_file in Path(path_to_validate).rglob('*_meta.json'):
             meta_files.append(one_file)
-        if len(raw_files) != len(meta_files):
+        if len(raw_files) != len(meta_files) or set(indexes) != set(min(indexes), max(indexes) + 1):
             raise InconsistentDatasetError
 
 
