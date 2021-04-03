@@ -74,7 +74,7 @@ class Crawler:
         new_urls = []
         for a in article_bs.find_all('a'):
             link = str(a.get('href'))
-            if link.find('news/') == -1 or link.find('HEADING') != -1:
+            if link.find('news/') == -1 or link.find('HEADING') != -1 or link == '/news/':
                 continue
             if link.find('https://') == -1:
                 try:
