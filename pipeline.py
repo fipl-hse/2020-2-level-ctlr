@@ -91,7 +91,7 @@ class TextProcessingPipeline:
             tokens = self._process(mystem_analize_result=result)  # list with instances MorphToken
             processed_text_tokens = []
             for token in tokens:
-                processed_text_tokens.append('{}{}'.format(token.__str__(), token.mystem_tags))
+                processed_text_tokens.append('{}<{}>'.format(token.__str__(), token.mystem_tags))
             processed_text = ' '.join(processed_text_tokens)
             article.save_processed(processed_text)
         return None
@@ -106,11 +106,10 @@ class TextProcessingPipeline:
                 continue
             if not element.get('analysis'):
                 token = MorphologicalToken(original_word=element['text'], normalized_form=element['text'])
-                token.mystem_tags = '<>'
             else:
                 token = MorphologicalToken(original_word=element['text'],
                                            normalized_form=element['analysis'][0].get('lex'))
-                token.mystem_tags = '<{}>'.format(element['analysis'][0].get('gr'))
+                token.mystem_tags = '{}'.format(element['analysis'][0].get('gr'))
             tokens.append(token)
         return tokens
 
@@ -124,6 +123,7 @@ def validate_dataset(path_to_validate):
     if not os.path.exists(path_to_validate):
         is_dataset_exists = False
         raise FileNotFoundError
+
     is_directory = True
     if not os.path.isdir(path_to_validate):
         is_directory = False
@@ -138,21 +138,23 @@ def validate_dataset(path_to_validate):
 
     # dataset is balanced: there are only files that follow the naming conventions:
     is_dataset_balanced = True
-    n = 0
     for file in files:
+        if not re.match(r'.+_raw\.txt', file) or not re.match(r'.+_meta\.json', file):
+            continue
         ind_underscore = file.index('_')
         # N_raw.txt, N_meta.json, where N is a valid number
         try:
-            is_number_valid = int(file[:ind_underscore])
+            number_valid = int(file[:ind_underscore])
         except ValueError:
             is_dataset_balanced = False
             raise InconsistentDatasetError
-        # Numbers of articles are from 1 to N without any slips
+        # Numbers of articles are without any slips
+        n = int(files[1][:ind_underscore])
         if re.match(r'.+_raw\.txt', file):
-            n += 1
             if int(file[:ind_underscore]) != n:
                 is_dataset_balanced = False
                 raise InconsistentDatasetError
+            n += 1
 
     if is_dataset_exists and is_directory and is_dataset_not_empty and is_dataset_balanced:
         return None
