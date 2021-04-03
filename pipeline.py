@@ -72,7 +72,7 @@ class CorpusManager:
         return self._storage
 
     def get_sth(self):
-         pass
+        pass
 
 class TextProcessingPipeline:
     """
