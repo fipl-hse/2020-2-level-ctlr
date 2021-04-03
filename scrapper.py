@@ -9,7 +9,6 @@ from article import Article
 from time import sleep
 import random
 import os
-import shutil
 
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
@@ -121,9 +120,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
-        shutil.rmtree(base_path)
-    os.makedirs(base_path)
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -165,8 +163,10 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=urls_list, max_articles=total_art, max_articles_per_seed=max_number)
     urls = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
-
-    for ind, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(article_url, article_id=ind+1)
+    article_id = 0
+    for article_url in urls:
+        article_id += 1
+        parser = ArticleParser(article_url, article_id)
+        sleep(random.randint(2, 4))
         article = parser.parse()
         article.save_raw()
