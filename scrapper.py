@@ -67,7 +67,7 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             if response.status_code == 200:
-                sleep(random.randrange(2, 6))
+                sleep(random.randrange(2, 4))
             page_soup = BeautifulSoup(response.content, features='lxml')
             article_soup = page_soup.find_all('div', class_='article-info')
             for article_bs in article_soup[:self.max_articles_per_seed]:
@@ -175,8 +175,10 @@ if __name__ == '__main__':
                       max_articles_per_seed=max_articles_per_seed_ex)
     urls = crawler.find_articles
     prepare_environment(ASSETS_PATH)
-    for ind, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
+    article_id = 0
+    for article_url in urls:
+        article_id += 1
+        parser = ArticleParser(article_url, article_id)
+        sleep(random.randint(2, 4))
         article = parser.parse()
         article.save_raw()
-        sleep((random.randrange(2, 6)))
