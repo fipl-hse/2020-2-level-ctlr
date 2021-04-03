@@ -4,6 +4,7 @@ import json
 import unittest
 import requests
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
+from bs4 import BeautifulSoup
 
 
 class RawDataValidator(unittest.TestCase):
@@ -48,7 +49,7 @@ class RawDataValidator(unittest.TestCase):
                             msg="Can not open URL: <{}>. Check how you collect URLs".format(
                                 metadata[1]['url']))
 
-            html_source = requests.get(metadata[1]['url']).text
+            html_source = BeautifulSoup(requests.get(metadata[1]['url']).content, features='lxml').text
 
             self.assertTrue(metadata[1]['title'] in
                             html_source,
