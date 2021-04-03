@@ -107,12 +107,11 @@ class TextProcessingPipeline:
         result = Mystem().analyze(self.text)
         morph_tokens = []
         for token in result:
-            if token.get('analysis') and token.get('text'):
-                if token.get('analysis')[0].get('lex') and token.get('analysis')[0].get('gr'):
-                    morph = MorphologicalToken(token.get('text'), token.get('analysis')[0].get('lex'))
-                    morph.mystem_tags = token.get('analysis')[0].get('gr')
-                    morph.pymorph_tags = MorphAnalyzer().parse(morph.original_word)[0].tag
-                    morph_tokens.append(morph)
+            if token.get('text') and token.get('analysis'):
+                morph = MorphologicalToken(token.get('text'), token.get('analysis')[0].get('lex'))
+                morph.mystem_tags = token.get('analysis')[0].get('gr')
+                morph.pymorph_tags = MorphAnalyzer().parse(morph.original_word)[0].tag
+                morph_tokens.append(morph)
         return morph_tokens
 
 

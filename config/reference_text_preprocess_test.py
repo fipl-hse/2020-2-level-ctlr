@@ -2,6 +2,7 @@ import re
 import os
 import json
 import unittest
+import shutil
 from constants import ASSETS_PATH
 from pipeline import CorpusManager, TextProcessingPipeline, validate_dataset
 from config.test_params import TEST_FILES_FOLDER
@@ -10,10 +11,11 @@ from config.test_params import TEST_FILES_FOLDER
 TAGS = ["A", "ADV", "S", "V", "PR", "ANUM"]
 
 
-
 class ReferenceTextPreprocessTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        shutil.rmtree(ASSETS_PATH, ignore_errors=True)
+        os.mkdir(ASSETS_PATH)
         with open(os.path.join(TEST_FILES_FOLDER, '0_meta.json')) as f:
             admin_meta = json.load(f)
         with open(os.path.join(ASSETS_PATH, "0_meta.json"), "w", encoding='utf-8') as f:
