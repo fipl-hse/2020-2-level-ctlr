@@ -3,9 +3,9 @@ Pipeline for text processing implementation
 """
 from pathlib import Path
 import re
+from typing import List
 from pymystem3 import Mystem
 from pymorphy2 import MorphAnalyzer
-from typing import List
 from article import Article
 from constants import ASSETS_PATH
 
@@ -81,8 +81,8 @@ class TextProcessingPipeline: # pylint: disable=too-few-public-methods
             raw_text = article.get_raw_text()
             tokens = [i.__str__() for i in  self._process(raw_text)]
             article.save_processed(" ".join(tokens))
-
-    def _process(self, raw_text) -> List[type(MorphologicalToken)]:
+    @classmethod
+    def _process(cls, raw_text) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
