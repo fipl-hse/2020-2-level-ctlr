@@ -4,12 +4,12 @@ Crawler implementation
 import json
 import os
 import shutil
-import requests
-import article
 from random import randint
-from bs4 import BeautifulSoup
 from time import sleep
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+import article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 
@@ -69,7 +69,7 @@ class Crawler:
                 seed_url_soup = BeautifulSoup(response.content, 'lxml')
 
                 links = self._extract_url(seed_url_soup)
-                if links == True:
+                if links:
                     links = links[:self.max_articles_per_seed] if len(links) > self.max_articles_per_seed else links
                     for link in links:
                         if len(self.urls) < self.max_articles:
@@ -143,8 +143,8 @@ def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path, 'r', encoding='utf-8') as f:
-        crawler_config = json.load(f)
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        crawler_config = json.load(file)
 
     if not isinstance(crawler_config['base_urls'], list):
         raise IncorrectURLError
@@ -178,17 +178,16 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
 
-    urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    needed_urls, max_articles_num, max_articles_per_seed_num = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls=urls,
-                      max_articles=max_articles,
-                      max_articles_per_seed=max_articles_per_seed)
+    crawler = Crawler(seed_urls=needed_urls,
+                      max_articles=max_articles_num,
+                      max_articles_per_seed=max_articles_per_seed_num)
 
     crawler.find_articles()
 
-    for id, url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=url, article_id=id + 1)
+    for url_id, url_full in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url_full, article_id=url_id + 1)
         parsed_article = parser.parse()
         parsed_article.save_raw()
         sleep(randint(2, 6))
-
