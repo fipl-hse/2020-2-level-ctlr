@@ -11,7 +11,8 @@ import shutil
 import constants
 from article import Article
 from datetime import datetime
-from mydate_framework import get_month
+from mydate_worker import get_month
+
 
 class LinkWorker:
     def __init__(self, page, relative_link):
@@ -60,7 +61,6 @@ class Crawler:
     """
     Crawler implementation
     """
-
 
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
@@ -130,7 +130,7 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         try:
             self.article.text = article_soup.find(class_='content_cn').text.strip()
-        except Exception as e:
+        except IndexError as e:
             self.article.text = 'NOT FOUND'
 
     def _fill_article_with_meta_information(self, article_soup):
@@ -141,7 +141,7 @@ class ArticleParser:
         self.article.author = 'NOT FOUND'
         try:
             self.article.title = article_soup.find('h1').text
-        except Exception:
+        except RuntimeWarning or IndexError:
             self.article.title = 'NOT FOUND'
         self.article.topics.append(self.article.title)
 
@@ -154,7 +154,7 @@ class ArticleParser:
             arr = date_str.split(" ")
             arr[0] = arr[0][0:len(arr[0]) - 1]
             return arr[3] + '-' + get_month(arr[2]) + '-' + arr[1] + ' ' + arr[0] + ':00'
-        except Exception:
+        except IndexError:
             return "0000-00-00 00:00:00"
 
     def parse(self):
