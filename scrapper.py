@@ -72,7 +72,7 @@ class Crawler:
                 self.urls.append(self._extract_url(article_bs))
                 if len(self.urls) == self.max_articles:
                     break
-        print (self.urls)
+        return self.urls
 
     def get_search_urls(self):
         """
