@@ -26,7 +26,7 @@ class POSFrequencyPipeline:
 
             self._process()
             self._add_pos_to_metadata(article_id)
-            visualize(statistics=self.frequencies_dict, path_to_save=f'.\\tmp\\articles\\{article_id}_image.png')
+            visualize(statistics=self.frequencies_dict, path_to_save=f'./tmp/articles/{article_id}_image.png')
 
     def _process(self):
         result = re.findall(r'<[A-Z]+?', self._processed_text)
@@ -34,7 +34,8 @@ class POSFrequencyPipeline:
             self.frequencies_dict[pos[1:]] = self.frequencies_dict.get(pos[1:], 0) + 1
 
     def _add_pos_to_metadata(self, file_id):
-        path = f'{ASSETS_PATH}\\{file_id}_meta.json'
+        print('assets_path:', ASSETS_PATH)
+        path = f'{ASSETS_PATH}/{file_id}_meta.json'
         with open(path, 'r', encoding='utf-8') as file:
             meta = json.load(file)
 
