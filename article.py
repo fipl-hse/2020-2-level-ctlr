@@ -90,7 +90,6 @@ class Article:
             'id': self.article_id,
             'url': self.url,
             'title': self.title,
-            'date': self._date_to_text(),
             'author': self.author,
             'topics': self.topics
         }
