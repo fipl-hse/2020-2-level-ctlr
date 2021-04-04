@@ -90,7 +90,7 @@ class TextProcessingPipeline:
         for article in self.corpus_manager.get_articles().values():
             self.raw_text_article = article.get_raw_text()
             tokens = self._process
-            article.save_processed(' '.join([str(token) for token in tokens]))
+            article.save_processed(' '.join(map(str, tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
