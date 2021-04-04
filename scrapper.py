@@ -6,9 +6,7 @@ import json
 import re
 import os
 import shutil
-
 import requests
-
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
@@ -50,13 +48,10 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        links_list = []
-        soup_strings = article_bs.find_all(class_="penci-grid")
-        links = re.findall(r'(\"https?://moyaokruga.ru/zaryakaspia///.+/")', str(soup_strings))
-        for link in links:
-            if link not in links_list:
-                links_list.append(link)
-        return links_list
+        news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
+        news_container = article_bs.find('div', attrs={'class': 'news-container', 'id': news_container_id})
+        a_tags = news_container.find_all('a', id=re.compile('articleLink'))
+        return [a_tag.attrs['href'] for a_tag in a_tags]
 
     def find_articles(self):
         for url in self.seed_urls:
@@ -80,12 +75,12 @@ class ArticleParser:
         self.article = Article(article_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        text_list = []
+        list_of_texts = []
         annotation_tag = article_soup.find('p', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleAnnotation')
-        text_list += annotation_tag.text
+        list_of_texts += annotation_tag.text
         text_tag = article_soup.find('div', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleText')
-        text_list += text_tag.text
-        self.article.text = '\n'.join(text_list)
+        list_of_texts += text_tag.text
+        self.article.text = '\n'.join(list_of_texts)
 
     def _fill_article_with_meta_information(self, article_soup):
         title = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader')
