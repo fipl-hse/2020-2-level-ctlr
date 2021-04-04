@@ -11,6 +11,9 @@ from random import randint
 from time import sleep
 from datetime import datetime
 
+import requests
+
+from requests import HTTPError
 from bs4 import BeautifulSoup
 
 from constants import CRAWLER_CONFIG_PATH
@@ -67,6 +70,11 @@ class Crawler:
         headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
                                  "Chrome/88.0.4324.190 Safari/537.36"}
         for seed_url in self.seed_urls:
+            try:
+                response = requests.get(seed_url, headers=headers)
+            except HTTPError:
+                print('something wrong with the url...')
+                continue
             response = requests.get(seed_url, headers=headers)
             page_soup = BeautifulSoup(response.content, 'lxml')
             extracted_urls = self._extract_url(page_soup)
