@@ -4,7 +4,7 @@ Pipeline for text processing implementation
 import os
 from typing import List
 from constants import ASSETS_PATH
-from pathlib import Path
+from article import Article
 
 
 class EmptyDirectoryError(Exception):
@@ -57,7 +57,11 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        pass
+        for filename in os.listdir(self.path_to_raw_txt_data):
+            if filename.endswith('_raw.txt'):
+                underscore_idx = filename.index('_')
+                article_id = int(filename[:underscore_idx])
+                self._storage[article_id] = Article(url=None, article_id=article_id)
 
     def get_articles(self):
         """
