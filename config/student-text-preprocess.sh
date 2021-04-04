@@ -16,7 +16,7 @@ elif [[ ${TARGET_SCORE} == 8 ]]; then
   echo "TBD: later"
 else
   echo "Running score ten checks"
-  # python -m unittest config/student_text_preprocess_score_eight_test.py
+  python -m unittest config/student_text_preprocess_score_eight_test.py
   echo "TODO: check for PosFrequencyPipeline"
   echo "TBD: later"
 fi

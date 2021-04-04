@@ -10,12 +10,10 @@ TAGS = ["A", "ADV", "S", "V", "PR", "ANUM", "CONJ", "SPRO", "APRO", "PART", "NUM
 class StudentTextPreprocessTest(unittest.TestCase):
     def setUp(self) -> None:
         self.articles = dict()
-        print('set up started')
         for article in os.listdir(ASSETS_PATH):
             if article.endswith("_processed.txt"):
                 with open(os.path.join(ASSETS_PATH, article), "r", encoding="utf-8") as txt:
                     self.articles[int(article[:-14])] = txt.read()
-        print('set up is finished')
 
     @staticmethod
     def custom_split(string) -> list:
