@@ -3,8 +3,10 @@ Pipeline for text processing implementation
 """
 from pathlib import Path
 from typing import List
+
 from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
+
 from article import Article
 from constants import ASSETS_PATH
 
@@ -57,9 +59,10 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        for file in Path(self.path_to_raw_txt_date).rglob('*_raw.txt'):
-            art_id = int(file.name.split('_')[0])
-            self._storage[art_id] = Article(url=None, article_id=art_id)
+        path = Path(self.path_to_raw_txt_data)
+        for file in path.rglob('*_raw.txt'):
+            ind = str(file).split('\\')[-1].split('_')[0]
+            self._storage[ind] = Article(url=None, article_id=ind)
 
     def get_articles(self):
         """
@@ -117,11 +120,7 @@ def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    if not isinstance(path_to_validate, str):
-        raise UnknownDatasetError
-
     path = Path(path_to_validate)
-
     if not path.exists():
         raise FileNotFoundError
 
