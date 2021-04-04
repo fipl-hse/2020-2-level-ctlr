@@ -38,7 +38,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}"
+        return self.normalized_form
 
 
 class CorpusManager:
@@ -58,6 +58,7 @@ class CorpusManager:
         for file in path.glob('*_raw.txt'):
             ind = str(file).split('/')[-1].split('_')[0]
             self._storage[ind] = Article(url=None, article_id=ind)
+        return None
 
     def get_articles(self):
         """
@@ -81,10 +82,16 @@ class TextProcessingPipeline:
         articles = self.corpus_manager.get_articles()
         for article in articles:
             self.article = article.get_raw_text()
-            text = self._process()
-            article.save_processed(''.join(map(str, text)))
+            result = Mystem().analyze(article)
+            tokens = self._process(mystem_analize_result=result)
+            processed_text_tokens = []
+            for token in tokens:
+                processed_text_tokens.append('{}<{}>'.format(token.__str__(), token.mystem_tags))
+            processed_text = ' '.join(processed_text_tokens)
+            article.save_processed(processed_text)
+        return None
 
-    def _process(self) -> List[type(MorphologicalToken)]:
+    def _process(self, mystem_analize_result) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
