@@ -285,7 +285,7 @@ jobs:
     name: Pipe processed admin data
     needs: milestone-2-pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 3
 
     steps:
     - uses: actions/checkout@v2
