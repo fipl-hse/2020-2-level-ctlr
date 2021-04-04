@@ -2,6 +2,7 @@
 Pipeline for text processing implementation
 """
 
+import os
 from pathlib import Path
 from typing import List
 
@@ -51,6 +52,7 @@ class CorpusManager:
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_date = path_to_raw_txt_data
         self._storage = {}
+
         self._scan_dataset()
 
     def _scan_dataset(self):
@@ -96,9 +98,10 @@ class TextProcessingPipeline:
 
         for token in result:
             if token.get('analysis') and token.get('text'):
-                morph_token = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
+                morph_token = MorphologicalToken(original_word=token['text'],
+                                                 normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
-                morph_token.pymorphy_tags = MorphAnalyzer().parse(morph_token.original_word)[0].tag
+                morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
                 tokens.append(str(morph_token))
 
         return tokens
