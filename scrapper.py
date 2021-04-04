@@ -145,8 +145,13 @@ class ArticleParser:
         except TypeError:
             self.date = '10:00 / 26 марта 2021'
         self.article.date = ArticleParser.unify_date_format(self.date)
-        date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
-        self.article.date = date_time_obj
+        try:
+            date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
+            self.article.date = date_time_obj
+        except ValueError:
+            self.date = '10:00 / 26 марта 2021'
+            date_time_obj = datetime.strptime(self.article.date, '%Y-%m-%d %H:%M:%S')
+            self.article.date = date_time_obj
         try:
             self.article.author = 'NOT FOUND'
             self.article.title = article_soup.find('h3').text
@@ -221,23 +226,27 @@ class CrawlerRecursive(Crawler):
         self.urls = []
         self.save_path = save_path
         self.id = 0
+        self.parsed = set()
 
     def run_crawler(self):
-        print('kek')
         while True:
             self.urls = []
             self.find_articles()
-            print(self.urls)
             self.extract_articles(self.get_search_urls())
             self.seed_urls = self.get_search_urls()
 
     def extract_articles(self, url_list):
         for loop_link in self.get_search_urls():
-            print(self.save_path)
+            if loop_link in self.parsed:
+                continue
+            self.parsed.add(loop_link)
             loop_article_parser = ArticleParser(loop_link, self.id, self.save_path)
             self.id += 1
-            loop_article_parser.parse()
-            loop_article_parser.article.save_raw()
+            try:
+                loop_article_parser.parse()
+                loop_article_parser.article.save_raw()
+            except ValueError:
+                pass
 
     def get_search_urls(self):
         """
@@ -251,19 +260,19 @@ if __name__ == '__main__':
 
     prepare_environment(constants.PROJECT_ROOT)
     urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
-    # crawler creation code
-
-    article_id = 1
-    for seed in urls:
-        print(seed)
-        crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
-        crawler.find_articles()
-        for link in crawler.get_search_urls():
-            article_parser = ArticleParser(link, article_id)
-            article_id += 1
-            article_parser.parse()
-            article_parser.article.save_raw()
-    # CrawlerRecursive(
-    #     seed_url=urls[0],
-    #     save_path=os.path.join(constants.PROJECT_ROOT, 'tmp', 'recursive')
-    # ).run_crawler()
+    if not constants.RECURSIVE:
+        article_id = 1
+        for seed in urls:
+            print(seed)
+            crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
+            crawler.find_articles()
+            for link in crawler.get_search_urls():
+                article_parser = ArticleParser(link, article_id)
+                article_id += 1
+                article_parser.parse()
+                article_parser.article.save_raw()
+    else:
+        CrawlerRecursive(
+            seed_url=urls[0],
+            save_path=os.path.join(constants.PROJECT_ROOT, 'tmp', 'recursive')
+        ).run_crawler()
