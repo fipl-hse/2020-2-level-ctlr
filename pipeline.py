@@ -32,9 +32,13 @@ class MorphologicalToken:
     def __init__(self, original_word, normalized_form):
         self.original_word = original_word
         self.normalized_form = normalized_form
+        self.res_mystem = ''
+        self.res_pymorphy = ''
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return '{normalized_form}<{mystem}>({pymorphy})'.format(normalized_form=self.normalized_form,
+                                                                mystem=self.res_mystem,
+                                                                pymorphy=self.res_pymorphy)
 
     def some_public_method(self):
         pass
@@ -47,6 +51,7 @@ class CorpusManager:
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_data = path_to_raw_txt_data
         self._storage = {}
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
@@ -97,8 +102,7 @@ def validate_dataset(path_to_validate):
     if not os.path.isdir(path_to_validate):
         raise NotADirectoryError
 
-    path = Path(path_to_validate)
-    if not path.listdir(path_to_validate):
+    if not os.listdir(path_to_validate):
         raise EmptyDirectoryError
 
 
