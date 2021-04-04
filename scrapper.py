@@ -94,8 +94,6 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         title_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader')
         self.article.title = title_tag.text
-        date_tag = article_soup.find('time', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleTime')
-        self.article.date = self.unify_date_format(date_tag.text)
         author_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_authorName')
         self.article.author = author_tag.text
         topic_tags = article_soup.find_all('a', id=re.compile('[cC]ategoryName'))
