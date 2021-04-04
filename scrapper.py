@@ -252,19 +252,19 @@ if __name__ == '__main__':
     prepare_environment(constants.PROJECT_ROOT)
     urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
     # crawler creation code
-    #
-    # id = 1
-    # for seed in urls:
-    #     print(seed)
-    #     crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
-    #     crawler.find_articles()
-    #     for link in crawler.get_search_urls():
-    #         article_parser = ArticleParser(link, id)
-    #         id += 1
-    #         article_parser.parse()
-    #         article_parser.article.save_raw()
-    CrawlerRecursive(
-        seed_url=urls[0],
-        save_path=os.path.join(constants.PROJECT_ROOT, 'tmp', 'recursive')
-    ).run_crawler()
+
+    id = 1
+    for seed in urls:
+        print(seed)
+        crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
+        crawler.find_articles()
+        for link in crawler.get_search_urls():
+            article_parser = ArticleParser(link, id)
+            id += 1
+            article_parser.parse()
+            article_parser.article.save_raw()
+    # CrawlerRecursive(
+    #     seed_url=urls[0],
+    #     save_path=os.path.join(constants.PROJECT_ROOT, 'tmp', 'recursive')
+    # ).run_crawler()
 
