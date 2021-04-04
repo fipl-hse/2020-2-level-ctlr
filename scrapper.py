@@ -44,16 +44,12 @@ class UnknownConfigError(Exception):
 
 
 class Crawler:
-    """
-    Crawler implementation
-    """
     def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.total_max_articles = total_max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
-    @staticmethod
     def _extract_url(article_bs):
         news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
         news_container = article_bs.find('div', attrs={'class': 'news-container', 'id': news_container_id})
@@ -62,9 +58,6 @@ class Crawler:
         return [a_tag.attrs['href'] for a_tag in a_tags]
 
     def find_articles(self):
-        """
-        Finds articles
-        """
         for seed_url in self.seed_urls:
             response = requests.get(seed_url, headers=headers)
             page_soup = BeautifulSoup(response.content, 'lxml')
@@ -80,16 +73,10 @@ class Crawler:
                 break
 
     def get_search_urls(self):
-        """
-        Returns search_urls (?) param
-        """
         return self.urls
 
 
 class ArticleParser:
-    """
-    ArticleParser implementation
-    """
     def __init__(self, article_url: str, article_id: int):
         self.article_url = article_url
         self.article_id = article_id
@@ -113,17 +100,10 @@ class ArticleParser:
         topic_tags = article_soup.find_all('a', id=re.compile('[cC]ategoryName'))
         self.article.topics = [topic_tag.text for topic_tag in topic_tags]
 
-    @staticmethod
     def unify_date_format(date_str):
-        """
-        Unifies date format
-        """
         pass
 
     def parse(self):
-        """
-        Parses each article
-        """
         response = requests.get(self.article_url, headers=headers)
         article_bs = BeautifulSoup(response.content, 'lxml')
         self._fill_article_with_text(article_bs)
@@ -133,18 +113,12 @@ class ArticleParser:
 
 
 def prepare_environment(base_path):
-    """
-    Creates ASSETS_PATH folder if not created and removes existing folder
-    """
     if os.path.exists(base_path):
         shutil.rmtree(os.path.dirname(base_path))
     os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
-    """
-    Validates given config
-    """
     with open(crawler_path) as json_file:
         config = json.load(json_file)
 
