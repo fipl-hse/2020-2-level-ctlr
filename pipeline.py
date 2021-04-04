@@ -38,7 +38,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return self.normalized_form
+        return f"{self.normalized_form}<{self.mystem_tags}"
 
 
 class CorpusManager:
