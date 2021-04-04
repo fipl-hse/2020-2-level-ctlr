@@ -41,7 +41,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return "{}<{}>{}".format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
+        return "{}<{}>({})".format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
 
 
 class CorpusManager:

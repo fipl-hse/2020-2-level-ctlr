@@ -1,5 +1,5 @@
 lxml==4.6.2
 beautifulsoup4==4.9.3
 pymorphy2==0.9.1
-pymystem3==0.2.0
+pymystem3==0.1.10
 requests==2.25.1
