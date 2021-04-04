@@ -53,7 +53,6 @@ class Crawler:
         news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
         news_container = article_bs.find('div', attrs={'class': 'news-container', 'id': news_container_id})
         a_tags = news_container.find_all('a', id=re.compile('articleLink'))
-
         return [a_tag.attrs['href'] for a_tag in a_tags]
 
     def find_articles(self):
@@ -86,22 +85,21 @@ class ArticleParser:
         self.article.text = '\n'.join(text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
-        title_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader')
-        self.article.title = title_tag.text
-        topic_tags = article_soup.find_all('a', id=re.compile('[cC]ategoryName'))
-        self.article.topics = [topic_tag.text for topic_tag in topic_tags]
-        author_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_authorName')
-        self.article.author = author_tag.text
+        title = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader')
+        self.article.title = title.text
+        topic = article_soup.find_all('a', id=re.compile('[cC]ategoryName'))
+        self.article.topics = [topic.text for topic_tag in topic_tags]
+        author = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_authorName')
+        self.article.author = author.text
 
     def unify_date_format(date_str):
         pass
 
     def parse(self):
         response = requests.get(self.article_url, headers=headers)
-        article_bs = BeautifulSoup(response.content, 'lxml')
-        self._fill_article_with_text(article_bs)
-        self._fill_article_with_meta_information(article_bs)
-
+        bs_article = BeautifulSoup(response.content, 'lxml')
+        self._fill_article_with_text(bs_article)
+        self._fill_article_with_meta_information(bs_article)
         return self.article
 
 
@@ -114,30 +112,22 @@ def prepare_environment(base_path):
 def validate_config(crawler_path):
     with open(crawler_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
-
     urls = config['base_urls']
     total_articles = config['total_articles_to_find_and_parse']
     max_articles = config.get('max_number_articles_to_get_from_one_seed', total_articles)
-
     url_checks = (isinstance(urls, list) and all(isinstance(url, str) for url in urls))
     articles_checks = (isinstance(total_articles, int) and not isinstance(total_articles, bool) and
                        isinstance(max_articles, int) and not isinstance(max_articles, bool))
-
     if not url_checks:
         raise IncorrectURLError
-
     if not articles_checks:
         raise IncorrectNumberOfArticlesError
-
     articles_num_in_range = (max_articles != 0 and 
                              1 <= total_articles <= 1000)
-
     if not articles_num_in_range:
         raise NumberOfArticlesOutOfRangeError
-
     if url_checks and articles_checks and articles_num_in_range:
         return urls, total_articles, max_articles
-
     raise UnknownConfigError
 
 
