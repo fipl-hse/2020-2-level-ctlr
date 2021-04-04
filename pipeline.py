@@ -3,6 +3,7 @@ Pipeline for text processing implementation
 """
 from pathlib import Path
 from typing import List
+from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
 from article import Article
 from constants import ASSETS_PATH
@@ -37,7 +38,10 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
+
+    def public_method(self):
+        pass
 
 
 class CorpusManager:
@@ -62,6 +66,9 @@ class CorpusManager:
         Returns storage params
         """
         return self._storage
+
+    def public_method(self):
+        pass
 
 
 class TextProcessingPipeline:
@@ -93,12 +100,17 @@ class TextProcessingPipeline:
         tokens = []
 
         for token in process:
-            if token.get('analysis'):
+            if token.get('analysis') and token.get('text'):
                 morph_token = MorphologicalToken(original_word=token['text'],
                                                  normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
+                morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
                 tokens.append(morph_token)
+
         return tokens
+
+    def public_method(self):
+        pass
 
 
 def validate_dataset(path_to_validate):
