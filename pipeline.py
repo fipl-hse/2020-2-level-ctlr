@@ -140,10 +140,6 @@ def validate_dataset(path_to_validate):
         elif re.match(r'^[1-9]\d{0,2}_meta\.json$', fname):
             json_files_num += 1
 
-    is_dataset_consistent = txt_files_num == json_files_num > 0
-    if not is_dataset_consistent:
-        raise InconsistentDatasetError
-
     if is_directory and is_dir_filled and is_dataset_consistent:
         return
 
