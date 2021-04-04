@@ -72,8 +72,8 @@ class Crawler:
     def _extract_url(article_bs):
         global LW
         new_urls = []
-        for a in article_bs.find_all('a'):
-            my_link = str(a.get('href'))
+        for a_element in article_bs.find_all('a'):
+            my_link = str(a_element.get('href'))
             if my_link.find('news/') == -1 or my_link.find('HEADING') != -1 or my_link == '/news/':
                 continue
             if my_link.find('https://') == -1:
