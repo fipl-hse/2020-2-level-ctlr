@@ -9,6 +9,7 @@ import shutil
 
 from random import randint
 from time import sleep
+import requests
 
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
