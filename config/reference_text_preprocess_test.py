@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import shutil
 import unittest
 from constants import ASSETS_PATH
 from pipeline import CorpusManager, TextProcessingPipeline, validate_dataset
