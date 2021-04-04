@@ -54,7 +54,7 @@ class UnknownConfigError(Exception):
     """
 
 
-lw = LinkWorker('', '')
+LW = LinkWorker('', '')
 
 
 class Crawler:
@@ -70,7 +70,7 @@ class Crawler:
 
     @staticmethod  # ?
     def _extract_url(article_bs):
-        global lw
+        global LW
         new_urls = []
         for a in article_bs.find_all('a'):
             my_link = str(a.get('href'))
@@ -78,8 +78,8 @@ class Crawler:
                 continue
             if my_link.find('https://') == -1:
                 try:
-                    lw.update_link(link)
-                    new_urls.append(lw.get_absolute_link())
+                    LW.update_link(link)
+                    new_urls.append(LW.get_absolute_link())
                 except AttributeError:
                     pass
             else:
@@ -94,8 +94,8 @@ class Crawler:
         Finds articles
         """
         new_urls = []
-        global lw
-        lw = LinkWorker(self.seed_urls[0], "")
+        global LW
+        LW = LinkWorker(self.seed_urls[0], "")
         for url in self.seed_urls:
             time.sleep(0.25)
             if self.max_articles != 0 and len(self.urls) >= self.max_articles:
