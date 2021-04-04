@@ -196,5 +196,4 @@ if __name__ == '__main__':
     for i, full_url in enumerate(crawler.get_search_urls()):
         parser = ArticleParser(article_url=full_url, article_id=i+1)
         article = parser.parse()
-        article.save_raw()
         sleep(randint(3, 6))
