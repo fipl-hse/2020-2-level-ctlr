@@ -80,9 +80,9 @@ class ArticleParser:
     def _fill_article_with_text(self, article_soup):
         text_list = []
         annotation_tag = article_soup.find('p', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleAnnotation')
-        text_list.append(annotation_tag.text)
+        text_list += annotation_tag.text
         text_tag = article_soup.find('div', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleText')
-        text_list.append(text_tag.text)
+        text_list += text_tag.text
         self.article.text = '\n'.join(text_list)
 
     def _fill_article_with_meta_information(self, article_soup):
@@ -116,29 +116,26 @@ def validate_config(crawler_path):
         config = json.load(json_file)
 
     urls = config['base_urls']
-    total_artcls = config['total_articles_to_find_and_parse']
-    max_artcls = config.get('max_number_articles_to_get_from_one_seed', total_artcls)
+    total_articles = config['total_articles_to_find_and_parse']
+    max_articles = config.get('max_number_articles_to_get_from_one_seed', total_articles)
 
-    if max_artcls > total_artcls:
-        max_artcls = total_artcls
+    url_checks = (isinstance(urls, list) and all(isinstance(url, str) for url in urls))
+    articles_checks = (isinstance(total_articles, int) and not isinstance(total_articles, bool) and
+                       isinstance(max_articles, int) and not isinstance(max_articles, bool))
 
-    is_url_ok = isinstance(urls, list) and all(isinstance(url, str) for url in urls)
-    is_articles_num_ok = (isinstance(total_artcls, int) and not isinstance(total_artcls, bool) and
-                          isinstance(max_artcls, int) and not isinstance(max_artcls, bool))
-
-    if not is_url_ok:
+    if not url_checks:
         raise IncorrectURLError
 
-    if not is_articles_num_ok:
+    if not articles_checks:
         raise IncorrectNumberOfArticlesError
 
-    is_articles_num_in_range = max_artcls != 0 and 1 <= total_artcls <= 1000
+    is_articles_num_in_range = max_articles != 0 and 1 <= total_articles <= 1000
 
     if not is_articles_num_in_range:
         raise NumberOfArticlesOutOfRangeError
 
-    if is_url_ok and is_articles_num_ok and is_articles_num_in_range:
-        return urls, total_artcls, max_artcls
+    if url_checks and articles_checks and is_articles_num_in_range:
+        return urls, total_articles, max_articles
 
     raise UnknownConfigError
 
