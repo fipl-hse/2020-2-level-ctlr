@@ -1,5 +1,5 @@
 {
-    "base_urls": ["https://www.ks87.ru/16/45/?page=2"],
-    "total_articles_to_find_and_parse": 15,
-    "max_number_articles_to_get_from_one_seed": 15
+    "base_urls": ["http://orbita-znamensk.ru/"],
+    "total_articles_to_find_and_parse": 19,
+    "max_number_articles_to_get_from_one_seed": 19
 }

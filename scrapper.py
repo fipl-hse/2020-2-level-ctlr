@@ -16,7 +16,7 @@ from tls_adapter import TLSAdapter
 
 headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)' 
-                      'Chrome/88.0.4324.190 Safari/537.36'
+                    'Chrome/89.0.4389.114 Safari/537.36'
 }
 
 class IncorrectURLError(Exception):
@@ -55,7 +55,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('div', class_="articles-list-item").find('a').attrs['href']
+        return article_bs.find('div', class_="views-row views-row-2 views-row-even")
 
     def find_articles(self):
         """
@@ -67,10 +67,10 @@ class Crawler:
             print('Requesting')
 
             soup_page = BeautifulSoup(response.content, features='lxml')
-            all_urls_soup = soup_page.find_all('div', class_="articles-list-block")
+            all_urls_soup = soup_page.find_all('div', class_="views-row views-row-2 views-row-even")
             for one_of_urls in all_urls_soup[:max_articles_per_seed]:
                 if len(self.urls) < self.max_articles:
-                    self.urls.append('https://www.ks87.ru'+self._extract_url(one_of_urls))
+                    self.urls.append(self._extract_url(one_of_urls))
 
             if len(self.urls) == self.max_articles:
                 return self.urls
@@ -93,7 +93,7 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        articles_info = article_soup.find('div', class_="content-block").find('div').text
+        articles_info = article_soup.find('div', class_="field-item odd").find('p').text
         article_text = ''
         for article in articles_info:
             article_text += str(article)
@@ -101,9 +101,9 @@ class ArticleParser:
 
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('div', class_='articles-body').find('h1').text
-        self.article.author = article_soup.find('strong').text.split('\r')[0]
-        self.article.date = self.unify_date_format(article_soup.find('div', class_='articles-body-date').text[2:-3].strip())
+        self.article.title = article_soup.find('div', id_="content-header").find('h1', class_ ="title").text
+        self.article.author = article_soup.find('a').attrs['href'].text
+        self.article.date = self.unify_date_format(article_soup.find('span', class_="date-display-single").text[2:-3].strip())
         return None
 
     @staticmethod
