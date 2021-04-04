@@ -333,7 +333,7 @@ jobs:
     name: Pipe processed student data
     needs: milestone-2-pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 1
 
     steps:
     - uses: actions/checkout@v2
