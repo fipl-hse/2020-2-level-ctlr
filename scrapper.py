@@ -117,7 +117,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = session.get(self.full_url, headers=headers)
+        response = requests.get(self.full_url, headers=headers)
         sleep(5)
         print('Requesting')
         article_soup = BeautifulSoup(response.content, features='lxml')
