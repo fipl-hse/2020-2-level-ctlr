@@ -4,6 +4,7 @@ Pipeline for text processing implementation
 from pathlib import Path
 from typing import List
 
+from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
 
 from article import Article
@@ -39,7 +40,10 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
+
+    def public_method(self):
+        pass
 
 
 class CorpusManager:
@@ -57,8 +61,8 @@ class CorpusManager:
         """
         path = Path(self.path_to_raw_txt_date)
 
-        for file in path.glob('*_raw.txt'):
-            art_id = str(file).split('/')[-1].split('_')[0]
+        for file in path.rglob('*_raw.txt'):
+            art_id = str(file).split('_')[0]
             self._storage[art_id] = Article(url=None, article_id=art_id)
 
     def get_articles(self):
@@ -66,6 +70,9 @@ class CorpusManager:
         Returns storage params
         """
         return self._storage
+
+    def public_method(self):
+        pass
 
 
 class TextProcessingPipeline:
@@ -102,6 +109,7 @@ class TextProcessingPipeline:
                 morph_token = MorphologicalToken(original_word=token['text'],
                                                  normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
+                morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
                 tokens.append(morph_token)
 
         return tokens
@@ -112,6 +120,9 @@ def validate_dataset(path_to_validate):
     Validates folder with assets
     """
     path = Path(path_to_validate)
+
+    if not isinstance(path_to_validate, str):
+        raise UnknownDatasetError
 
     if not path.exists():
         raise FileNotFoundError
