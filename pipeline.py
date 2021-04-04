@@ -5,6 +5,8 @@ import os
 from typing import List
 from constants import ASSETS_PATH
 from article import Article
+from pymystem3 import Mystem
+from pymorphy2 import MorphAnalyzer
 
 
 class EmptyDirectoryError(Exception):
@@ -32,13 +34,13 @@ class MorphologicalToken:
     def __init__(self, original_word, normalized_form):
         self.original_word = original_word
         self.normalized_form = normalized_form
-        self.res_mystem = ''
-        self.res_pymorphy = ''
+        self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
         return '{normalized_form}<{mystem}>({pymorphy})'.format(normalized_form=self.normalized_form,
-                                                                mystem=self.res_mystem,
-                                                                pymorphy=self.res_pymorphy)
+                                                                mystem=self.mystem_tags,
+                                                                pymorphy=self.pymorphy_tags)
 
     def some_public_method(self):
         pass
@@ -78,19 +80,32 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self.raw_text_article = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        for article in self.corpus_manager.get_articles().values():
+            self.raw_text_article = article.get_raw_text()
+            tokens = self._process
+            article.save_processed(' '.join([str(token) for token in tokens]))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        morph_analysis_res = Mystem().analyze(self.raw_text_article)
+        # res_ex: {"text":"светится","analysis":[{"lex":"светиться","gr":"V,несов,нп=непрош,ед,изъяв,3-л"}]}
+        morph_tokens = []
+        for word in morph_analysis_res:
+            if word.get('analysis'):
+                token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
+                token.mystem_tags = word['analysis'][0]['gr']
+                token.pymorphy_tags = MorphAnalyzer().parse(token.original_word)[0].tag
+                morph_tokens.append(token)
+        return morph_tokens
 
     def some_public_method(self):
         pass
@@ -113,6 +128,9 @@ def validate_dataset(path_to_validate):
 def main():
     validate_dataset(ASSETS_PATH)
     corpus_manager = CorpusManager(path_to_dataset=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline.run()
+
 
 if __name__ == "__main__":
     main()
