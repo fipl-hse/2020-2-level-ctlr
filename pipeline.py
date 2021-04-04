@@ -7,8 +7,8 @@ from constants import ASSETS_PATH
 from pathlib import Path
 from article import Article
 
-
 from pymystem3 import Mystem
+
 
 class EmptyDirectoryError(Exception):
     """
@@ -39,7 +39,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
+        return f"{self.normalized_form}<{self.mystem_tags}>"
 
 
 class CorpusManager:
@@ -82,27 +82,23 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for article in articles.values():
-            self.text = article.get_raw_text()
-            morph_tokens = self._process()
-            processed_text = []
-            for token in morph_tokens:
-                processed_text.append(str(token))
-            article.save_processed(' '.join(processed_text))
+            self.article = article.get_raw_text()
+            tokens = self._process()
+            article.save_processed(' '.join(map(str, tokens)))
+
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        mystem = Mystem()
-        result = mystem.analyze(self.text)
-        tokens = []
-        for element in result:
-            if element.get('analysis'):
-                tok = MorphologicalToken(element['text'], element['analysis'][0]['lex'])
-                tok.mystem_tags = element['analysis'][0]['gr']
-                tokens.append(tok)
-
-        return tokens
+        result = Mystem().analyze(self.article)
+        tokenized = []
+        for elem in result:
+            if elem.get('analysis'):
+                token = MorphologicalToken(elem['text'], elem['analysis'][0]['lex'])
+                token.mystem_tags = elem['analysis'][0]['gr']
+                tokenized.append(token)
+        return tokenized
 
 
 def validate_dataset(path_to_validate):
