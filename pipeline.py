@@ -1,3 +1,5 @@
+# pylint: disable=R0903
+
 """
 Pipeline for text processing implementation
 """
@@ -9,7 +11,6 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
-from pos_frequency_pipeline import POSFrequencyPipeline
 
 
 class EmptyDirectoryError(Exception):
@@ -41,15 +42,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return self.normalized + '<' + self.mystem_tags + '>' + '(' + str(self.pymorphy_tags) + ')'
-
-    def placeholder_public_method(self):
-        """
-        In order to pass lint check,
-        class must contain at least
-        two public methods
-        """
-        pass
+        return f'{self.normalized}<{self.mystem_tags}>({str(self.pymorphy_tags)})'
 
 
 class CorpusManager:
@@ -66,9 +59,10 @@ class CorpusManager:
         """
         path = Path(ASSETS_PATH)
         for file in path.iterdir():
-            if str(file).endswith('_raw.txt'):
-                index = str(file).split('_raw.txt')[0]
-                self._storage[index] = Article(url=None, article_id=index)
+            file_name = file.relative_to(path)
+            if str(file_name).endswith('_raw.txt'):
+                index = str(file_name).split('_raw.txt')[0]
+                self._storage[index] = Article(url=None, article_id=int(index))
 
     def get_articles(self):
         """
@@ -77,14 +71,6 @@ class CorpusManager:
         self._scan_dataset()
         return self._storage
 
-    def placeholder_public_method(self):
-        """
-        In order to pass lint check,
-        class must contain at least
-        two public methods
-        """
-        pass
-
 
 class TextProcessingPipeline:
     """
@@ -92,34 +78,22 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus = corpus_manager
+        self.current_raw_text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        print(f'there are {len(self.corpus.get_articles())} articles to process')
         for article in self.corpus.get_articles().values():
-            raw_text = article.get_raw_text()
-            tokens = self._process(raw_text)
+            self.current_raw_text = article.get_raw_text()
+            tokens = self._process()
             processed = ' '.join(map(str, tokens))
             article.save_processed(processed)
 
-    def placeholder_public_method(self):
-        """
-        In order to pass lint check,
-        class must contain at least
-        two public methods
-        """
-        pass
-
-    @staticmethod
-    def _process(text) -> List[type(MorphologicalToken)]:
-        """
-        Performs processing of each text
-        """
+    def _process(self) -> List[type(MorphologicalToken)]:
         mystem = Mystem()
         pymorphy = MorphAnalyzer()
-        words = mystem.analyze(text)
+        words = mystem.analyze(self.current_raw_text)
         tokens = []
         for word in words:
             orig = word['text'].strip()
@@ -131,6 +105,8 @@ class TextProcessingPipeline:
                     tokens.append(token)
                 except IndexError:
                     token = MorphologicalToken(original_word=orig, normalized_form=orig)
+                    if not str(pymorphy.parse(orig)[0].tag) == 'UNKN':
+                        token.pymorphy_tags = pymorphy.parse(orig)[0].tag
                     tokens.append(token)
         return tokens
 
@@ -146,13 +122,14 @@ def validate_dataset(path_to_validate):
         raise NotADirectoryError
     if not list(path.iterdir()):
         raise EmptyDirectoryError
-    metas, raws = 0, 0
-    for file in path.iterdir():
-        if str(file).endswith("_raw.txt"):
-            raws += 1
-        if str(file).endswith("_meta.json"):
-            metas += 1
-    if not metas == raws:
+    files = [str(file.relative_to(path)) for file in path.iterdir()]
+    metas = list(filter(lambda x: x.endswith('_raw.txt'), files))
+    raws = list(filter(lambda x: x.endswith('_meta.json'), files))
+    if not len(metas) == len(raws):
+        raise InconsistentDatasetError
+    meta_indices = sorted(list(map(lambda x: int(x.split('_')[0]), metas)))
+    raw_indices = sorted(list(map(lambda x: int(x.split('_')[0]), raws)))
+    if not meta_indices == raw_indices or not meta_indices == [i + 1 for i in range(len(meta_indices))]:
         raise InconsistentDatasetError
 
 
@@ -163,9 +140,6 @@ def main():
     print('onto processing')
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
-    print('onto analytics')
-    visualizer = POSFrequencyPipeline(corpus_manager)
-    visualizer.run()
 
 
 if __name__ == "__main__":

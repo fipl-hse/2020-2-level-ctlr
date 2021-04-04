@@ -29,6 +29,7 @@ class Article:
         self.author = ''
         self.topics = []
         self.text = ''
+        self.pos_frequencies = {}
 
     def save_raw(self):
         """
@@ -62,6 +63,7 @@ class Article:
         article.date = date_from_meta(meta.get('date', None))
         article.author = meta.get('author', None)
         article.topics = meta.get('topics', None)
+        article.pos_frequencies = meta.get('pos_frequencies', None)
 
         # intentionally leave it empty
         article.text = None
@@ -92,7 +94,8 @@ class Article:
             'title': self.title,
             'date': self._date_to_text(),
             'author': self.author,
-            'topics': self.topics
+            'topics': self.topics,
+            'pos_frequencies': self.pos_frequencies
         }
 
     def _date_to_text(self):
