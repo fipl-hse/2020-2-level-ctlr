@@ -161,4 +161,3 @@ if __name__ == '__main__':
         parser = ArticleParser(full_url, article_id)
         article = parser.parse()
         article.save_raw()
-        sleep(randint(3, 6))
