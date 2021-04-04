@@ -62,10 +62,7 @@ class Crawler:
         """
         for url in self.seed_urls:
             response = requests.get(url, headers=headers)
-            if not response:
-                raise IncorrectURLError
-            if response.status_code == 200:
-                sleep(random.randint(5, 10))
+            sleep(random.randint(5, 10))
             seed_soup = BeautifulSoup(response.content, features='lxml')
             articles_soup = seed_soup.find_all('div', class_='item-details')
             for article_bs in articles_soup[:self.max_articles_per_seed]:
