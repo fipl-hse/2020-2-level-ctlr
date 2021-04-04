@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List
 
 from pymystem3 import Mystem
-from pymorphy2 import MorphAnalyzer
 
 from article import Article
 from constants import ASSETS_PATH
@@ -40,10 +39,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
-
-    def public_method(self):
-        pass
+        return f"{self.normalized_form}<{self.mystem_tags}>"
 
 
 class CorpusManager:
@@ -71,9 +67,6 @@ class CorpusManager:
         """
         return self._storage
 
-    def public_method(self):
-        pass
-
 
 class TextProcessingPipeline:
     """
@@ -97,9 +90,6 @@ class TextProcessingPipeline:
                 processed_text.append(str(token))
             article.save_processed(' '.join(processed_text))
 
-    def public_method(self):
-        pass
-
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
@@ -112,7 +102,6 @@ class TextProcessingPipeline:
                 morph_token = MorphologicalToken(original_word=token['text'],
                                                  normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
-                morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
                 tokens.append(morph_token)
 
         return tokens
