@@ -114,6 +114,9 @@ class TextProcessingPipeline:
 
         return tokens
 
+    def public_method(self):
+        pass
+
 
 def validate_dataset(path_to_validate):
     """
