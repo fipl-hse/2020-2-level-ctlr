@@ -13,6 +13,8 @@ TAGS = ["A", "ADV", "S", "V", "PR", "ANUM"]
 class ReferenceTextPreprocessTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        shutil.rmtree(ASSETS_PATH, ignore_errors=True)
+        os.mkdir(ASSETS_PATH)
         with open(os.path.join(TEST_FILES_FOLDER, '0_meta.json')) as f:
             admin_meta = json.load(f)
         with open(os.path.join(ASSETS_PATH, "0_meta.json"), "w", encoding='utf-8') as f:
@@ -41,8 +43,8 @@ class ReferenceTextPreprocessTest(unittest.TestCase):
                          len(re.findall(self.re_pattern, self.processed)),
                          msg=f"""Number of word<tag> sequences in reference {self.reference} 
                                                 and processed {self.processed} texts is different""")
-
-
+        
+        
     def test_tag_format(self):
         # check TAGS ander each sequences:
         tags_pattern = r"<([A-Z]+)[,=]{1}"
