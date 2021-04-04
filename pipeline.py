@@ -92,7 +92,7 @@ class TextProcessingPipeline:
             final_tokens = self._process(article_text)
             final_info = []
             for token in final_tokens:
-                final_info.append(token.__str__())
+                final_info.append(str(token))
             article.save_processed(' '.join(final_info))
 
     @staticmethod
@@ -156,7 +156,6 @@ def main():
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
-    print('Text processing pipeline has just finished')
 
 
 if __name__ == "__main__":
