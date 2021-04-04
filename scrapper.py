@@ -1,3 +1,4 @@
+
 import json
 import os
 import re
@@ -52,7 +53,7 @@ class Crawler:
 
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
-        self.max_articles = max_articles
+        self.total_max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
@@ -118,7 +119,7 @@ class ArticleParser:
         """
         Parses each article
         """
-        article_bs = BeautifulSoup(requests.get(self.article_url, headers=headers).content, 'lxml')
+        article_bs = BeautifulSoup(requests.get(self.full_url, headers=headers).content, 'lxml')
         self._fill_article_with_text(article_bs)
         self._fill_article_with_meta_information(article_bs)
         self.article.save_raw()
@@ -162,7 +163,7 @@ if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
     urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
 
-    crawler = Crawler(seed_urls=urls, max_articles=max_articles, max_articles_per_seed=articles_per_seed)
+    crawler = Crawler(seed_urls=urls, total_max_articles=max_articles, max_articles_per_seed=articles_per_seed)
     crawler.find_articles()
 
     for i, url in enumerate(crawler.urls):
