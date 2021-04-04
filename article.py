@@ -20,10 +20,10 @@ class Article:
     Article class implementation.
     Stores article metadata and knows how to work with articles
     """
-    def __init__(self, url, article_id):
+    def __init__(self, url, article_id, save_path=''):
         self.url = url
         self.article_id = article_id
-
+        self.save_path = save_path
         self.title = ''
         self.date = None
         self.author = ''
@@ -34,12 +34,11 @@ class Article:
         """
         Saves raw text and article meta data
         """
-        article_meta_name = "{}_meta.json".format(self.article_id)
 
         with open(self._get_raw_text_path(), 'w', encoding='utf-8') as file:
             file.write(self.text)
 
-        with open(os.path.join(ASSETS_PATH, article_meta_name), "w", encoding='utf-8') as file:
+        with open(self._get_meta_path(), "w", encoding='utf-8') as file:
             json.dump(self._get_meta(),
                       file,
                       sort_keys=False,
@@ -106,11 +105,26 @@ class Article:
         Returns path for requested raw article
         """
         article_txt_name = "{}_raw.txt".format(self.article_id)
-        return os.path.join(ASSETS_PATH, article_txt_name)
+        if self.save_path == '':
+            return os.path.join(ASSETS_PATH, article_txt_name)
+        else:
+            return os.path.join(self.save_path, article_txt_name)
 
+    def _get_meta_path(self):
+        """
+        Returns path for requested raw article
+        """
+        article_txt_name = "{}_meta.json".format(self.article_id)
+        if self.save_path == '':
+            return os.path.join(ASSETS_PATH, article_txt_name)
+        else:
+            return os.path.join(self.save_path, article_txt_name)
     def _get_processed_text_path(self):
         """
         Returns path for requested processed article
         """
         article_txt_name = "{}_processed.txt".format(self.article_id)
-        return os.path.join(ASSETS_PATH, article_txt_name)
+        if self.save_path == '':
+            return os.path.join(ASSETS_PATH, article_txt_name)
+        else:
+            return os.path.join(self.save_path, article_txt_name)
