@@ -55,7 +55,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('div', class_="views-row views-row-2 views-row-even")
+        return article_bs.find('div', class_="views-row views-row-2 views-row-even").find('a').attrs['href']
 
     def find_articles(self):
         """
@@ -67,14 +67,13 @@ class Crawler:
             print('Requesting')
 
             soup_page = BeautifulSoup(response.content, features='lxml')
-            all_urls_soup = soup_page.find_all('div', class_="views-row views-row-2 views-row-even")
+            all_urls_soup = soup_page.find_all('li', class_="node_read_more first").find('a').attrs['href']
             for one_of_urls in all_urls_soup[:max_articles_per_seed]:
                 if len(self.urls) < self.max_articles:
                     self.urls.append(self._extract_url(one_of_urls))
 
             if len(self.urls) == self.max_articles:
                 return self.urls
-
 
     def get_search_urls(self):
         """
@@ -167,5 +166,5 @@ if __name__ == '__main__':
         article_id += 1
         parser = ArticleParser(article_url, article_id)
         sleep(5)
-        article = parser.parse()
-        article.save_raw()
+        parser.parse()
+        parser.article.save_raw()
