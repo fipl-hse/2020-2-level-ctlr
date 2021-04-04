@@ -1,4 +1,6 @@
-
+"""
+Crawler implementation
+"""
 import json
 import os
 import re
