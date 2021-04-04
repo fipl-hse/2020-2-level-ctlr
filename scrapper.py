@@ -107,13 +107,13 @@ class ArticleParser:
 
 def prepare_environment(base_path):
     if os.path.exists(base_path):
-        shutil.rmtree(os.path.dirname(base_path))
+        shutil.rmtree(base_path)
     os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
-    with open(crawler_path) as json_file:
-        config = json.load(json_file)
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        config = json.load(file)
 
     urls = config['base_urls']
     total_articles = config['total_articles_to_find_and_parse']
@@ -129,12 +129,13 @@ def validate_config(crawler_path):
     if not articles_checks:
         raise IncorrectNumberOfArticlesError
 
-    is_articles_num_in_range = max_articles != 0 and 1 <= total_articles <= 1000
+    articles_num_in_range = (max_articles != 0 and 
+                             1 <= total_articles <= 1000)
 
-    if not is_articles_num_in_range:
+    if not articles_num_in_range:
         raise NumberOfArticlesOutOfRangeError
 
-    if url_checks and articles_checks and is_articles_num_in_range:
+    if url_checks and articles_checks and articles_num_in_range:
         return urls, total_articles, max_articles
 
     raise UnknownConfigError
