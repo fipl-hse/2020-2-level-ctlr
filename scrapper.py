@@ -50,10 +50,13 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
-        news_container = article_bs.find('div', attrs={'class': 'news-container', 'id': news_container_id})
-        a_tags = news_container.find_all('a', id=re.compile('articleLink'))
-        return [a_tag.attrs['href'] for a_tag in a_tags]
+        links_list = []
+        soup_strings = article_bs.find_all(class_="penci-grid")
+        links = re.findall(r'(\"https?://moyaokruga.ru/zaryakaspia///.+/")', str(soup_strings))
+        for link in links:
+            if link not in links_list:
+                links_list.append(link)
+        return links_list
 
     def find_articles(self):
         for url in self.seed_urls:
