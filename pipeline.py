@@ -97,7 +97,7 @@ class TextProcessingPipeline:
         Performs processing of each text
         """
         morph_analysis_res = Mystem().analyze(self.raw_text_article)
-        # res_ex: {"text":"светится","analysis":[{"lex":"светиться","gr":"V,несов,нп=непрош,ед,изъяв,3-л"}]}
+        # res_example: {"text":"светится","analysis":[{"lex":"светиться","gr":"V,несов,нп=непрош,ед,изъяв,3-л"}]}
         morph_tokens = []
         for word in morph_analysis_res:
             if word.get('analysis'):
