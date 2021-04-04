@@ -105,7 +105,7 @@ class TextProcessingPipeline:
                     tokens.append(token)
                 except IndexError:
                     token = MorphologicalToken(original_word=orig, normalized_form=orig)
-                    if not str(pymorphy.parse(orig)[0].tag) == 'UNKN':
+                    if str(pymorphy.parse(orig)[0].tag) != 'UNKN':
                         token.pymorphy_tags = pymorphy.parse(orig)[0].tag
                     tokens.append(token)
         return tokens
