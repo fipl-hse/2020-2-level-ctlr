@@ -1,6 +1,7 @@
 """
 Implementation of POSFrequencyPipeline for score ten only.
 """
+import os
 import re
 import json
 
@@ -34,11 +35,10 @@ class POSFrequencyPipeline:
             self.frequencies_dict[pos[1:]] = self.frequencies_dict.get(pos[1:], 0) + 1
 
     def _add_pos_to_metadata(self, file_id):
-        print('assets_path:', ASSETS_PATH)
-        path = f'{ASSETS_PATH}/{file_id}_meta.json'
-        with open(path, 'r', encoding='utf-8') as file:
+        path_meta = f'{file_id}_meta.json'
+        with open(os.path.join(ASSETS_PATH, path_meta), 'r', encoding='utf-8') as file:
             meta = json.load(file)
 
         meta['pos_frequencies'] = self.frequencies_dict
-        with open(path, 'w', encoding='utf-8') as fp:
+        with open(os.path.join(ASSETS_PATH, path_meta), 'w', encoding='utf-8') as fp:
             json.dump(meta, fp, ensure_ascii=False, indent=2)
