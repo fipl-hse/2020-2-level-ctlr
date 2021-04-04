@@ -66,10 +66,6 @@ class Crawler:
                 self.urls.extend(extracted_urls[:self.max_articles_per_seed])
             else:
                 self.urls.extend(extracted_urls[:articles_to_add])
-            if len(self.urls) < self.total_max_articles:
-                sleep(randint(3, 6))
-            else:
-                break
 
     def get_search_urls(self):
         return self.urls
