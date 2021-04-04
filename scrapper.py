@@ -50,6 +50,7 @@ class Crawler:
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
+    @staticmethod
     def _extract_url(article_bs):
         news_container_id = 'MainMasterContentPlaceHolder_DefaultContentPlaceHolder_panelArticles'
         news_container = article_bs.find('div', attrs={'class': 'news-container', 'id': news_container_id})
@@ -57,7 +58,6 @@ class Crawler:
 
         return [a_tag.attrs['href'] for a_tag in a_tags]
 
-    @staticmethod
     def find_articles(self):
         for seed_url in self.seed_urls:
             response = requests.get(seed_url, headers=headers)
