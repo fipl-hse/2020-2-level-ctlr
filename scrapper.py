@@ -118,7 +118,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        unified_date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S") # need to check
+        unified_date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
         return unified_date
 
     def parse(self):
