@@ -1,13 +1,11 @@
 """
-Pipeline for text processing implementation
+Pipeline 
 """
 
 from pathlib import Path
 from typing import List
-
 from pymorphy2 import MorphAnalyzer
 from pymystem3 import Mystem
-
 from article import Article
 from constants import ASSETS_PATH
 
@@ -31,10 +29,6 @@ class UnknownDatasetError(Exception):
 
 
 class MorphologicalToken:
-    """
-    Stores language params for each processed token
-    """
-
     def __init__(self, original_word, normalized_form):
         self.original_word = original_word
         self.normalized_form = normalized_form
@@ -49,10 +43,6 @@ class MorphologicalToken:
 
 
 class CorpusManager:
-    """
-    Works with articles and stores them
-    """
-
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_date = path_to_raw_txt_data
         self._storage = {}
@@ -69,9 +59,6 @@ class CorpusManager:
             self._storage[ind] = Article(url=None, article_id=ind)
 
     def get_articles(self):
-        """
-        Returns storage params
-        """
         return self._storage
 
     def public_method_2(self):
@@ -79,31 +66,21 @@ class CorpusManager:
 
 
 class TextProcessingPipeline:
-    """
-    Process articles from corpus manager
-    """
-
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
         self.text = ''
 
     def run(self):
-        """
-        Runs pipeline process scenario
-        """
         articles = self.corpus_manager.get_articles()
         for article in articles.values():
             self.text = article.get_raw_text()
             morph_tokens = self._process()
             processed_text = []
-            for token in morph_tokens:
-                processed_text.append(str(token))
+            for morph_token in morph_tokens:
+                processed_text.append(str(morph_token))
             article.save_processed(' '.join(processed_text))
 
     def _process(self) -> List[type(MorphologicalToken)]:
-        """
-        Performs processing of each text
-        """
         pymorphy = MorphAnalyzer()
         result = Mystem().analyze(self.text)
         tokens = []
@@ -122,9 +99,6 @@ class TextProcessingPipeline:
 
 
 def validate_dataset(path_to_validate):
-    """
-    Validates folder with assets
-    """
     path = Path(path_to_validate)
 
     if not isinstance(path_to_validate, str):
