@@ -27,7 +27,8 @@ class POSFrequencyPipeline:
 
             self._process()
             self._add_pos_to_metadata(article_id)
-            visualize(statistics=self.frequencies_dict, path_to_save=f'./tmp/articles/{article_id}_image.png')
+            path_png = f'{article_id}_image.png'
+            visualize(statistics=self.frequencies_dict, path_to_save=os.path.join(ASSETS_PATH, path_png))
 
     def _process(self):
         result = re.findall(r'<[A-Z]+?', self._processed_text)
