@@ -31,7 +31,8 @@ class POSFrequencyPipeline:
             visualize(statistics=self.frequencies_dict, path_to_save=os.path.join(ASSETS_PATH, path_png))
 
     def _process(self):
-        result = re.findall(r'<[A-Z]+?', self._processed_text)
+        result = re.findall(r'<[A-Z]+', self._processed_text)
+        print(result)
         for pos in result:
             self.frequencies_dict[pos[1:]] = self.frequencies_dict.get(pos[1:], 0) + 1
 
