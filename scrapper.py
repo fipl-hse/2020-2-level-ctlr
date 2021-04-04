@@ -97,12 +97,14 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        paragraphs_soup = article_soup.find('div', class_='news-content').find_all('p')
-        for paragraph in paragraphs_soup:
-            self.article.text += paragraph.text.strip() + '\n'
+        article_text = []
+        main_text = article_soup.find('div', itemprop='articleBody')
+        article_text.append(main_text.text)
+        self.article.text = '\n'.join(article_text)
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('a', itemprop='url').text.strip()
+        self.article.author = article_soup.find('span', itemprop='name').text
 
     @staticmethod
     def unify_date_format(date_str):
@@ -115,12 +117,14 @@ class ArticleParser:
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=headers)
-        if not response:
-            raise IncorrectURLError
-        article_soup = BeautifulSoup(response.content, features='lxml')
-        self._fill_article_with_text(article_soup)
-        self._fill_article_with_meta_information(article_soup)
+        information = requests.get(self.full_url, headers=headers)
+        if information.status_code == 200:
+            print('Request is OK')
+        else:
+            print('Failed')
+        article_bs = BeautifulSoup(information.content, features="lxml")
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
         return self.article
 
 
@@ -128,11 +132,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
-    else:
+    if os.path.exists(base_path):
         shutil.rmtree(base_path)
-        os.makedirs(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -172,7 +174,6 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
     urls = crawler.find_articles
-    print(urls)
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
         parser = ArticleParser(article_url, ind + 1)
