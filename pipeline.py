@@ -3,10 +3,10 @@ Pipeline for text processing implementation
 """
 import os
 from typing import List
-from constants import ASSETS_PATH
-from article import Article
 from pymystem3 import Mystem
 from pymorphy2 import MorphAnalyzer
+from constants import ASSETS_PATH
+from article import Article
 
 
 class EmptyDirectoryError(Exception):
@@ -127,7 +127,7 @@ def validate_dataset(path_to_validate):
 
 def main():
     validate_dataset(ASSETS_PATH)
-    corpus_manager = CorpusManager(path_to_dataset=ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
 
