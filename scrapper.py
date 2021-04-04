@@ -1,16 +1,20 @@
 import requests
 import json
 import re
+import os
+import shutil
+import datetime
 from time import sleep
 from bs4 import BeautifulSoup
-from constants import CRAWLER_CONFIG_PATH
+
+from article import Article
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
 headers = {
-        'user-agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-        'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  'Chrome/88.0.4324.111 YaBrowser/21.2.1.108 Yowser/2.5 Safari/537.36'
 
 }
-
 
 """
 Crawler implementation
@@ -45,92 +49,122 @@ class Crawler:
     """
     Crawler implementation
     """
+
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
-
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find(id="MainMasterContentPlaceHolder_DefaultContentPlaceHolder_ctl02_ctl00_articleHeader").find('a')
-        return url_article.attr(['href'])
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
         Finds articles
         """
-        for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+        for s_url in self.seed_urls:
+            response = requests.get(s_url, headers=headers)
             sleep(5)
             if not response:
                 raise IncorrectURLError
+            article_bs = BeautifulSoup(response.content, features='lxml')
+            links = article_bs.find_all('div',{"id": "MainMasterContentPlaceHolder_InsidePlaceHolder_articleText"})
+            urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
+            for index in range(urls_number):
+                self.urls.append('https://moyaokruga.ru/mayakdelty/' + self._extract_url(article_bs=links[index]))
 
-
-
+        return self.urls
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.seed_urls
 
 
 class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
-        pass
+        self.full_url = full_url
+        self.ids = article_id
+        self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        pass
+        self.article.text = article_soup.find(name='div',
+                                              id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleText").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        pass
+        self.article.title = article_soup.find('header', {"class": "articles-main"}).text.strip()
+
+        self.article.author = article_soup.find('div', {"id": "content"}).find('a', {"class": "red"}).text
+
+        for topic in article_soup.find_all('div', class_="top-nav"):
+            self.article.topics.append(topic.text)
+        self.article.date = article_soup.find('section', {"class": "articles-main"}).find('header').time.text
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
 
     def parse(self):
         """
         Parses each article
         """
-        pass
+        article_bs = BeautifulSoup(requests.get(self.article_url, headers=headers).content, 'lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
+        return self.article
 
 
 def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    pass
+    if os.path.exists(base_path):
+        shutil.rmtree(base_path)
+    os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
     """
     Validates given config
     """
-    with open(crawler_path) as crawler:
-        crawler_config = json.load(crawler)
+    with open(crawler_path, 'r', encoding='utf-8') as file:
+        crawler_config = json.load(file)
 
-    for url in crawler_config['base_urls']:
-        if not re.match('https://', url):
+    for base_url in crawler_config['base_urls']:
+        if not re.match('https://', base_url):
             raise IncorrectURLError
 
-    if crawler_config['total_articles_to_find_and_parse'] > 100:
+    if 'total_articles_to_find_and_parse' in crawler_config and \
+            isinstance(crawler_config['total_articles_to_find_and_parse'], int) and \
+            crawler_config['total_articles_to_find_and_parse'] > 100:
         raise NumberOfArticlesOutOfRangeError
 
     if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
         raise IncorrectNumberOfArticlesError
 
-    return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse']
-
+    return crawler_config['base_urls'], crawler_config['total_articles_to_find_and_parse'], \
+           crawler_config['max_number_articles_to_get_from_one_seed']
 
 
 if __name__ == '__main__':
     # YOUR CODE HERE
+    prepare_environment(ASSETS_PATH)
+    urls, max_articles, articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+
+    crawler = Crawler(seed_urls=urls, max_articles=max_articles, max_articles_per_seed=articles_per_seed)
+    crawler.find_articles()
+
+    for i, url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=url, article_id=i + 1)
+        parser.parse()
