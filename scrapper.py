@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 from article import Article
 from time import sleep
 import os
-import shutil
 
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
@@ -93,7 +92,6 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         title = article_soup.find('h1')
         self.article.title = title.text
-        return None
 
     @staticmethod
     def unify_date_format(date_str):
@@ -117,8 +115,7 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.isdir(base_path):
-        shutil.rmtree(base_path)
+    if not os.path.isdir(base_path):
         os.makedirs(base_path)
 
 
