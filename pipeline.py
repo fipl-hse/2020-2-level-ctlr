@@ -103,7 +103,7 @@ class TextProcessingPipeline:
         m_tokens=[]
         for tok in result:
             if tok.get('analysis'):
-                m_token = MorphologicalToken(tok['text'], tok['analysis'][0]['lex'])
+                m_token = MorphologicalToken(tok['text'],tok['analysis'][0]['lex'])
                 m_token.mystem_tags = tok['analysis'][0]['gr']
                 m_token.pymorphy_tags = MorphAnalyzer().parse(m_token.original_word)[0].tag
                 m_tokens.append(m_token)
