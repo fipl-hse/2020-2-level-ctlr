@@ -9,7 +9,6 @@ import shutil
 
 from random import randint
 from time import sleep
-from datetime import datetime
 
 import requests
 
