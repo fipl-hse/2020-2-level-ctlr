@@ -51,9 +51,9 @@ class Crawler:
     Crawler implementation
     """
 
-    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+    def __init__(self, seed_urls: list, total_max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
-        self.total_max_articles = max_articles
+        self.total_max_articles = total_max_articles
         self.max_articles_per_seed = max_articles_per_seed
         self.urls = []
 
