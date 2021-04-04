@@ -1,14 +1,14 @@
-import requests
 import json
-import re
 import os
-import shutil
+import re
 import datetime
+import shutil
 from time import sleep
+import requests
 from bs4 import BeautifulSoup
-
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
+
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
