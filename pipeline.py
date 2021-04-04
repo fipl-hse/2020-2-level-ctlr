@@ -33,6 +33,8 @@ class MorphologicalToken:
     def __str__(self):
         return "MorphologicalToken instance here"
 
+    def public_method(self):
+        pass
 
 class CorpusManager:
     """
@@ -53,6 +55,9 @@ class CorpusManager:
         """
         pass
 
+    def public_method(self):
+        pass
+
 
 class TextProcessingPipeline:
     """
@@ -71,6 +76,9 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
+        pass
+
+    def public_method(self):
         pass
 
 
