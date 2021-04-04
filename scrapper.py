@@ -6,16 +6,18 @@ import json
 import re
 import os
 import shutil
+
 from random import randint
 from time import sleep
-import requests
-from requests import HTTPError
+
 from bs4 import BeautifulSoup
 from constants import CRAWLER_CONFIG_PATH
 from constants import ASSETS_PATH
 from article import Article
 
-
+headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/88.0.4324.190 Safari/537.36"}
+    
 class IncorrectURLError(Exception):
     """
     Custom error
@@ -62,8 +64,6 @@ class Crawler:
         """
         Finds articles
         """
-        headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
-                                 "Chrome/88.0.4324.190 Safari/537.36"}
         for seed_url in self.seed_urls:
             response = requests.get(seed_url, headers=headers)
             page_soup = BeautifulSoup(response.content, 'lxml')
@@ -123,8 +123,6 @@ class ArticleParser:
         """
         Parses each article
         """
-        headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) "
-                                 "Chrome/88.0.4324.190 Safari/537.36"}
         response = requests.get(self.article_url, headers=headers)
         article_bs = BeautifulSoup(response.content, 'lxml')
         self._fill_article_with_text(article_bs)
