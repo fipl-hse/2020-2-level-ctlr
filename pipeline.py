@@ -2,6 +2,8 @@
 Pipeline for text processing implementation
 """
 
+import os
+import re
 from pymystem3 import Mystem
 from article import Article
 from pathlib import Path
@@ -53,11 +55,12 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        path = Path(self.path_to_raw_txt_data)
-
-        for file in path.glob('*_raw.txt'):
-            ind = str(file).split('/')[-1].split('_')[0]
-            self._storage[ind] = Article(url=None, article_id=ind)
+        files = os.listdir(self.path_to_raw_txt_data)
+        for file in files:
+            ind_underscore = file.index('_')
+            raw_txt_is = re.match(r'.+_raw\.txt', file)
+            if raw_txt_is:
+                self._storage[int(file[:ind_underscore])] = Article(url=None, article_id=int(file[:ind_underscore]))
         return None
 
     def get_articles(self):
