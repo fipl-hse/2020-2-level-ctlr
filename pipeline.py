@@ -83,22 +83,22 @@ class TextProcessingPipeline:
         articles = self.corpus_manager.get_articles()
         for article in articles.values():
             self.article = article.get_raw_text()
-            tokens = self._process()
-            article.save_processed(' '.join(map(str, tokens)))
+            text = self._process()
+            article.save_processed(' '.join(map(str, text)))
 
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        result = Mystem().analyze(self.article)
-        tokenized = []
-        for elem in result:
-            if elem.get('analysis'):
-                token = MorphologicalToken(elem['text'], elem['analysis'][0]['lex'])
-                token.mystem_tags = elem['analysis'][0]['gr']
-                tokenized.append(token)
-        return tokenized
+        mystem = Mystem().analyze(self.article)
+        tokens = []
+        for word in mystem:
+            if word.get('analysis'):
+                token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
+                token.mystem_tags = word['analysis'][0]['gr']
+                tokens.append(token)
+        return tokens
 
 
 def validate_dataset(path_to_validate):
