@@ -41,7 +41,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return '{}<{}>{}'.format(str(self.normalized_form), str(self.mystem_tags), str(self.pymorphy_tags))
+        return '{}<{}>({})'.format(str(self.normalized_form), str(self.mystem_tags), str(self.pymorphy_tags))
 
 
 class CorpusManager:
@@ -86,25 +86,25 @@ class TextProcessingPipeline:
         """
         Runs pipeline process scenario
         """
-        article_storage = self.corpus_manager.get_articles()
-        for article in article_storage.values():
-            self.raw_text = article.get_raw_text()
-            final_tokens = self._process()
+        article_storage = self.corpus_manager.get_articles().values()
+        for article in article_storage:
+            article_text = article.get_raw_text().lower()
+            final_tokens = self._process(article_text)
             final_info = []
             for token in final_tokens:
                 final_info.append(token.__str__())
             article.save_processed(' '.join(final_info))
 
-    def _process(self) -> List[type(MorphologicalToken)]:
+    @staticmethod
+    def _process(text) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        mystem_tool = Mystem()
+        mystem_analyse = Mystem().analyze(text)
         morphy_tool = pymorphy2.MorphAnalyzer()
-        result = mystem_tool.analyze(self.raw_text)
         tokens = []
-        for word in result:
-            if word["analysis"]:
+        for word in mystem_analyse:
+            if "analysis" in word and word["analysis"]:
                 token = MorphologicalToken(original_word=word["text"], normalized_form=word["analysis"][0]["lex"])
                 token.mystem_tags = word["analysis"][0]["gr"]
                 tokens.append(token)
@@ -156,6 +156,7 @@ def main():
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
+    print('Text processing pipeline has just finished')
 
 
 if __name__ == "__main__":
