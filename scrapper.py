@@ -16,7 +16,7 @@ from tls_adapter import TLSAdapter
 
 headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)' 
-                    'Chrome/89.0.4389.114 Safari/537.36'
+        'Chrome/89.0.4389.114 Safari/537.36'
 }
 
 class IncorrectURLError(Exception):
@@ -142,7 +142,7 @@ def validate_config(crawler_path):
         crawler_config = json.load(file)
 
     for base_url in crawler_config["base_urls"]:
-        if base_url[:8] != 'https://':
+        if base_url[:8] != 'http://':
             raise IncorrectURLError
 
     if not isinstance(crawler_config['total_articles_to_find_and_parse'], int):
