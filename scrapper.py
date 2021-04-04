@@ -66,9 +66,14 @@ class Crawler:
             seed_soup = BeautifulSoup(response.content, features='lxml')
             articles_soup = seed_soup.find_all('div', class_='td_module_10 td_module_wrap td-animation-stack')
             for article_bs in articles_soup[:self.max_articles_per_seed]:
-                self.urls.append(self._extract_url(article_bs))
-                if len(self.urls) == self.max_articles:
-                    break
+                try:
+                    link = self._extract_url(article_bs)
+                    if len(self.urls) == self.max_articles:
+                        break
+                except AttributeError:
+                    continue
+                self.urls.append(link)
+
         return self.urls
 
     def get_search_urls(self):
