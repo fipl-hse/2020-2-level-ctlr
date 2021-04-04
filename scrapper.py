@@ -101,7 +101,10 @@ class ArticleParser:
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('h1', class_="title").text
-        self.article.author = article_soup.find('div', class_='field-item odd').find('a').text
+        try:
+            self.article.author = article_soup.find('div', class_="field-item odd").find('a').text
+        except AttributeError:
+            self.article.author = 'NotFound'
         self.article.date = self.unify_date_format(article_soup.find('span', class_="date-display-single").text)
         return None
 
