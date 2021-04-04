@@ -92,8 +92,8 @@ class TextProcessingPipeline:
         mystem = Mystem().analyze(self.article)
         for word in mystem:
             if word.get('analysis'):
-                token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
-                token.mystem_tags = word['analysis'][0]['gr']
+                token = MorphologicalToken(word['text'], word['analysis'][0].get('lex'))
+                token.mystem_tags = '{}'.format(word['analysis'][0].get('gr'))
                 tokens.append(token)
         return tokens
 
