@@ -63,7 +63,7 @@ class CorpusManager:
         for file in path.glob('*_raw.txt'):
             ind = int(file.parts[-1].split('_')[0])
             self._storage[ind] = Article(url=None, article_id=ind)
-        self._storage[ind] = Article(url=None, article_id=ind)
+
 
     def get_articles(self):
         """
