@@ -55,7 +55,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('div', class_="views-row views-row-2 views-row-even").find('a').attrs['href']
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
@@ -67,10 +67,10 @@ class Crawler:
             print('Requesting')
 
             soup_page = BeautifulSoup(response.content, features='lxml')
-            all_urls_soup = soup_page.find_all('li', class_="node_read_more first").find('a').attrs['href']
+            all_urls_soup = soup_page.find_all('li', class_="node_read_more first")
             for one_of_urls in all_urls_soup[:max_articles_per_seed]:
                 if len(self.urls) < self.max_articles:
-                    self.urls.append(self._extract_url(one_of_urls))
+                    self.urls.append("http://orbita-znamensk.ru/" + self._extract_url(one_of_urls))
 
             if len(self.urls) == self.max_articles:
                 return self.urls
@@ -92,7 +92,7 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        articles_info = article_soup.find('div', class_="field-item odd").find('p').text
+        articles_info = article_soup.find_all('p', style_="text-align: justify;")
         article_text = ''
         for article in articles_info:
             article_text += str(article)
@@ -100,9 +100,9 @@ class ArticleParser:
 
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('div', id_="content-header").find('h1', class_ ="title").text
-        self.article.author = article_soup.find('a').attrs['href'].text
-        self.article.date = self.unify_date_format(article_soup.find('span', class_="date-display-single").text[2:-3].strip())
+        self.article.title = article_soup.find('h1', class_="title").text
+        self.article.author = article_soup.find('div', class_='field-item odd').find('a').text
+        self.article.date = self.unify_date_format(article_soup.find('span', class_="date-display-single").text)
         return None
 
     @staticmethod
@@ -110,7 +110,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        return datetime.strptime(date_str, "%d.%m.%Y")
+        return datetime.strptime(date_str, "%d/%m/%Y")
 
     def parse(self):
         """
@@ -166,5 +166,5 @@ if __name__ == '__main__':
         article_id += 1
         parser = ArticleParser(article_url, article_id)
         sleep(5)
-        parser.parse()
-        parser.article.save_raw()
+        articles = parser.parse()
+    articles.save_raw()
