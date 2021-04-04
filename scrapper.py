@@ -57,6 +57,7 @@ class Crawler:
 
         return [a_tag.attrs['href'] for a_tag in a_tags]
 
+    @staticmethod
     def find_articles(self):
         for seed_url in self.seed_urls:
             response = requests.get(seed_url, headers=headers)
