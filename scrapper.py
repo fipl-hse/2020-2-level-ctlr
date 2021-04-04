@@ -53,9 +53,7 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        url_article = article_bs.find('div', class_='article-link').find('a')
-        link = url_article.attrs['href']
-        return 'http://krassever.ru' + link
+        return article_bs.find("a").get('href')
 
     @property
     def find_articles(self):
@@ -173,12 +171,9 @@ if __name__ == '__main__':
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
-    urls = crawler.find_articles
+    crawler.find_articles
     prepare_environment(ASSETS_PATH)
-    art_id = article_id = 0
-    for article_url in urls:
-        id += 1
-        parser = ArticleParser(article_url, art_id)
-        sleep(random.randint(2, 4))
+    for ind, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(article_url, ind + 1)
         article = parser.parse()
         article.save_raw()
