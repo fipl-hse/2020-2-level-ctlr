@@ -51,22 +51,20 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        return article_bs.find('a').attrs['href']
+        url = article_bs.contents[1]
+        return url.get('href')
 
     def find_articles(self):
         """
         Finds articles
         """
-        for seed in self.seed_urls:
-            sleep(5)
-            response = requests.get(seed, headers=headers)
+        self.get_search_urls()
+        for url in self.seed_urls:
+            response = requests.get(str(url))
             if not response:
-                continue
-            page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('div', class_="n-content")
-            for article_bs in article_soup[:self.max_articles_per_seed]:
-                if len(self.urls) == self.max_articles:
-                    break
+                raise IncorrectURLError
+            if len(self.urls) < self.max_articles:
+                self.urls.append(url)
         return self.urls
 
     def get_search_urls(self):
@@ -86,14 +84,15 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        text_soup = article_soup.find_all('a')
+        text_soup = article_soup.find_all('p')
         text = ''
         for element in text_soup[:4]:
             text += element.text
         return text.strip()
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h2').text.strip()
+        title = article_soup.find('h1')
+        self.article.title = title.text
         return None
 
     @staticmethod
@@ -118,9 +117,9 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
+    if os.path.isdir(base_path):
         shutil.rmtree(base_path)
-    os.makedirs(base_path)
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
@@ -159,7 +158,7 @@ if __name__ == '__main__':
     from constants import ASSETS_PATH
 
     urls_list, total_art, max_number = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(urls_list, total_art, max_number)
+    crawler = Crawler(seed_urls=urls_list, max_articles=total_art, max_articles_per_seed=max_number)
     articles = crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
