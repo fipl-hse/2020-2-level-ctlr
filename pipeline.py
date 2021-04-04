@@ -2,8 +2,6 @@
 Pipeline for text processing implementation
 """
 
-import os
-import re
 from pymystem3 import Mystem
 from article import Article
 from pathlib import Path
@@ -55,13 +53,11 @@ class CorpusManager:
         """
         Register each dataset entry
         """
-        files = os.listdir(self.path_to_raw_txt_data)
-        for file in files:
-            ind_underscore = file.index('_')
-            is_raw_text = re.match(r'.+_raw\.txt', file)
-            if is_raw_text:
-                self._storage[int(file[:ind_underscore])] = Article(url=None, article_id=int(file[:ind_underscore]))
-        return None
+        path = Path(self.path_to_raw_txt_data)
+
+        for file in path.glob('*_raw.txt'):
+            ind = str(file).split('/')[-1].split('_')[0]
+            self._storage[ind] = Article(url=None, article_id=ind)
 
     def get_articles(self):
         """
@@ -84,31 +80,21 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for article in articles:
-            raw_text_article = article.get_raw_text()
-            result = Mystem().analyze(raw_text_article)
-            tokens = self._process(mystem_analize_result=result)
-            processed_text_tokens = []
-            for token in tokens:
-                processed_text_tokens.append('{}<{}>'.format(token.__str__(), token.mystem_tags))
-            processed_text = ' '.join(processed_text_tokens)
-            article.save_processed(processed_text)
-        return None
+            self.article = article.get_raw_text()
+            text = self._process()
+            article.save_processed(''.join(map(str, text)))
 
-    def _process(self, mystem_analize_result) -> List[type(MorphologicalToken)]:
+    def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
         tokens = []
-        for element in mystem_analize_result:
-            if element.get('analysis') is None:
-                continue
-            if not element.get('analysis'):
-                token = MorphologicalToken(original_word=element['text'], normalized_form=element['text'])
-            else:
-                token = MorphologicalToken(original_word=element['text'],
-                                           normalized_form=element['analysis'][0].get('lex'))
-                token.mystem_tags = '{}'.format(element['analysis'][0].get('gr'))
-            tokens.append(token)
+        mystem = Mystem().analyze(self.article)
+        for word in mystem:
+            if word.get('analysis'):
+                token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
+                token.mystem_tags = word['analysis'][0]['gr']
+                tokens.append(token)
         return tokens
 
 
