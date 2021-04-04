@@ -107,6 +107,9 @@ class ArticleParser:
         except AttributeError:
             self.article.author = 'NOT FOUND'
 
+        if self.article.author == 'из открытых источников':
+            self.article.author = 'NOT FOUND'
+
         raw_date = article_soup.find('span', class_="time")['title']
         self.article.date = self.unify_date_format(raw_date)
 
