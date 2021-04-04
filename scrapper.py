@@ -2,7 +2,7 @@
 Crawler implementation
 """
 from bs4 import BeautifulSoup
-import constants
+from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 from time import sleep
 import json
 import requests
@@ -62,7 +62,7 @@ class Crawler:
         Finds articles
         """
         for url in self.seed_urls:
-            response = session.get(url, headers=headers)
+            response = requests.get(url, headers=headers)
             sleep(5)
             print('Requesting')
 
@@ -158,15 +158,14 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    session = requests.session()
-    session.mount('https://', TLSAdapter())
-
-    seed_urls, max_articles, max_articles_per_seed = validate_config(constants.CRAWLER_CONFIG_PATH)
+    seed_urls, max_articles, max_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls, max_articles, max_articles_per_seed)
-    crawler.find_articles()
-    prepare_environment(constants.ASSETS_PATH)
-
-    for i, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(full_url=article_url, article_id=i+1)
-        parser.parse()
-        parser.article.save_raw()
+    articles = crawler.find_articles()
+    prepare_environment(ASSETS_PATH)
+    article_id = 0
+    for article_url in articles:
+        article_id += 1
+        parser = ArticleParser(article_url, article_id)
+        sleep(5)
+        article = parser.parse()
+        article.save_raw()
