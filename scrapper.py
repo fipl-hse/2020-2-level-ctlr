@@ -57,8 +57,8 @@ class Crawler:
         return [a_tag.attrs['href'] for a_tag in a_tags]
 
     def find_articles(self):
-        for seed_url in self.seed_urls:
-            response = requests.get(seed_url, headers=headers)
+        for url in self.seed_urls:
+            response = requests.get(url, headers=headers)
             page_soup = BeautifulSoup(response.content, 'lxml')
             extracted_urls = self._extract_url(page_soup)
             articles_to_add = self.total_max_articles - len(self.urls)
@@ -78,7 +78,7 @@ class ArticleParser:
         self.article = Article(article_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        text_list = list()
+        text_list = []
         annotation_tag = article_soup.find('p', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleAnnotation')
         text_list.append(annotation_tag.text)
         text_tag = article_soup.find('div', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleText')
@@ -88,10 +88,10 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         title_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader')
         self.article.title = title_tag.text
-        author_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_authorName')
-        self.article.author = author_tag.text
         topic_tags = article_soup.find_all('a', id=re.compile('[cC]ategoryName'))
         self.article.topics = [topic_tag.text for topic_tag in topic_tags]
+        author_tag = article_soup.find('a', id='MainMasterContentPlaceHolder_InsidePlaceHolder_authorName')
+        self.article.author = author_tag.text
 
     def unify_date_format(date_str):
         pass
@@ -145,8 +145,8 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    url_list, total, max_num = validate_config(CRAWLER_CONFIG_PATH)
-    crawler = Crawler(seed_urls=url_list, total_max_articles=total, max_articles_per_seed=max_num)
+    urls, total, max_num = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(seed_urls=urls, total_max_articles=total, max_articles_per_seed=max_num)
     crawler.find_articles()
     prepare_environment(ASSETS_PATH)
     article_id = 0
