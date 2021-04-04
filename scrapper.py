@@ -73,19 +73,19 @@ class Crawler:
         global lw
         new_urls = []
         for a in article_bs.find_all('a'):
-            link = str(a.get('href'))
-            if link.find('news/') == -1 or link.find('HEADING') != -1 or link == '/news/':
+            my_link = str(a.get('href'))
+            if my_link.find('news/') == -1 or my_link.find('HEADING') != -1 or my_link == '/news/':
                 continue
-            if link.find('https://') == -1:
+            if my_link.find('https://') == -1:
                 try:
                     lw.update_link(link)
                     new_urls.append(lw.get_absolute_link())
-                except:
+                except AttributeError:
                     pass
             else:
                 try:
                     new_urls.append(link)
-                except:
+                except AttributeError:
                     pass
         return new_urls
 
@@ -167,7 +167,6 @@ class ArticleParser:
         except IndexError or AttributeError:
             return "2021-03-26 10:00:00"
 
-
     def parse(self):
         """
         Parses each article
@@ -210,9 +209,10 @@ def validate_config(crawler_path):
 
     if json_dict["total_articles_to_find_and_parse"] <= 0 or json_dict["total_articles_to_find_and_parse"] > 100:
         raise NumberOfArticlesOutOfRangeError
-
-    return json_dict['base_urls'], json_dict['total_articles_to_find_and_parse'], \
-           json_dict['max_number_articles_to_get_from_one_seed']
+    base_urls = json_dict['base_urls']
+    total_articles_to_find_and_parse = json_dict['total_articles_to_find_and_parse']
+    max_number_articles_to_get_from_one_seed = json_dict['max_number_articles_to_get_from_one_seed']
+    return base_urls, total_articles_to_find_and_parse, max_number_articles_to_get_from_one_seed
 
 
 class CrawlerRecursive(Crawler):
@@ -232,12 +232,12 @@ class CrawlerRecursive(Crawler):
             self.seed_urls = self.get_search_urls()
 
     def extract_articles(self, url_list):
-        for link in self.get_search_urls():
+        for loop_link in self.get_search_urls():
             print(self.save_path)
-            article_parser = ArticleParser(link, self.id, self.save_path)
+            loop_article_parser = ArticleParser(loop_link, self.id, self.save_path)
             self.id += 1
-            article_parser.parse()
-            article_parser.article.save_raw()
+            loop_article_parser.parse()
+            loop_article_parser.article.save_raw()
 
     def get_search_urls(self):
         """
@@ -253,18 +253,17 @@ if __name__ == '__main__':
     urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
     # crawler creation code
 
-    id = 1
+    article_id = 1
     for seed in urls:
         print(seed)
         crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
         crawler.find_articles()
         for link in crawler.get_search_urls():
-            article_parser = ArticleParser(link, id)
-            id += 1
+            article_parser = ArticleParser(link, article_id)
+            article_id += 1
             article_parser.parse()
             article_parser.article.save_raw()
     # CrawlerRecursive(
     #     seed_url=urls[0],
     #     save_path=os.path.join(constants.PROJECT_ROOT, 'tmp', 'recursive')
     # ).run_crawler()
-
