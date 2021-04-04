@@ -46,7 +46,7 @@ class Article:
                       indent=4,
                       ensure_ascii=False,
                       separators=(',', ': '))
-    
+
     @staticmethod
     def from_meta_json(json_path: str):
         """
@@ -90,7 +90,7 @@ class Article:
             'id': self.article_id,
             'url': self.url,
             'title': self.title,
-            'date': self._date_to_text(),
+            'date': self.date,
             'author': self.author,
             'topics': self.topics
         }
