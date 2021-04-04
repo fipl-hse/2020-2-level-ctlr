@@ -57,17 +57,16 @@ class Crawler:
         """
         Finds articles
         """
+        self.get_search_urls()
         for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
+            response = requests.get(str(url))
             sleep(5)
             if not response:
                 raise IncorrectURLError
             art_soup = BeautifulSoup(response.content, features='lxml')
-            articles_bs = art_soup.find_all('h2', class_="news-item")
-            for article_bs in articles_bs:
-                url = self._extract_url(article_bs)
-                if len(self.urls) <= self.max_articles:
-                    self.urls.append(url)
+            art_soup.find_all('a', 'news-item')
+            if len(self.urls) <= self.max_articles:
+                self.urls.append(url)
         return self.urls
 
     def get_search_urls(self):
@@ -96,6 +95,7 @@ class ArticleParser:
     def _fill_article_with_meta_information(self, article_soup):
         title = article_soup.find('h1')
         self.article.title = title.text.strip()
+        return None
 
     @staticmethod
     def unify_date_format(date_str):
