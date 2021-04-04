@@ -78,13 +78,13 @@ class Crawler:
                 continue
             if my_link.find('https://') == -1:
                 try:
-                    LW.update_link(link)
+                    LW.update_link(my_link)
                     new_urls.append(LW.get_absolute_link())
                 except AttributeError:
                     pass
             else:
                 try:
-                    new_urls.append(link)
+                    new_urls.append(my_link)
                 except AttributeError:
                     pass
         return new_urls
