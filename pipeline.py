@@ -1,7 +1,7 @@
 """
 Pipeline for text processing implementation
 """
-import os
+
 from typing import List
 from pathlib import Path
 
@@ -95,7 +95,7 @@ class TextProcessingPipeline:
         """
         Performs processing of each text
         """
-        result = Mystem().analyze(text)
+        result = Mystem().analyze(self.text)
         morph = MorphAnalyzer()
         tokens = []
         for token in result:
