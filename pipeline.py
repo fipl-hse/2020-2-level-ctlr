@@ -35,11 +35,11 @@ class MorphologicalToken:
     def __init__(self, original_word, normalized_form):
         self.original_word = original_word
         self.normalized_form = normalized_form
-        self.pymystem_tags = ''
+        self.mystem_tags = ''
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return "{}<{}>({})".format(self.normalized_form, self.pymystem_tags, self.pymorphy_tags)
+        return "{}<{}>({})".format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
     def get_sth(self):
         pass
 
@@ -102,10 +102,11 @@ class TextProcessingPipeline:
         result=Mystem().analyze(self.text)
         m_tokens=[]
         for tok in result:
-            m_token = MorphologicalToken(tok['text'], tok['analysis'][0]['lex'])
-            m_token.pymystem_tags = tok['analysis'][0]['gr']
-            m_token.pymorphy_tags = MorphAnalyzer().parse(m_token.original_word)[0].tag
-            m_tokens.append(m_token)
+            if tok.get('analysis'):
+                m_token = MorphologicalToken(tok['text'], tok['analysis'][0]['lex'])
+                m_token.mystem_tags = tok['analysis'][0]['gr']
+                m_token.pymorphy_tags = MorphAnalyzer().parse(m_token.original_word)[0].tag
+                m_tokens.append(m_token)
         return m_tokens
 
     def get_sth(self):
