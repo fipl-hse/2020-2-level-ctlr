@@ -4,11 +4,14 @@ Crawler implementation
 import json
 import os
 import random
+import datetime
 import shutil
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
 from article import Article
+from constants import CRAWLER_CONFIG_PATH
+from constants import ASSETS_PATH
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -94,7 +97,7 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(full_url, article_id)
+        self.article = Article(full_url, article_id=article_id)
 
     def _fill_article_with_text(self, article_soup):
         article_text = []
@@ -111,7 +114,7 @@ class ArticleParser:
         """
         Unifies date format
         """
-        pass
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
@@ -167,15 +170,14 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    from constants import CRAWLER_CONFIG_PATH
-    from constants import ASSETS_PATH
 
     seed_urls_ex, max_articles_ex, max_articles_per_seed_ex = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_ex, max_articles=max_articles_ex,
                       max_articles_per_seed=max_articles_per_seed_ex)
-    urls = crawler.find_articles
+    articles = crawler.find_articles
     prepare_environment(ASSETS_PATH)
     for ind, article_url in enumerate(crawler.urls):
-        parser = ArticleParser(article_url, ind + 1)
+        parser = ArticleParser(full_url=article_url, article_id=ind+1)
         article = parser.parse()
         article.save_raw()
+        sleep((random.randrange(2, 4)))
