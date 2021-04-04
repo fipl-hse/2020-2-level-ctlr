@@ -36,13 +36,12 @@ class MorphologicalToken:
         self.original_word = original_word
         self.normalized_form = normalized_form
         self.mystem_tags = ''
-        self.pymorphy_tags = ''
 
     def __str__(self):
         return f"{self.normalized_form}<{self.mystem_tags}>"
 
 
-class CorpusManager:
+class CorpusManager: #для чтения
     """
     Works with articles and stores them
     """
@@ -50,7 +49,6 @@ class CorpusManager:
         self.path_to_raw_txt_date = path_to_raw_txt_data
         self._storage = {}
         self._scan_dataset()
-
     def _scan_dataset(self):
         """
         Register each dataset entry
@@ -81,18 +79,18 @@ class TextProcessingPipeline:
         Runs pipeline process scenario
         """
         articles = self.corpus_manager.get_articles()
-        for article in articles.values():
-            self.article = article.get_raw_text()
+        for raw in articles.values():
+            self.text = raw.get_raw_text()
             text = self._process()
-            article.save_processed(' '.join(map(str, text)))
-
+            raw.save_processed(' '.join(map(str, text)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        mystem = Mystem().analyze(self.article)
+        mystem = Mystem().analyze(self.text)
         tokens = []
+
         for word in mystem:
             if word.get('analysis'):
                 token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
