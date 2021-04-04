@@ -98,13 +98,14 @@ class Crawler:
         lw = LinkWorker(self.seed_urls[0], "")
         for url in self.seed_urls:
             time.sleep(0.25)
-            if len(self.urls) >= self.max_articles:
+            if self.max_articles != 0 and len(self.urls) >= self.max_articles:
                 break
             try:
                 response = requests.get(url)
                 parser = BeautifulSoup(response.text, 'lxml')
                 m_urls = self._extract_url(parser)
-                m_urls = m_urls[0:min(len(m_urls), self.max_articles_per_seed)]
+                if self.max_articles_per_seed != 0:
+                    m_urls = m_urls[0:min(len(m_urls), self.max_articles_per_seed)]
                 new_urls.extend(m_urls)
             except Exception:
                 raise IncorrectURLError
@@ -122,10 +123,10 @@ class ArticleParser:
     ArticleParser implementation
     """
 
-    def __init__(self, full_url: str, article_id: int):
+    def __init__(self, full_url: str, article_id: int, save_path=''):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(self.full_url, self.article_id)
+        self.article = Article(self.full_url, self.article_id, save_path)
 
     def _fill_article_with_text(self, article_soup):
         try:
@@ -185,6 +186,9 @@ def prepare_environment(base_path):
     if os.path.exists(path):
         shutil.rmtree(path)  # remove recursively
     os.makedirs(path)
+    recursive_path = os.path.join(base_path, 'tmp', 'recursive')
+    if not os.path.exists(recursive_path):
+        os.makedirs(recursive_path)
 
 
 def validate_config(crawler_path):
@@ -211,18 +215,56 @@ def validate_config(crawler_path):
            json_dict['max_number_articles_to_get_from_one_seed']
 
 
-if __name__ == '__main__':
-    # YOUR CODE HERE
-    prepare_environment(constants.PROJECT_ROOT)
-    # crawler creation code
-    urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
-    id = 1
-    for seed in urls:
-        print(seed)
-        crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
-        crawler.find_articles()
-        for link in crawler.get_search_urls():
-            article_parser = ArticleParser(link, id)
-            id += 1
+class CrawlerRecursive(Crawler):
+    def __init__(self, seed_url: str, save_path: str = ''):
+        super().__init__([seed_url], 0, 0)
+        self.urls = []
+        self.save_path = save_path
+        self.id = 0
+
+    def run_crawler(self):
+        print('kek')
+        while True:
+            self.urls = []
+            self.find_articles()
+            print(self.urls)
+            self.extract_articles(self.get_search_urls())
+            self.seed_urls = self.get_search_urls()
+
+    def extract_articles(self, url_list):
+        for link in self.get_search_urls():
+            print(self.save_path)
+            article_parser = ArticleParser(link, self.id, self.save_path)
+            self.id += 1
             article_parser.parse()
             article_parser.article.save_raw()
+
+    def get_search_urls(self):
+        """
+        Returns seed_urls param
+        """
+        return self.urls
+
+
+if __name__ == '__main__':
+    # YOUR CODE HERE
+
+    prepare_environment(constants.PROJECT_ROOT)
+    urls, num_urls, max_seed_number = validate_config(constants.CRAWLER_CONFIG_PATH)
+    # crawler creation code
+    #
+    # id = 1
+    # for seed in urls:
+    #     print(seed)
+    #     crawler = Crawler(seed_urls=[seed], max_articles=num_urls, max_articles_per_seed=max_seed_number)
+    #     crawler.find_articles()
+    #     for link in crawler.get_search_urls():
+    #         article_parser = ArticleParser(link, id)
+    #         id += 1
+    #         article_parser.parse()
+    #         article_parser.article.save_raw()
+    CrawlerRecursive(
+        seed_url=urls[0],
+        save_path=os.path.join(constants.PROJECT_ROOT, 'tmp', 'recursive')
+    ).run_crawler()
+

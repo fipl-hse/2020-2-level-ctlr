@@ -20,10 +20,10 @@ class Article:
     Article class implementation.
     Stores article metadata and knows how to work with articles
     """
-    def __init__(self, url, article_id):
+    def __init__(self, url, article_id, save_path=''):
         self.url = url
         self.article_id = article_id
-
+        self.save_path = ''
         self.title = ''
         self.date = None
         self.author = ''
@@ -106,11 +106,17 @@ class Article:
         Returns path for requested raw article
         """
         article_txt_name = "{}_raw.txt".format(self.article_id)
-        return os.path.join(ASSETS_PATH, article_txt_name)
+        if self.save_path == '':
+            return os.path.join(ASSETS_PATH, article_txt_name)
+        else:
+            return os.path.join(self.save_path, article_txt_name)
 
     def _get_processed_text_path(self):
         """
         Returns path for requested processed article
         """
         article_txt_name = "{}_processed.txt".format(self.article_id)
-        return os.path.join(ASSETS_PATH, article_txt_name)
+        if self.save_path == '':
+            return os.path.join(ASSETS_PATH, article_txt_name)
+        else:
+            return os.path.join(self.save_path, article_txt_name)
