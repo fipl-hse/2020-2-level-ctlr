@@ -2,7 +2,7 @@
 """
 Pipeline for text processing implementation
 """
-
+import re
 from pathlib import Path
 from typing import List
 
@@ -128,14 +128,11 @@ def validate_dataset(path_to_validate):
     if not any(path.iterdir()):
         raise EmptyDirectoryError
 
-    meta_files = [str(file).split('_')[0] for file in path.glob('*_meta.json')]
-    raw_files = [str(file).split('_')[0] for file in path.glob('*_raw.txt')]
-    if set(raw_files) != set(meta_files):
-        raise InconsistentDatasetError
+    meta_files = [re.search(r'\d+?_meta.json', str(file)).group() for file in path.glob('*_meta.json')]
+    raw_files = [re.search(r'\d+?_raw.txt', str(file)).group() for file in path.glob('*_raw.txt')]
 
     for i in range(1, len(meta_files)+1):
-        print(meta_files[i-1], meta_files[i-1].split('\\')[-1])
-        if meta_files[i-1].split('\\')[-1] != str(i) or raw_files[i-1].split('\\')[-1] != str(i):
+        if meta_files[i-1].split('_')[0] != str(i) or raw_files[i-1].split('_')[0] != str(i):
             raise InconsistentDatasetError
 
 
