@@ -2,7 +2,6 @@
 """
 Pipeline for text processing implementation
 """
-import re
 from pathlib import Path
 from typing import List
 
@@ -133,6 +132,8 @@ def validate_dataset(path_to_validate):
     for i in range(len(meta_files)):
         if meta_files[i] != str(i+1) or raw_files[i] != str(i+1):
             raise InconsistentDatasetError
+    if set(meta_files) != set(raw_files):
+        raise InconsistentDatasetError
 
 
 def main():
