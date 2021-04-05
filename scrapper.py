@@ -191,10 +191,6 @@ class ArticleParser:
     def processed(self) -> bool:
         return self.full_url in self._load_state()
 
-    # @property
-    # def is_russian(self) -> bool:
-    #     return bool(re.match(r"[а-яё]+", self.article.title, re.I))
-
     def parse(self):
         """
         Parses each article

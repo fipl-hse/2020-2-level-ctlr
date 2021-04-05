@@ -104,15 +104,24 @@ class TextProcessingPipeline:
 
         for token in result:
 
-            if token.get("analysis") and token.get("text"):
-                if token["analysis"][0].get("lex"):
-                    morph_token = MorphologicalToken(
-                        word_filter.sub("", token["text"]),
-                        word_filter.sub("", token["analysis"][0]["lex"])
-                    )
-                    morph_token.mystem_tags = token["analysis"][0]["gr"]
-                    morph_token.pymorphy_tags = morph.parse(token["text"])[0].tag
-                    processed_text.append(morph_token)
+            checks = [
+                token.get("analysis"),
+                token.get("text"),
+                len(token.get("analysis", "")) > 0
+            ]
+
+            if all(checks):
+                morph_token = MorphologicalToken(
+                    word_filter.sub("", token["text"]),
+                    word_filter.sub("", token["analysis"][0].get("lex", "")))
+
+                morph_token.mystem_tags = token["analysis"][0].get("gr", "")
+
+                pymorphy_tags = morph.parse(token["text"])
+                if len(pymorphy_tags) > 0:
+                    morph_token.pymorphy_tags = pymorphy_tags[0].tag
+
+                processed_text.append(morph_token)
 
         return processed_text
 
