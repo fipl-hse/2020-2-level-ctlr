@@ -99,11 +99,13 @@ class TextProcessingPipeline:
         Performs processing of each text
         """
         tokens = []
-        mystem = Mystem().analyze(self.article)
-        for word in mystem:
-            if word.get('analysis'):
-                token = MorphologicalToken(word['text'], word['analysis'][0].get('lex'))
-                token.mystem_tags = '{}'.format(word['analysis'][0].get('gr'))
+        for element in mystem_analize_result:
+            if not element.get('analysis'):
+                token = MorphologicalToken(original_word=element['text'], normalized_form=element['text'])
+            else:
+                token = MorphologicalToken(original_word=element['text'],
+                                           normalized_form=element['analysis'][0].get('lex'))
+                token.mystem_tags = '{}'.format(element['analysis'][0].get('gr'))
                 tokens.append(token)
         return tokens
 
