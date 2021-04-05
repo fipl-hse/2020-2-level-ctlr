@@ -71,6 +71,7 @@ class TextProcessingPipeline: # pylint: disable=too-few-public-methods
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
+        self.raw_text = ""
 
     def run(self):
         """
