@@ -61,7 +61,7 @@ class CorpusManager:
         """
         storage = {}
         files = Path(self.path_to_raw_txt_data).glob('[0-9]*_raw.txt')
-        for i in range(1, len(list(files))):
+        for i in range(1, len(list(files)) + 1):
             storage[i] = Article(url=None, article_id=i)
             storage[i].text = storage[i].get_raw_text()
             i += 1
@@ -121,7 +121,7 @@ class TextProcessingPipeline:
 
             pymorpy_res = morph.parse(original)
             if pymorpy_res \
-                    and hasattr(pymorpy_res, 'tag'):
+                    and hasattr(pymorpy_res[0], 'tag'):
                 token.pymorpy_tags = pymorpy_res[0].tag
 
             tokenized_text.append(token)
