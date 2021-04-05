@@ -134,7 +134,8 @@ def validate_dataset(path_to_validate):
         raise InconsistentDatasetError
 
     for i in range(1, len(meta_files)+1):
-        if meta_files[i-1].split('\\')[-1] != str(i):
+        print(meta_files[i-1], meta_files[i-1].split('\\')[-1])
+        if meta_files[i-1].split('\\')[-1] != str(i) or raw_files[i-1].split('\\')[-1] != str(i):
             raise InconsistentDatasetError
 
 
