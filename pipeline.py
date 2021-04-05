@@ -53,7 +53,8 @@ class CorpusManager:
         self.path_to_raw = path_to_raw_txt_data
         self._storage = self._scan_dataset()
 
-    def _scan_dataset(self):
+    @staticmethod
+    def _scan_dataset():
         """
         Register each dataset entry
         """
