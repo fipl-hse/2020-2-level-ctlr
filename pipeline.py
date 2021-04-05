@@ -78,15 +78,15 @@ class TextProcessingPipeline: # pylint: disable=too-few-public-methods
         """
         articles = self.corpus_manager.get_articles()  # dict with key - num, value - article instance
         for article in articles.values():
-            raw_text = article.get_raw_text()
-            tokens = [str(i) for i in  self._process(raw_text)]
+            self.raw_text = article.get_raw_text()
+            tokens = [str(i) for i in  self._process()]
             article.save_processed(" ".join(tokens))
-    @classmethod
-    def _process(cls, raw_text) -> List[type(MorphologicalToken)]:
+
+    def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        text = re.sub(r"[^a-zа-я\s]","", raw_text.lower())
+        text = re.sub(r"[^a-zа-я\s]","", self.raw_text.lower())
         raw_tokens = Mystem().analyze(text)
         morphological_tokens = []
         for word in raw_tokens:
