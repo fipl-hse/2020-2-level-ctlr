@@ -96,7 +96,9 @@ class TextProcessingPipeline:
         tokens = []
 
         for token in result:
-            if token.get('analysis') and token.get('text'):
+            token_checks = [token.get('analysis'), token.get('text'),
+                            token['analysis'][0].get('lex'), token['analysis'][0].get('gr')]
+            if token_checks:
                 morph_token = MorphologicalToken(original_word=token['text'],
                                                  normalized_form=token['analysis'][0]['lex'])
                 morph_token.mystem_tags = token['analysis'][0]['gr']
@@ -119,7 +121,12 @@ def validate_dataset(path_to_validate):
             raise NotADirectoryError
         if not list(path.rglob('*_raw.txt')):
             raise EmptyDirectoryError
-        if len(list(path.rglob('*_raw.txt'))) != len(list(path.rglob('*.json'))):
+
+        json_n = len(list(path.rglob('*.json')))
+        txt_n = len(list(path.rglob('*_raw.txt')))
+        json_ids = [file.parts[-1].split('_')[0] for file in path.rglob('*.json')]
+        txt_ids = [file.parts[-1].split('_')[0] for file in path.rglob('*_raw.txt')]
+        if txt_n != json_n and set(txt_ids) != set(json_ids):
             raise InconsistentDatasetError
     else:
         raise FileNotFoundError
