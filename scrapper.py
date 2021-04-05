@@ -103,13 +103,17 @@ class ArticleParser:
             self.article.text += par.text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader").text.strip()
+        self.article.title = article_soup.find('a',
+                                               id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader").text
 
-        self.article.author = article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_authorName").text
+        self.article.author = article_soup.find('a',
+                                                id="MainMasterContentPlaceHolder_InsidePlaceHolder_authorName").text
 
-        self.article.topics.append(article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_categoryName").text)
+        self.article.topics.append(
+            article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_categoryName").text)
 
-        self.article.date = self.unify_date_format(article_soup.find('time', id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleTime").text)
+        self.article.date = self.unify_date_format(
+            article_soup.find('time', id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleTime").text)
 
     @staticmethod
     def unify_date_format(date_str):
