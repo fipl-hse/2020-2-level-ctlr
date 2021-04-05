@@ -49,7 +49,7 @@ jobs:
   code-style:
     name: Code Style
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 3
 
     steps:
     - uses: actions/checkout@v2
@@ -84,6 +84,7 @@ jobs:
     needs: [ code-style ]
     runs-on: ubuntu-latest
     timeout-minutes: 1
+
 
     steps:
     - uses: actions/checkout@v2

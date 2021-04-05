@@ -1,4 +1,4 @@
-# Retrieve raw data from World Wide Web
+~~~~# Retrieve raw data from World Wide Web
 
 > Python competencies required to complete this tutorial:
 > * working with external dependencies, going beyond Python standard library
