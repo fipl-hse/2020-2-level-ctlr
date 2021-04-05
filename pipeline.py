@@ -108,7 +108,10 @@ class TextProcessingPipeline:
         tokenized_text = []
 
         for word in result[::2]:  # skip whitespaces
-            if 'analysis' not in word or word['analysis'] == []:
+            if 'analysis' not in word \
+                    or word['analysis'] == []\
+                    or 'lex' not in word['analysis'][0]\
+                    or 'gr' not in word['analysis'][0]:
                 continue
 
             original = word['text']
@@ -118,7 +121,9 @@ class TextProcessingPipeline:
             token = MorphologicalToken(original, normalized)
             token.mystem_tags = tags
 
-            if pymorpy_res := morph.parse(original):
+            pymorpy_res = morph.parse(original)
+            if pymorpy_res \
+                    and hasattr(pymorpy_res, 'tag'):
                 token.pymorpy_tags = pymorpy_res[0].tag
 
             tokenized_text.append(token)
@@ -160,9 +165,6 @@ def main():
     corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
     processing_pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     processing_pipeline.run()
-    pos_pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
-    pos_pipeline.run()
-
 
 if __name__ == "__main__":
     main()
