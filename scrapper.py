@@ -8,7 +8,6 @@ from time import sleep
 import random
 import json
 import os
-import shutil
 from article import Article
 from constants import HEADERS
 from constants import ASSETS_PATH
@@ -132,9 +131,8 @@ def prepare_environment(base_path):
     """
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
-    if os.path.exists(base_path):
-        shutil.rmtree(os.path.dirname(base_path))
-    os.makedirs(base_path)
+    if not os.path.isdir(base_path):
+        os.makedirs(base_path)
 
 
 def validate_config(crawler_path):
