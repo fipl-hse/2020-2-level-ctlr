@@ -43,12 +43,15 @@ class RawDataValidator(unittest.TestCase):
 
     def test_validate_metadata(self):
         # can i open this URL?
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                          '(KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'}
         for metadata in self.metadata:
-            self.assertTrue(requests.get(metadata[1]['url']),
-                            msg="Can not open URL: <{}>. Check how you collect URLs".format(
-                                metadata[1]['url']))
+            self.assertTrue(requests.get(metadata[1]['url'], headers=headers),
+                            msg="Can not open URL: <{}>. Check how you collect URLs".format(metadata[1]
+                                ['url']))
 
-            html_source = requests.get(metadata[1]['url']).text
+            html_source = requests.get(metadata[1]['url'], headers=headers).text
 
             self.assertTrue(metadata[1]['title'] in
                             html_source,
