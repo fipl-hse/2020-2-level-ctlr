@@ -80,6 +80,7 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
+        self.raw_text = ''
 
     def run(self):
         """
@@ -87,19 +88,18 @@ class TextProcessingPipeline:
         """
         article_storage = self.corpus_manager.get_articles().values()
         for article in article_storage:
-            article_text = article.get_raw_text().lower()
-            final_tokens = self._process(article_text)
+            self.raw_text = article.get_raw_text()
+            final_tokens = self._process()
             final_info = []
             for token in final_tokens:
                 final_info.append(token.__str__())
             article.save_processed(' '.join(final_info))
 
-    @staticmethod
-    def _process(text) -> List[type(MorphologicalToken)]:
+    def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        mystem_analyse = Mystem().analyze(text)
+        mystem_analyse = Mystem().analyze(self.raw_text)
         morphy_tool = pymorphy2.MorphAnalyzer()
         tokens = []
         for word in mystem_analyse:
