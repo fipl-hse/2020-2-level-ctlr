@@ -1,9 +1,13 @@
 """
 Pipeline for text processing implementation
 """
-
+from pathlib import Path
+import re
 from typing import List
-
+from pymystem3 import Mystem
+from pymorphy2 import MorphAnalyzer
+from article import Article
+from constants import ASSETS_PATH
 
 class EmptyDirectoryError(Exception):
     """
@@ -16,74 +20,108 @@ class InconsistentDatasetError(Exception):
     Custom error
     """
 
-
 class UnknownDatasetError(Exception):
     """
     Custom error
     """
 
-
-class MorphologicalToken:
+class MorphologicalToken: # pylint: disable=too-few-public-methods
     """
     Stores language params for each processed token
     """
     def __init__(self, original_word, normalized_form):
-        pass
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ""
+        self.pymorthy_tags = ""
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorthy_tags})"
 
 
-class CorpusManager:
+class CorpusManager: # pylint: disable=too-few-public-methods
     """
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_txt_data = path_to_raw_txt_data
+        self._storage = {}
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        pass
+        files_txt = [str(file.name) for file in Path(self.path_to_raw_txt_data).glob('**/*.txt')]
+        for file in files_txt:
+            file_ind = file[0]
+            self._storage[file_ind] = Article(None, file_ind)
 
     def get_articles(self):
         """
         Returns storage params
         """
-        pass
+        # self._scan_dataset()
+        return self._storage
 
 
-class TextProcessingPipeline:
+class TextProcessingPipeline: # pylint: disable=too-few-public-methods
     """
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self.raw_text = ""
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        articles = self.corpus_manager.get_articles()  # dict with key - num, value - article instance
+        for article in articles.values():
+            self.raw_text = article.get_raw_text()
+            tokens = [str(i) for i in  self._process()]
+            article.save_processed(" ".join(tokens))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        text = re.sub(r"[^a-zа-я\s]","", self.raw_text.lower())
+        raw_tokens = Mystem().analyze(text)
+        morphological_tokens = []
+        for word in raw_tokens:
+            if word["text"].isalpha() and word["analysis"]:
+                morph_token = MorphologicalToken(word["text"], word["analysis"][0]["lex"])
+                morph_token.mystem_tags = word["analysis"][0]["gr"]
+                morph_token.pymorthy_tags = str(MorphAnalyzer().parse(word["text"])[0].tag)
+
+                morphological_tokens.append(morph_token)
+        return morphological_tokens
 
 
 def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    path = Path(path_to_validate)
+    if not path.exists():
+        raise FileNotFoundError
+    if not path.is_dir():
+        raise NotADirectoryError
+    checks = [str(file)[0].isdigit() for file in path.glob('**/*.txt')]
+
+    if not checks:
+        raise EmptyDirectoryError
+
 
 
 def main():
-    print('Your code goes here')
-
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager)
+    print("started preprocessing")
+    pipeline.run()
 
 if __name__ == "__main__":
     main()
