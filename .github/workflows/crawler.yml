@@ -83,13 +83,9 @@ jobs:
     name: Crawler checks config
     needs: [ code-style ]
     runs-on: ubuntu-latest
-<<<<<<< HEAD
-    timeout-minutes: 3
-    
-=======
     timeout-minutes: 1
 
->>>>>>> 349a6d475f03cae6903eb69e195a7950ce5458f5
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
