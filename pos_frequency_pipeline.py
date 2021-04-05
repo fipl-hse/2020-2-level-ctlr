@@ -13,7 +13,7 @@ class POSFrequencyPipeline:
         # we guess that all files are already preprocessed in a dir
         pattern = re.compile("\(\w+")
         path = Path(ASSETS_PATH)
-        files = list(path.glob('**/*.txt'))
+        files = list(path.glob('**/*_processed.txt'))
         if not files:
             print("no info to plot")
         speech_parts = collections.Counter()
