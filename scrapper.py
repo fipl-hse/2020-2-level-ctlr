@@ -6,6 +6,7 @@ from datetime import date
 import json
 import os
 from random import randint
+import shutil
 from time import sleep as wait
 
 from bs4 import BeautifulSoup
@@ -231,6 +232,9 @@ def prepare_environment(base_path, backup_path_dir):
     Creates ASSETS_PATH folder if not created and removes existing folder
     """
     if not os.path.exists(base_path):
+        os.makedirs(base_path)
+    else:
+        shutil.rmtree(os.path.dirname(base_path))
         os.makedirs(base_path)
     if not os.path.exists(backup_path_dir):
         os.makedirs(backup_path_dir)

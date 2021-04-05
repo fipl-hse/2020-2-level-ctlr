@@ -11,6 +11,11 @@ from pipeline import CorpusManager
 from constants import ASSETS_PATH
 
 
+class EmptyFileError(Exception):
+    """
+    Custom error
+    """
+
 class POSFrequencyPipeline:
     def __init__(self, corpus: CorpusManager):
         self.corpus = corpus
@@ -21,9 +26,12 @@ class POSFrequencyPipeline:
         for article in articles.values():
             self.current_article = article
             frequencies = self._count_frequencies()
-            self._update_meta(frequencies)
-            path = Path(ASSETS_PATH) / f'{article.article_id}_image.png'
-            visualize(frequencies, path)
+            if frequencies:
+                self._update_meta(frequencies)
+                path = Path(ASSETS_PATH) / f'{article.article_id}_image.png'
+                visualize(frequencies, path)
+            else:
+                raise EmptyFileError
 
     def _count_frequencies(self):
         path = Path(ASSETS_PATH) / f'{self.current_article.article_id}_processed.txt'
@@ -33,6 +41,10 @@ class POSFrequencyPipeline:
         frequencies = {}
         for tag in tags_found:
             frequencies[tag] = tags_found.count(tag)
+        if not frequencies:
+            print('THERE IS AM EMPTY FILE, CHECK ')
+            print(self.current_article.article_id)
+
         return frequencies
 
     def _update_meta(self, frequencies):

@@ -96,17 +96,16 @@ class TextProcessingPipeline:
         words = mystem.analyze(self.current_raw_text)
         tokens = []
         for word in words:
-            orig = word['text'].strip()
-            if orig.isalpha():
+            if word.get('analysis') and word.get('text'):
                 try:
-                    token = MorphologicalToken(original_word=orig, normalized_form=word['analysis'][0]['lex'])
+                    token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
                     token.mystem_tags = word['analysis'][0]['gr'].strip()
-                    token.pymorphy_tags = pymorphy.parse(orig)[0].tag
+                    token.pymorphy_tags = pymorphy.parse(word['text'])[0].tag
                     tokens.append(token)
-                except IndexError:
-                    token = MorphologicalToken(original_word=orig, normalized_form=orig)
-                    if str(pymorphy.parse(orig)[0].tag) != 'UNKN':
-                        token.pymorphy_tags = pymorphy.parse(orig)[0].tag
+                except (IndexError, KeyError):
+                    token = MorphologicalToken(original_word=word['text'], normalized_form=word['text'])
+                    if str(pymorphy.parse(word['text'])[0].tag) != 'UNKN':
+                        token.pymorphy_tags = pymorphy.parse(word['text'])[0].tag
                     tokens.append(token)
         return tokens
 
@@ -122,13 +121,12 @@ def validate_dataset(path_to_validate):
         raise NotADirectoryError
     if not list(path.iterdir()):
         raise EmptyDirectoryError
-    files = [str(file.relative_to(path)) for file in path.iterdir()]
-    metas = list(filter(lambda x: x.endswith('_raw.txt'), files))
-    raws = list(filter(lambda x: x.endswith('_meta.json'), files))
+    raws = list(path.glob('*_raw.txt'))
+    metas = list(path.glob('*_meta.json'))
     if not len(metas) == len(raws):
         raise InconsistentDatasetError
-    meta_indices = sorted(list(map(lambda x: int(x.split('_')[0]), metas)))
-    raw_indices = sorted(list(map(lambda x: int(x.split('_')[0]), raws)))
+    meta_indices = sorted(list(map(lambda x: int(x.name.split('_')[0]), metas)))
+    raw_indices = sorted(list(map(lambda x: int(x.name.split('_')[0]), raws)))
     if not raw_indices == meta_indices:
         raise InconsistentDatasetError
 
