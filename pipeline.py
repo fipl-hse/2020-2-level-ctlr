@@ -2,7 +2,14 @@
 Pipeline for text processing implementation
 """
 
+from pathlib import Path
 from typing import List
+
+from pymorphy2 import MorphAnalyzer
+from pymystem3 import Mystem
+
+from article import Article
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
@@ -28,10 +35,13 @@ class MorphologicalToken:
     Stores language params for each processed token
     """
     def __init__(self, original_word, normalized_form):
-        pass
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
 
 class CorpusManager:
@@ -39,19 +49,25 @@ class CorpusManager:
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_txt_date = path_to_raw_txt_data
+        self._storage = {}
+
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        pass
+        path = Path(self.path_to_raw_txt_date)
+        for file in path.rglob('*_raw.txt'):
+            article_id = int(file.name.split('_')[0])
+            self._storage[article_id] = Article(url=None, article_id=article_id)
 
     def get_articles(self):
         """
         Returns storage params
         """
-        pass
+        return self._storage
 
 
 class TextProcessingPipeline:
@@ -59,30 +75,69 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self._text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        articles = self.corpus_manager.get_articles()
+        for file in articles.values():
+            self._text = file.get_raw_text()
+            tokens = self._process()
+            file.save_processed(' '.join(map(str, tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        result = Mystem().analyze(self._text)
+        tokens = []
+
+        for token in result:
+
+            if token.get('analysis') and token.get('text'):
+                if token['analysis'][0].get('lex') and token['analysis'][0].get('gr'):
+                    morph_token = MorphologicalToken(original_word=token['text'],
+                                                     normalized_form=token['analysis'][0]['lex'])
+                    morph_token.mystem_tags = token['analysis'][0]['gr']
+                    morph_token.pymorphy_tags = MorphAnalyzer().parse(word=morph_token.original_word)[0].tag
+                    tokens.append(str(morph_token))
+
+        return tokens
 
 
 def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    path = Path(path_to_validate)
+
+    if not isinstance(path_to_validate, str):
+        raise UnknownDatasetError
+    if path.exists():
+        if not path.is_dir():
+            raise NotADirectoryError
+        if not list(path.rglob('*_raw.txt')):
+            raise EmptyDirectoryError
+
+        json_n = len(list(path.rglob('*.json')))
+        txt_n = len(list(path.rglob('*_raw.txt')))
+        json_ids = [file.parts[-1].split('_')[0] for file in path.rglob('*.json')]
+        txt_ids = [file.parts[-1].split('_')[0] for file in path.rglob('*_raw.txt')]
+        if txt_n != json_n and set(txt_ids) != set(json_ids):
+            raise InconsistentDatasetError
+    else:
+        raise FileNotFoundError
 
 
 def main():
-    print('Your code goes here')
+    validate_dataset(ASSETS_PATH)
+
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline.run()
 
 
 if __name__ == "__main__":
