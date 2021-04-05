@@ -9,6 +9,7 @@ import re
 
 from constants import ASSETS_PATH
 from visualizer import visualize
+from pipeline import validate_dataset, CorpusManager
 
 
 class POSFrequencyPipeline:
@@ -38,3 +39,13 @@ class POSFrequencyPipeline:
 
             png_path = Path(ASSETS_PATH) / f'{article.article_id}_image.png'
             visualize(statistics=pos_tags, path_to_save=png_path)
+
+def main():
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pos_pipeline = POSFrequencyPipeline(corpus_manager=corpus_manager)
+    pos_pipeline.run()
+
+
+if __name__ == "__main__":
+    main()s
