@@ -63,24 +63,17 @@ class Crawler:
         """
         Finds articles
         """
-        for url in self.seed_urls:
-            response = requests.get(url, headers=headers)
-            if not response:
-                raise IncorrectURLError
-            if response.status_code == 200:
-                sleep(random.randrange(2, 4))
+        main_link = "http://krassever.ru"
+        for link in self.seed_urls:
+            response = requests.get(link, headers=headers)
+            sleep(5)
             page_soup = BeautifulSoup(response.content, features='lxml')
-            article_soup = page_soup.find_all('div', class_='article-info')
-            for article_bs in article_soup[:self.max_articles_per_seed]:
-                try:
-                    link = self._extract_url(article_bs)
-                    if len(self.urls) == self.max_articles:
-                        break
-                except AttributeError:
-                    continue
-                self.urls.append(link)
-
-        return self.urls
+            all_links = page_soup.find_all('div',class_="caption caption-sm")
+            for element in all_links[:self.max_articles_per_seed]:
+                link = self._extract_url(element)
+                self.urls.append(main_link + link)
+                if len(self.urls) == self.max_articles:
+                    return []
 
     def get_search_urls(self):
         """
@@ -97,17 +90,16 @@ class ArticleParser:
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
-        self.article = Article(full_url, article_id=article_id)
+        self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        article_text = []
-        main_text = article_soup.find('div', itemprop='articleBody')
-        article_text.append(main_text.text)
-        self.article.text = '\n'.join(article_text)
+        paragraphs_soup = article_soup.find('div', class_='caption caption-s').find_all('a')
+        for parag in paragraphs_soup:
+            self.article.text += parag.text.strip() + '\n'
 
     def _fill_article_with_meta_information(self, article_soup):
         self.article.title = article_soup.find('a', itemprop='url').text.strip()
-        self.article.author = article_soup.find('span', itemprop='name').text
+        self.article.author = article_soup.find('p', itemprop='name').text
 
     @staticmethod
     def unify_date_format(date_str):
@@ -120,14 +112,10 @@ class ArticleParser:
         """
         Parses each article
         """
-        information = requests.get(self.full_url, headers=headers)
-        if information.status_code == 200:
-            print('Request is OK')
-        else:
-            print('Failed')
-        article_bs = BeautifulSoup(information.content, features="lxml")
-        self._fill_article_with_text(article_bs)
-        self._fill_article_with_meta_information(article_bs)
+        response = requests.get(self.full_url, headers=headers)
+        article_soup = BeautifulSoup(response.content, features='lxml')
+        self.article.text += self._fill_article_with_text(article_soup)
+        self._fill_article_with_meta_information(article_soup)
         return self.article
 
 
