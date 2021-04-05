@@ -129,7 +129,7 @@ def validate_dataset(path_to_validate):
 
     meta_files = [file.parts[-1].split('_')[0] for file in path.rglob('*.json')]
     raw_files = [file.parts[-1].split('_')[0] for file in path.rglob('*_raw.txt')]
-    for i in range(len(meta_files)):
+    for i, c in enumerate(meta_files):
         if meta_files[i] != str(i+1) or raw_files[i] != str(i+1):
             raise InconsistentDatasetError
     if set(meta_files) != set(raw_files):
