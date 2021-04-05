@@ -46,7 +46,7 @@ class CorpusManager: # pylint: disable=too-few-public-methods
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw_txt_data = path_to_raw_txt_data
         self._storage = {}
-
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
@@ -61,7 +61,7 @@ class CorpusManager: # pylint: disable=too-few-public-methods
         """
         Returns storage params
         """
-        self._scan_dataset()
+        # self._scan_dataset()
         return self._storage
 
 
@@ -79,7 +79,7 @@ class TextProcessingPipeline: # pylint: disable=too-few-public-methods
         articles = self.corpus_manager.get_articles()  # dict with key - num, value - article instance
         for article in articles.values():
             raw_text = article.get_raw_text()
-            tokens = [i.__str__() for i in  self._process(raw_text)]
+            tokens = [str(i) for i in  self._process(raw_text)]
             article.save_processed(" ".join(tokens))
     @classmethod
     def _process(cls, raw_text) -> List[type(MorphologicalToken)]:
@@ -108,14 +108,18 @@ def validate_dataset(path_to_validate):
         raise FileNotFoundError
     if not path.is_dir():
         raise NotADirectoryError
-    checks = list(path.glob('**/*.txt'))
+    checks = [str(file)[0].isdigit() for file in path.glob('**/*.txt')]
+
     if not checks:
         raise EmptyDirectoryError
+
+
 
 def main():
     validate_dataset(ASSETS_PATH)
     corpus_manager = CorpusManager(ASSETS_PATH)
     pipeline = TextProcessingPipeline(corpus_manager)
+    print("started preprocessing")
     pipeline.run()
 
 if __name__ == "__main__":
