@@ -51,24 +51,25 @@ class CorpusManager:
     """
     def __init__(self, path_to_raw_txt_data: str):
         self.path_to_raw = path_to_raw_txt_data
-        self._storage = {}
+        self._storage = self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
         path = Path(ASSETS_PATH)
+        arts = {}
         for file in path.iterdir():
             file_name = file.relative_to(path)
             if str(file_name).endswith('_raw.txt'):
                 index = str(file_name).split('_raw.txt')[0]
-                self._storage[index] = Article(url=None, article_id=int(index))
+                arts[index] = Article(url=None, article_id=int(index))
+        return arts
 
     def get_articles(self):
         """
         Returns storage params
         """
-        self._scan_dataset()
         return self._storage
 
 
