@@ -6,6 +6,7 @@ import re
 import json
 
 from constants import ASSETS_PATH
+from pipeline import CorpusManager
 from visualizer import visualize
 
 
@@ -32,7 +33,6 @@ class POSFrequencyPipeline:
 
     def _process(self):
         result = re.findall(r'<[A-Z]+', self._processed_text)
-        print(result)
         for pos in result:
             self.frequencies_dict[pos[1:]] = self.frequencies_dict.get(pos[1:], 0) + 1
 
@@ -44,3 +44,13 @@ class POSFrequencyPipeline:
         meta['pos_frequencies'] = self.frequencies_dict
         with open(os.path.join(ASSETS_PATH, path_meta), 'w', encoding='utf-8') as fp:
             json.dump(meta, fp, ensure_ascii=False, indent=2)
+
+
+def main():
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pos_pipeline = POSFrequencyPipeline(assets=corpus_manager)
+    pos_pipeline.run()
+
+
+if __name__ == '__main__':
+    main()

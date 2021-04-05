@@ -11,7 +11,6 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
-from pos_frequency_pipeline import POSFrequencyPipeline
 
 
 class EmptyDirectoryError(Exception):
@@ -95,17 +94,23 @@ class TextProcessingPipeline:
         tokens = []
         result = Mystem().analyze(self._text)
         for word in result:
-            try:
-                token = MorphologicalToken(original_word=word['text'].lower(),
-                                           normalized_form=word['analysis'][0]['lex'])
-                token.mystem_tags = word['analysis'][0]['gr']
-                if MorphAnalyzer().parse(word['text']):
-                    token.pymorphy_tags = MorphAnalyzer().parse(word['text'])[0].tag
 
-            except (KeyError, IndexError):
+            if not word.get('analysis', 0) or not word.get('text', 0):
                 continue
 
+            word_base = word['analysis'][0]
+            if not word_base.get('lex', 0) or not word_base.get('gr', 0):
+                continue
+
+            token = MorphologicalToken(original_word=word['text'], normalized_form=word['analysis'][0]['lex'])
+            token.mystem_tags = word['analysis'][0]['gr']
+
+            if not MorphAnalyzer().parse(word['text']):
+                continue
+            token.pymorphy_tags = MorphAnalyzer().parse(word['text'])[0].tag
+
             tokens.append(str(token))
+
         return tokens
 
 
@@ -128,6 +133,10 @@ def validate_dataset(path_to_validate):
     if set(raw_files) != set(meta_files):
         raise InconsistentDatasetError
 
+    for i in range(1, len(meta_files)+1):
+        if meta_files[i-1].split('\\')[-1] != str(i):
+            raise InconsistentDatasetError
+
 
 def main():
     validate_dataset(ASSETS_PATH)
@@ -135,9 +144,6 @@ def main():
 
     pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
     pipeline.run()
-
-    pos_pipeline = POSFrequencyPipeline(assets=corpus_manager)
-    pos_pipeline.run()
 
 
 if __name__ == "__main__":
