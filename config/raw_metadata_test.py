@@ -1,6 +1,7 @@
-import re
-import os
+import html
 import json
+import os
+import re
 import unittest
 import requests
 from constants import ASSETS_PATH, CRAWLER_CONFIG_PATH
@@ -48,7 +49,7 @@ class RawDataValidator(unittest.TestCase):
                             msg="Can not open URL: <{}>. Check how you collect URLs".format(
                                 metadata[1]['url']))
 
-            html_source = requests.get(metadata[1]['url']).text
+            html_source = html.unescape(requests.get(metadata[1]['url'], cookies={'beget': 'begetok'}).text)
 
             self.assertTrue(metadata[1]['title'] in
                             html_source,
