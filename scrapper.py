@@ -55,8 +55,9 @@ class Crawler:
         urls = []
 
         main_news = article.find(class_="main-news")
-        for link in main_news.find_all("a"):
-            urls.append(link.get("href"))
+        if main_news:
+            for link in main_news.find_all("a"):
+                urls.append(link.get("href"))
         return urls
 
     def find_articles(self):
@@ -67,7 +68,9 @@ class Crawler:
             for main_url in self.seed_urls:
                 if len(self.urls) < self.max_articles:
                     req = requests.get(main_url, HEADERS)
+
                     article = BeautifulSoup(req.content, 'html.parser')
+
                     self.urls += Crawler._extract_url(article)
 
             self.urls = self.urls[:self.max_articles]
