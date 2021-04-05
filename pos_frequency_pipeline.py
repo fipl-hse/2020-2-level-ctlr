@@ -27,10 +27,9 @@ class POSFrequencyPipeline:
                 processed_text = file.read()
 
             pos_tags = defaultdict(int)
-            tags = re.findall('<(.+?)>', processed_text)
+            tags = re.findall(r'<(.+?)[^A-Z]*=*>', processed_text)
             for tag in tags:
-                pos = tag.split('=')[0].split(',', maxsplit=1)[0]
-                pos_tags[pos] += 1
+                pos_tags[tag] += 1
 
             meta_path = Path(ASSETS_PATH) / f'{article.article_id}_meta.json'
             with open(meta_path, 'a', encoding='utf-8') as json_file:
