@@ -106,9 +106,7 @@ class ArticleParser:
         self.article.text = '\n'.join(abstract.text for abstract in article_soup.find_all(name='p'))
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find(name='h1').text
-        self.article.author = article_soup.find(class_='author').text.split(': ')[1]
-        self.article_id = self.i
+        self.article.title = article_soup.find('h1').text.strip()
 
     @staticmethod
     def unify_date_format(date_str):
