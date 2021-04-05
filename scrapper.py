@@ -73,10 +73,10 @@ class Crawler:
             if not response:
                 raise IncorrectURLError
             article_bs = BeautifulSoup(response.content, features='lxml')
-            links = article_bs.find_all('div',{"id": "MainMasterContentPlaceHolder_InsidePlaceHolder_articleText"})
+            links = article_bs.find_all('h3')
             urls_number = min(articles_per_seed, len(links), (max_articles - len(self.urls)))
             for index in range(urls_number):
-                self.urls.append('https://moyaokruga.ru/mayakdelty/' + self._extract_url(article_bs=links[index]))
+                self.urls.append(self._extract_url(article_bs=links[index]))
 
         return self.urls
 
@@ -98,24 +98,25 @@ class ArticleParser:
         self.article = Article(full_url, article_id)
 
     def _fill_article_with_text(self, article_soup):
-        self.article.text = article_soup.find(name='div',
-                                              id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleText").text
+        all_text = article_soup.find('div', id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleText")
+        for par in all_text.find_all('p'):
+            self.article.text += par.text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('header', {"class": "articles-main"}).text.strip()
+        self.article.title = article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleHeader").text.strip()
 
-        self.article.author = article_soup.find('div', {"id": "content"}).find('a', {"class": "red"}).text
+        self.article.author = article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_authorName").text
 
-        for topic in article_soup.find_all('div', class_="top-nav"):
-            self.article.topics.append(topic.text)
-        self.article.date = article_soup.find('section', {"class": "articles-main"}).find('header').time.text
+        self.article.topics.append(article_soup.find('a', id="MainMasterContentPlaceHolder_InsidePlaceHolder_categoryName").text)
+
+        self.article.date = self.unify_date_format(article_soup.find('time', id="MainMasterContentPlaceHolder_InsidePlaceHolder_articleTime").text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
