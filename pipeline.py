@@ -11,7 +11,6 @@ from pymystem3 import Mystem
 
 from article import Article
 from constants import ASSETS_PATH
-from pos_frequency_pipeline import POSFrequencyPipeline
 
 
 class EmptyDirectoryError(Exception):
@@ -61,12 +60,11 @@ class CorpusManager:
         Register each dataset entry
         """
         storage = {}
-        i = 1
-        for filename in Path(self.path_to_raw_txt_data).iterdir():
-            if re.fullmatch(r'.+\d+_raw.txt', str(filename)):
-                storage[i] = Article(url=None, article_id=i)
-                storage[i].text = storage[i].get_raw_text()
-                i += 1
+        files = Path(self.path_to_raw_txt_data).glob('[0-9]*_raw.txt')
+        for i, filename in enumerate(files, start=1):
+            storage[i] = Article(url=None, article_id=i)
+            storage[i].text = storage[i].get_raw_text()
+            i += 1
         return storage
 
     def get_articles(self):
