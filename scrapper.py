@@ -58,33 +58,21 @@ class Crawler:
         """
         Finds articles
         """
-        for seed_url in self.seed_urls:
-            try:
-                response = requests.get(seed_url, headers=headers)
-                sleep(random.randint(3, 6))
-                response.encoding = 'utf-8'
-                if not response:
-                    raise IncorrectURLError
-
-            except IncorrectURLError:
-                continue
-
-            soup_page = BeautifulSoup(response.content, features='lxml')
-            all_urls_soup = soup_page.find_all('li', class_="node_read_more first")
-            for one_of_urls in all_urls_soup[:self.max_articles_per_seed]:
-                if len(self.urls) < self.max_articles:
-                    self.urls.append("http://tomsk-novosti.ru/" + self._extract_url(one_of_urls))
-
-            if len(self.urls) == self.max_articles:
-                return self.urls
-
+        for url in self.seed_urls:
+            request = requests.get(url).content
+            soup = BeautifulSoup(request,
+                                 features='lxml')
+            for article_url in self._extract_url(soup):
+                if len(self.urls) != self.max_articles \
+                        and url + article_url not in self.urls:
+                    self.urls.append(url + article_url)
         return self.urls
 
     def get_search_urls(self):
         """
         Returns seed_urls param
         """
-        pass
+        return self.urls
 
 
 class ArticleParser:
@@ -101,14 +89,12 @@ class ArticleParser:
         return '\n'.join(re.findall(r'[А-я]+.+\.[ \t]*', text))
 
     def _fill_article_with_text(self, article_soup):
-        article_preview = article_soup.find('div', {'class': 'one-news-preview-text'}).text + '\n'
-        article_content = article_soup.find('div', {'class': 'js-mediator-article'}).text
-        self.article.text = article_preview + self.clean_text(article_content)
+        self.article.text = article_soup.find('div', class_="entry-content").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        title = article_soup.find('h4')
+        title = article_soup.find('h1')
         self.article.title = title.text
-        self.article.date = self.unify_date_format(article_soup.find('em').text)
+        self.article.date = self.unify_date_format(article_soup.find('time').text)
         self.article.author = 'NOT FOUND'
 
     @staticmethod
