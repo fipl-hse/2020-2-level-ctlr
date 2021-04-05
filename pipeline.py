@@ -65,7 +65,7 @@ class CorpusManager:
         """
         Returns storage params
         """
-        return self._storag
+        return self._storage
 
     def get_something(self):
         pass
