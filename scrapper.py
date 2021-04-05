@@ -105,7 +105,7 @@ class ArticleParser:
         try:
             self.article.author = article_soup.find('div', class_="field-item odd").find('a').text
         except AttributeError:
-            self.article.author = 'NotFound'
+            self.article.author = 'NOT FOUND'
 
         self.article.date = self.unify_date_format(article_soup.find('span', class_="date-display-single").text)
         return None
