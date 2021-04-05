@@ -276,7 +276,7 @@ if __name__ == '__main__':
                                total_max_articles=max_articles,
                                max_articles_per_seed=articles_per_seed)
     articles = crawler.find_articles()
-    for i, full_url in enumerate(crawler.urls, 1):
+    for i, full_url in enumerate(articles, 1):
         parser = ArticleParser(article_url=full_url, article_id=i)
         article_from_list = parser.parse()
         article_from_list.save_raw()
