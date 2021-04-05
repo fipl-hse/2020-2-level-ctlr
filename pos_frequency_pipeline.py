@@ -16,6 +16,7 @@ class EmptyFileError(Exception):
     Custom error
     """
 
+
 class POSFrequencyPipeline:
     def __init__(self, corpus: CorpusManager):
         self.corpus = corpus
@@ -41,10 +42,6 @@ class POSFrequencyPipeline:
         frequencies = {}
         for tag in tags_found:
             frequencies[tag] = tags_found.count(tag)
-        if not frequencies:
-            print('THERE IS AM EMPTY FILE, CHECK ')
-            print(self.current_article.article_id)
-
         return frequencies
 
     def _update_meta(self, frequencies):
