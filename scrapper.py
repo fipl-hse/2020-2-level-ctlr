@@ -191,9 +191,9 @@ class ArticleParser:
     def processed(self) -> bool:
         return self.full_url in self._load_state()
 
-    @property
-    def is_russian(self) -> bool:
-        return bool(re.match(r"[а-яё]+", self.article.title, re.I))
+    # @property
+    # def is_russian(self) -> bool:
+    #     return bool(re.match(r"[а-яё]+", self.article.title, re.I))
 
     def parse(self):
         """
@@ -212,9 +212,7 @@ class ArticleParser:
         return self.article
 
     def _fill_article_with_text(self, article_soup: BeautifulSoup) -> None:
-        self.article.text = "\n".join(
-            [p.text for p in article_soup.select(".entry-content > p")]
-        )
+        self.article.text = article_soup.select_one("div.entry-content").get_text()
 
     def _fill_article_with_meta_information(self, article_soup: BeautifulSoup) -> None:
         self.article.title = article_soup.select_one("h1").text
