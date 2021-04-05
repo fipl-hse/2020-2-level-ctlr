@@ -128,12 +128,10 @@ def validate_dataset(path_to_validate):
     if not any(path.iterdir()):
         raise EmptyDirectoryError
 
-    meta_files = [re.search(r'\d+?_meta.json', str(file)).group() for file in path.glob('*_meta.json')]
-    raw_files = [re.search(r'\d+?_raw.txt', str(file)).group() for file in path.glob('*_raw.txt')]
-    print(meta_files)
-    print(raw_files)
-    for i in range(1, len(meta_files)+1):
-        if meta_files[i-1].split('_')[0] != str(i) or raw_files[i-1].split('_')[0] != str(i):
+    meta_files = [file.parts[-1].split('_')[0] for file in path.rglob('*.json')]
+    raw_files = [file.parts[-1].split('_')[0] for file in path.rglob('*_raw.txt')]
+    for i in range(len(meta_files)):
+        if meta_files[i] != str(i+1) or raw_files[i] != str(i+1):
             raise InconsistentDatasetError
 
 
