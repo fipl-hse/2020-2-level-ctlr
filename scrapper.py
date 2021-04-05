@@ -55,8 +55,9 @@ class Crawler:
         urls = []
 
         main_news = article.find(class_="main-news")
-        if main_news:
-            for link in main_news.find_all("a"):
+        if main_news is not None:
+            links = main_news.find_all("a")
+            for link in links:
                 urls.append(link.get("href"))
         return urls
 
