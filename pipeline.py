@@ -38,6 +38,7 @@ class MorphologicalToken:
 
     def __str__(self):
         return f"{self.normalized_form}<{self.mystem_tags}>"
+    # return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
 
 class CorpusManager:
@@ -90,6 +91,7 @@ class TextProcessingPipeline:
         Performs processing of each text
         """
         mystem_ag = Mystem()
+
         fin = mystem_ag.analyze(self.text)
         tokens = []
 
@@ -98,6 +100,7 @@ class TextProcessingPipeline:
                 toks = MorphologicalToken(element['text'], element['analysis'][0]['lex'])
                 toks.mystem_tags = element['analysis'][0]['gr']
                 tokens.append(toks)
+                #print(fin)
         return tokens
 
 
