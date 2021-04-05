@@ -1,5 +1,18 @@
 {
-    "base_urls": [],
-    "total_articles_to_find_and_parse": 0,
-    "max_number_articles_to_get_from_one_seed": 0
+    "base_urls": ["http://ks-yanao.ru/novosti/",
+                  "http://ks-yanao.ru/vlast/",
+                  "http://ks-yanao.ru/ekonomika/",
+                  "http://ks-yanao.ru/obshchestvo/",
+                  "http://ks-yanao.ru/zhilye/",
+                  "http://ks-yanao.ru/proisshestviya/",
+                  "http://ks-yanao.ru/zdorove/",
+                  "http://ks-yanao.ru/kultura/",
+                  "http://ks-yanao.ru/obrazovanie/",
+                  "http://ks-yanao.ru/sport/",
+                  "http://ks-yanao.ru/koronovirus/"],
+    "total_articles_to_find_and_parse": 20,
+    "max_number_articles_to_get_from_one_seed": 5,
+    "headers": {"user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"
+    }
 }

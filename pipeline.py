@@ -1,8 +1,16 @@
+# pylint: disable=R0903
 """
 Pipeline for text processing implementation
 """
 
+from pathlib import Path
 from typing import List
+
+from pymorphy2 import MorphAnalyzer
+from pymystem3 import Mystem
+
+import article
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
@@ -28,10 +36,13 @@ class MorphologicalToken:
     Stores language params for each processed token
     """
     def __init__(self, original_word, normalized_form):
-        pass
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return f"{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})"
 
 
 class CorpusManager:
@@ -39,19 +50,25 @@ class CorpusManager:
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_data = path_to_raw_txt_data
+        self._storage = {}
+
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        pass
+        path = Path(self.path_to_raw_data)
+        for file in path.rglob('*.txt'):
+            ind = int(file.name.split('_')[0])
+            self._storage[ind] = article.Article(url=None, article_id=ind)
 
     def get_articles(self):
         """
         Returns storage params
         """
-        pass
+        return self._storage
 
 
 class TextProcessingPipeline:
@@ -59,30 +76,65 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self.text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        articles = self.corpus_manager.get_articles()
+        for proc_article in articles.values():
+            self.text = proc_article.get_raw_text()
+            tokens = self._process()
+            proc_article.save_processed(' '.join(map(str, tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        pymorphy = MorphAnalyzer()
+        result = Mystem().analyze(self.text)
+        tokens = []
+        for token in result:
+            if token.get('analysis') and token.get('text'):
+                if token['analysis'][0].get('lex') and token['analysis'][0].get('gr'):
+                    morph_token = MorphologicalToken(token['text'], token['analysis'][0]['lex'])
+                    morph_token.mystem_tags = token['analysis'][0]['gr']
+                    tokens.append(morph_token)
+                    token_pymorphy = pymorphy.parse(morph_token.original_word)
+                    if token_pymorphy:
+                        morph_token.pymorphy_tags = token_pymorphy[0].tag
+        return tokens
 
 
 def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    checked_path = Path(path_to_validate)
+    if not checked_path.exists():
+        raise FileNotFoundError
+
+    if not checked_path.is_dir():
+        raise NotADirectoryError
+
+    if not list(checked_path.iterdir()):
+        raise EmptyDirectoryError
+
+    raw_files = list(checked_path.rglob('*.txt'))
+    meta_files = list(checked_path.rglob('*.json'))
+    raw_numbers = list(map(lambda file: int(file.name.split('_')[0]), raw_files))
+    correct_indexes = list(range(min(raw_numbers), max(raw_numbers) + 1))
+    if len(raw_files) != len(meta_files) or sorted(raw_numbers) != correct_indexes:
+        raise InconsistentDatasetError
 
 
 def main():
-    print('Your code goes here')
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline.run()
 
 
 if __name__ == "__main__":
