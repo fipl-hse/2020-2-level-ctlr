@@ -130,7 +130,8 @@ def validate_dataset(path_to_validate):
 
     meta_files = [re.search(r'\d+?_meta.json', str(file)).group() for file in path.glob('*_meta.json')]
     raw_files = [re.search(r'\d+?_raw.txt', str(file)).group() for file in path.glob('*_raw.txt')]
-
+    print(meta_files)
+    print(raw_files)
     for i in range(1, len(meta_files)+1):
         if meta_files[i-1].split('_')[0] != str(i) or raw_files[i-1].split('_')[0] != str(i):
             raise InconsistentDatasetError
