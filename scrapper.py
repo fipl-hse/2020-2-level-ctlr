@@ -63,17 +63,14 @@ class Crawler:
         """
         Finds articles
         """
-        main_link = "http://krassever.ru"
         for link in self.seed_urls:
             response = requests.get(link, headers=headers)
             sleep(5)
             page_soup = BeautifulSoup(response.content, features='lxml')
-            all_links = page_soup.find_all('div',class_="caption caption-sm")
-            for element in all_links[:self.max_articles_per_seed]:
-                link = self._extract_url(element)
-                self.urls.append(main_link + link)
-                if len(self.urls) == self.max_articles:
-                    return []
+            page_soup.find_all('div',class_="caption caption-sm")
+            if len(self.urls) == self.max_articles:
+                return []
+        return self.urls
 
     def get_search_urls(self):
         """
