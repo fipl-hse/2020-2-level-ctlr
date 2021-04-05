@@ -61,11 +61,11 @@ class CorpusManager:
         articles_for_store = []
         all_files = os.listdir(self.path_to_raw_txt_data)
         for file in all_files:
-            if file == r'..raw.txt':
+            if file.endswith('.txt'):
                 articles_for_store.append(file)
         for article in articles_for_store:
-            article_id = article.split('_')[0]
-            self._storage[article_id] = Article(url=None, article_id=article_id)
+            id_article = article.split('_')[0]
+            self._storage[id_article] = Article(url=None, article_id=id_article)
 
     def get_articles(self):
         """
@@ -80,7 +80,6 @@ class TextProcessingPipeline:
     """
     def __init__(self, corpus_manager: CorpusManager):
         self.corpus_manager = corpus_manager
-        self.raw_text = ''
 
     def run(self):
         """
@@ -92,7 +91,7 @@ class TextProcessingPipeline:
             final_tokens = self._process(article_text)
             final_info = []
             for token in final_tokens:
-                final_info.append(str(token))
+                final_info.append(token.__str__())
             article.save_processed(' '.join(final_info))
 
     @staticmethod
