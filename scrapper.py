@@ -59,6 +59,7 @@ class Crawler:
                 raw_urls_list.append(link_itself)
         return raw_urls_list
 
+    @property
     def find_articles(self):
         """
         Finds articles
@@ -177,7 +178,7 @@ if __name__ == '__main__':
     crawler = Crawler(seed_urls=urls,
                       max_articles=max_articles_num,
                       max_articles_per_seed=max_articles_num_per_seed)
-    links = crawler.find_articles()
+    links = crawler.find_articles
 
     prepare_environment(ASSETS_PATH)
     for i, url_full in enumerate(crawler.urls):
