@@ -65,12 +65,12 @@ class Crawler:
         """
         try:
             for main_url in self.seed_urls:
-                if len(self.urls) <= self.max_articles:
+                if len(self.urls) < self.max_articles:
                     req = requests.get(main_url, HEADERS)
                     article = BeautifulSoup(req.content, 'html.parser')
                     self.urls += Crawler._extract_url(article)
 
-            self.urls = self.urls[:self.max_articles + 1]
+            self.urls = self.urls[:self.max_articles]
         except IncorrectURLError:
             print("incorrect url")
         except NumberOfArticlesOutOfRangeError:
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     crawler.find_articles()
 
     prepare_environment(PROJECT_ROOT)
-
+    print("started collecting articles")
     for art_index, art_url in enumerate(crawler.urls, start=1):
         parser = ArticleParser(art_url, art_index)
         article_parsed = parser.parse()
