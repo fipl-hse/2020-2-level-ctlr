@@ -8,6 +8,7 @@ from time import sleep
 import random
 import json
 import os
+import shutil
 from article import Article
 from constants import HEADERS
 from constants import ASSETS_PATH

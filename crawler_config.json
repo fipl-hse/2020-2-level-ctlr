@@ -1,5 +1,5 @@
 {
-    "base_urls": ["https://polkrug.ru/"],
+    "base_urls": ["https://polkrug.ru/", "https://polkrug.ru/news/gorod"],
     "total_articles_to_find_and_parse": 2,
     "max_number_articles_to_get_from_one_seed": 3
 }
