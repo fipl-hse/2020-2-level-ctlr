@@ -126,9 +126,13 @@ def validate_dataset(path_to_validate):
     if not len(list_of_raws) == len(list_of_metas):
         raise InconsistentDatasetError
 
+    raw_ids = []
+    meta_ids = []
     for raw, meta in zip(list_of_raws, list_of_metas):
-        if raw.parts[-1].split('_')[0] != meta.parts[-1].split('_')[0]:
-            raise InconsistentDatasetError
+        raw_ids.append(int(raw.parts[-1].split('_')[0]))
+        meta_ids.append(int(meta.parts[-1].split('_')[0]))
+    if sorted(raw_ids) != sorted(meta_ids):
+        raise InconsistentDatasetError
 
     if not list(path.iterdir()):
         raise EmptyDirectoryError
