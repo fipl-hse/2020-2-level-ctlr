@@ -1,7 +1,5 @@
 {
-    "base_urls": ["https://polkrug.ru/","https://polkrug.ru/news/ekonomika-i-biznes",
-        "https://polkrug.ru/news/obschestvo", "https://polkrug.ru/news/politika",
-        "https://polkrug.ru/news/gorod", "https://polkrug.ru/news/nauka-i-obrazovanie"],
-    "total_articles_to_find_and_parse": 10,
-    "max_number_articles_to_get_from_one_seed": 10
+    "base_urls": ["https://polkrug.ru/"],
+    "total_articles_to_find_and_parse": 2,
+    "max_number_articles_to_get_from_one_seed": 3
 }
