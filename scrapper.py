@@ -3,15 +3,20 @@ Crawler implementation
 """
 import requests
 import random
-import time
+from time import sleep
+import shutil
 import re
 import os
 import json
 import datetime
+from bs4 import BeautifulSoup
 from article import Article
 from constants import CRAWLER_CONFIG_PATH, ASSETS_PATH
 
-
+headers = {
+         'user-agent':
+     'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 '
+     '(KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.102 Yowser/2.5 Safari/537.36'}
 class IncorrectURLError(Exception):
     """
     Custom error
@@ -39,7 +44,7 @@ class Crawler:
     Crawler implementation
     """
 
-    def __init__(self, seed_urls: list, max_articles: int):
+    def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed:int):
         self.seed_urls = seed_urls
         self.max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
@@ -53,10 +58,10 @@ class Crawler:
         """
         Finds articles
         """
-        for seed_url in self.get_search_urls():
+        for seed_url in self.seed_urls:
             try:
                 response = requests.get(seed_url, headers=headers)
-                sleep(random.randint(2, 6))
+                sleep(random.randint(3, 6))
                 response.encoding = 'utf-8'
                 if not response:
                     raise IncorrectURLError
@@ -64,13 +69,13 @@ class Crawler:
             except IncorrectURLError:
                 continue
 
-            page_bs = BeautifulSoup(response.content, features='lxml')
-            urls_list = self._extract_url(article_bs=page_bs)
+            soup_page = BeautifulSoup(response.content, features='lxml')
+            all_urls_soup = soup_page.find_all('li', class_="node_read_more first")
+            for one_of_urls in all_urls_soup[:self.max_articles_per_seed]:
+                if len(self.urls) < self.max_articles:
+                    self.urls.append("http://tomsk-novosti.ru/" + self._extract_url(one_of_urls))
 
-            urls_number = min(max_articles_num_per_seed, (max_articles_num - len(self.urls)))
-            self.urls.extend(urls_list[:urls_number])
-
-            if len(self.urls) == max_articles_num:
+            if len(self.urls) == self.max_articles:
                 return self.urls
 
         return self.urls
@@ -79,7 +84,7 @@ class Crawler:
         """
         Returns seed_urls param
         """
-        return self.find_articles()
+        pass
 
 
 class ArticleParser:
@@ -139,14 +144,14 @@ def validate_config(crawler_path):
     """
     with open(crawler_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
-    if not isinstance(config, dict) or not 'base_urls' in config \
-            or not 'total_articles_to_find_and_parse' in config:
+    if not isinstance(config, dict) or not "base_urls" in config \
+            or not "total_articles_to_find_and_parse" in config:
         raise UnknownConfigError
-    if not isinstance(config['base_urls'], list) or not all(isinstance(url, str) for url in config['base_urls']):
+    if not isinstance(config["base_urls"], list) or not all(isinstance(url, str) for url in config["base_urls"]):
         raise IncorrectURLError
-    if not isinstance(config['total_articles_to_find_and_parse'], int):
+    if not isinstance(config["total_articles_to_find_and_parse"], int):
         raise IncorrectNumberOfArticlesError
-    if config['total_articles_to_find_and_parse'] > 100:
+    if config["total_articles_to_find_and_parse"] > 100:
         raise NumberOfArticlesOutOfRangeError
     return config.values()
 
@@ -154,7 +159,6 @@ def validate_config(crawler_path):
 if __name__ == '__main__':
     # YOUR CODE HERE
     urls, max_num_articles, max_per_seed = validate_config(CRAWLER_CONFIG_PATH)
-    HEADERS = get_headers_config(CRAWLER_CONFIG_PATH)
     crawler_current = Crawler(seed_urls=urls, max_articles=max_num_articles, max_articles_per_seed=max_per_seed)
     crawler_current.find_articles()
 
