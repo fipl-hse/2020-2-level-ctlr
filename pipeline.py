@@ -91,6 +91,7 @@ class TextProcessingPipeline:
                 processed_text.append(str(token))
             article.save_processed(' '.join(processed_text))
 
+
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
