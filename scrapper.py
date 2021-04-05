@@ -92,7 +92,8 @@ class ArticleParser:
         self.article = Article(self.full_url, self.article_id)
 
     def _fill_article_with_text(self, article_soup):
-        articles_info = article_soup.find_all('p', style_="text-align: justify;")
+
+        articles_info = article_soup.find('div', class_="content clear-block").find('p')
         article_text = ''
         for article in articles_info:
             article_text += str(article)
