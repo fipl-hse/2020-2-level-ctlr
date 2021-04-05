@@ -4,41 +4,28 @@ Implementation of POSFrequencyPipeline for score ten only.
 import json
 import re
 
-from article import Article
 from constants import ASSETS_PATH
 from collections import Counter
+from pathlib import Path
 from pipeline import CorpusManager
-from pymystem3 import Mystem
 from visualizer import visualize
 
 
 class POSFrequencyPipeline:
     def __init__(self, assets):
         self.assets = assets
-        self.raw_text = ''
+        self.processed_text = ''
         self.freq_list = []
 
     def run(self):
-        numbers = self.assets.get_articles()
+        numbers = self.assets.get_articles().keys()
         for number in numbers:
-            article = Article(url=None, article_id=number)
-            self.raw_text = article.get_raw_text()
-            self.freq_list = self._process()
+            processed_text_path = Path(ASSETS_PATH) / f"{number}_processed.txt"
+            with open(processed_text_path, encoding="utf-8") as file:
+                self.processed_text = file.read()
+            self.freq_list = Counter(re.findall(r"(?<=<)[A-Z]+", self.processed_text))
             self._write_to_meta(number)
             visualize(statistics=self.freq_list, path_to_save=ASSETS_PATH + f'/{number}_image.png')
-
-    def _process(self):
-        """
-        Performs processing of each text
-        """
-        result = Mystem().analyze(self.raw_text)
-        list_of_pos = []
-        for stem_dict in result:
-            if stem_dict.get('analysis'):
-                pos = re.match(r'[A-Z]+', stem_dict['analysis'][0]['gr']).group()
-                list_of_pos.append(pos)
-        freq_list = Counter(list_of_pos)
-        return freq_list
 
     def _write_to_meta(self, number):
         path = ASSETS_PATH + f'/{number}_meta.json'

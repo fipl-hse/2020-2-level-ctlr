@@ -1,8 +1,6 @@
 """
 Pipeline for text processing implementation
 """
-import os
-
 from pathlib import Path
 from typing import List
 
@@ -42,10 +40,7 @@ class MorphologicalToken:
         self.pymorphy_tags = ''
 
     def __str__(self):
-        return str(self.normalized_form) + '<' + str(self.mystem_tags) + '>' + '(' + str(self.pymorphy_tags) + ')'
-
-    def public_method(self):
-        pass
+        return f'{self.normalized_form}<{self.mystem_tags}>({self.pymorphy_tags})'
 
 
 class CorpusManager:
@@ -73,9 +68,6 @@ class CorpusManager:
         """
         return self._storage
 
-    def public_method(self):
-        pass
-
 
 class TextProcessingPipeline:
     """
@@ -93,10 +85,7 @@ class TextProcessingPipeline:
         for article in articles.values():
             self.raw_text = article.get_raw_text()
             list_of_tokens = self._process()
-            list_of_strs = []
-            for token in list_of_tokens:
-                list_of_strs.append(token.__str__())
-            article.save_processed(' '.join(list_of_strs))
+            article.save_processed(' '.join(map(str, list_of_tokens)))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
@@ -106,42 +95,42 @@ class TextProcessingPipeline:
         morph_analyzer = MorphAnalyzer()
         list_of_tokens = []
         for stem_dict in result:
-            if stem_dict.get('analysis'):
-                original_word = stem_dict['text']
-                normalized_form = stem_dict['analysis'][0]['lex']
-                token = MorphologicalToken(original_word, normalized_form)
-                token.mystem_tags = stem_dict['analysis'][0]['gr']
-                token.pymorphy_tags = morph_analyzer.parse(stem_dict['text'])[0].tag
-                list_of_tokens.append(token)
+            if stem_dict.get('analysis') and stem_dict.get('text'):
+                if stem_dict['analysis'][0].get('lex') and stem_dict['analysis'][0].get('gr'):
+                    original_word = stem_dict['text']
+                    normalized_form = stem_dict['analysis'][0]['lex']
+                    token = MorphologicalToken(original_word, normalized_form)
+                    token.mystem_tags = stem_dict['analysis'][0]['gr']
+                    token.pymorphy_tags = morph_analyzer.parse(stem_dict['text'])[0].tag
+                    list_of_tokens.append(token)
         return list_of_tokens
-
-    def public_method(self):
-        pass
 
 
 def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    if not path_to_validate:
+    path = Path(path_to_validate)
+
+    if not path:
         raise UnknownDatasetError
 
-    if not os.path.exists(path_to_validate):
+    if not path.exists():
         raise FileNotFoundError
 
-    if not os.path.isdir(path_to_validate):
+    if not path.is_dir():
         raise NotADirectoryError
 
-    metas, raws = 0, 0
-    for file in os.listdir(ASSETS_PATH):
-        if file.endswith("_raw.txt"):
-            raws += 1
-        if file.endswith("_meta.json"):
-            metas += 1
-    if raws != metas:
+    list_of_raws = list(path.glob('*_raw.txt'))
+    list_of_metas = list(path.glob('*_meta.json'))
+    if not len(list_of_raws) == len(list_of_metas):
         raise InconsistentDatasetError
 
-    if not os.listdir(path_to_validate):
+    for raw, meta in zip(list_of_raws, list_of_metas):
+        if raw.parts[-1].split('_')[0] != meta.parts[-1].split('_')[0]:
+            raise InconsistentDatasetError
+
+    if not list(path.iterdir()):
         raise EmptyDirectoryError
 
 
