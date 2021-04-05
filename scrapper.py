@@ -28,6 +28,12 @@ class IncorrectNumberOfArticlesError(Exception):
     Custom error
     """
 
+class UnknownConfigError(Exception):
+    """
+    Most general error
+    """
+
+
 class Crawler:
     """
     Crawler implementation
