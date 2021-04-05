@@ -57,6 +57,7 @@ class Crawler:
         main_news = article.find(class_="main-news")
         if main_news is not None:
             links = main_news.find_all("a")
+
             for link in links:
                 urls.append(link.get("href"))
         return urls
@@ -66,8 +67,9 @@ class Crawler:
         Finds articles
         """
         try:
+            print(self.seed_urls)
             for main_url in self.seed_urls:
-                if len(self.urls) < self.max_articles:
+                if len(self.urls) <= self.max_articles:
                     req = requests.get(main_url, HEADERS)
 
                     article = BeautifulSoup(req.content, 'html.parser')
