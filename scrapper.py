@@ -164,8 +164,7 @@ def validate_config(crawler_path):
     if not check_number_of_articles:
         raise IncorrectNumberOfArticlesError
 
-    if all_articles < max_number or max_number < 0 \
-            or all_articles > 1000 or all_articles < 0:
+    if max_number < 0 or all_articles > 1000 or all_articles < 0:
         check_range_of_articles = False
 
     if not check_range_of_articles:
