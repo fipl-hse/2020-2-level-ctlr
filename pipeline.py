@@ -29,6 +29,7 @@ class MorphologicalToken:
         pass
 
     def __str__(self):
+    text = text.split()
         pass
 
 
