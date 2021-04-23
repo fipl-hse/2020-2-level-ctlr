@@ -26,7 +26,7 @@ class Article:
 
         self.title = ''
         self.date = None
-        self.author = ''
+        self.author = 'NOT FOUND'
         self.topics = []
         self.text = ''
 
@@ -90,7 +90,7 @@ class Article:
             'id': self.article_id,
             'url': self.url,
             'title': self.title,
-            'date': self._date_to_text(),
+            'date': self.date,
             'author': self.author,
             'topics': self.topics
         }
@@ -100,7 +100,7 @@ class Article:
         Converts datetime object to text
         """
         return self.date.strftime("%Y-%m-%d %H:%M:%S")
-    
+
     def _get_raw_text_path(self):
         """
         Returns path for requested raw article
