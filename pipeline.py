@@ -2,10 +2,10 @@
 Pipeline for text processing implementation
 """
 
-import os
-import re
 from pymystem3 import Mystem
 from article import Article
+import os
+import re
 from pathlib import Path
 from typing import List
 from constants import ASSETS_PATH
@@ -58,8 +58,8 @@ class CorpusManager:
         files = os.listdir(self.path_to_raw_txt_data)
         for file in files:
             ind_underscore = file.index('_')
-            raw_txt_is = re.match(r'.+_raw\.txt', file)
-            if raw_txt_is:
+            is_raw_txt = re.match(r'.+_raw\.txt', file)
+            if is_raw_txt:
                 self._storage[int(file[:ind_underscore])] = Article(url=None, article_id=int(file[:ind_underscore]))
         return None
 
@@ -84,9 +84,9 @@ class TextProcessingPipeline:
         """
         articles = self.corpus_manager.get_articles()
         for article in articles:
-            self.article = article.get_raw_text()
-            result = Mystem().analyze(article)
-            tokens = self._process(mystem_analize_result=result)
+            raw_text_article = article.get_raw_text()
+            result = Mystem().analyze(raw_text_article)
+            tokens = self._process(mystem_analize_result=result)  # list with instances MorphToken
             processed_text_tokens = []
             for token in tokens:
                 processed_text_tokens.append('{}<{}>'.format(token.__str__(), token.mystem_tags))
@@ -100,13 +100,15 @@ class TextProcessingPipeline:
         """
         tokens = []
         for element in mystem_analize_result:
+            if element.get('analysis') is None:
+                continue
             if not element.get('analysis'):
                 token = MorphologicalToken(original_word=element['text'], normalized_form=element['text'])
             else:
                 token = MorphologicalToken(original_word=element['text'],
                                            normalized_form=element['analysis'][0].get('lex'))
                 token.mystem_tags = '{}'.format(element['analysis'][0].get('gr'))
-                tokens.append(token)
+            tokens.append(token)
         return tokens
 
 
@@ -116,17 +118,14 @@ def validate_dataset(path_to_validate):
     """
     path = Path(path_to_validate)
 
-    if not isinstance(path_to_validate, str):
-        raise UnknownDatasetError
-
-    if path.exists():
-        if not path.is_dir():
-            raise NotADirectoryError
-
-        if not list(path.iterdir()):
-            raise EmptyDirectoryError
-    else:
+    if not path.exists():
         raise FileNotFoundError
+
+    if not path.is_dir():
+        raise NotADirectoryError
+
+    if not list(path.iterdir()):
+        raise EmptyDirectoryError
 
             
 def main():
