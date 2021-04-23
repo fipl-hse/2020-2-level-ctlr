@@ -1,15 +1,29 @@
 """
 Pipeline for text processing implementation
 """
+from pathlib import Path
+from typing import List
+
+from pymorphy2 import MorphAnalyzer
+from pymystem3 import Mystem
+
+import article
+from constants import ASSETS_PATH
 
 
-class ArticleNotFoundError(Exception):
+class EmptyDirectoryError(Exception):
     """
     Custom error
     """
 
 
-class EmptyDirectoryError(Exception):
+class InconsistentDatasetError(Exception):
+    """
+    Custom error
+    """
+
+
+class UnknownDatasetError(Exception):
     """
     Custom error
     """
@@ -19,18 +33,14 @@ class MorphologicalToken:
     """
     Stores language params for each processed token
     """
-    def __init__(self, normalized_form, tags, original_word):
-        pass
-
-    def to_text(self):
-        """
-        Converts instance to str format
-        """
-        pass
+    def __init__(self, original_word, normalized_form):
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
-    text = text.split()
-        pass
+        return "{}<{}>({})".format(self.normalized_form, self.mystem_tags, self.pymorphy_tags)
 
 
 class CorpusManager:
@@ -38,25 +48,25 @@ class CorpusManager:
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self._storage = {}
+        self.path_to_dataset = path_to_raw_txt_data
 
-    def get_articles_meta(self):
-        """
-        Gets article metadata
-        """
-        pass
+        self._scan_dataset()
 
-    def get_raw_text(self, text_id):
+    def _scan_dataset(self):
         """
-        Opens processed text
+        Register each dataset entry
         """
-        pass
+        path = Path(self.path_to_dataset)
+        for file in path.rglob('*.txt'):
+            i = int(file.parts[-1].split('_')[0])
+            self._storage[i] = article.Article(url=None, article_id=i)
 
-    def write_processed_text(self, text_id, processed_text):
+    def get_articles(self):
         """
-        Writes processed text
+        Returns storage params
         """
-        pass
+        return self._storage
 
 
 class TextProcessingPipeline:
@@ -64,36 +74,70 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self._text_to_process = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        articles = self.corpus_manager.get_articles()
+        for file in articles.values():
+            self._text_to_process = file.get_raw_text()
+            morph_words = []
+            for word in self._process():
+                morph_words.append(str(word))
+            file.save_processed(' '.join(morph_words))
 
-    @staticmethod
-    def normalize_and_tag_text(text) -> str:
+    def _process(self) -> List[type(MorphologicalToken)]:
         """
-        Processes each token and creates MorphToken class instance
+        Performs processing of each text
         """
-        pass
+        mystem_analyser = Mystem()
+        pymorphy_analyser = MorphAnalyzer()
+        result = mystem_analyser.analyze(self._text_to_process)
+        morph_tokens = []
+        for word in result:
+            if word.get('analysis') and word.get('text'):
+                if word['analysis'][0].get('lex') and word['analysis'][0].get('gr'):
+                    morph_token = MorphologicalToken(word['text'], word['analysis'][0]['lex'])
+                    morph_token.mystem_tags = word['analysis'][0]['gr']
+                    morph_tokens.append(morph_token)
+        for token in morph_tokens:
+            tokens_pymorhy = pymorphy_analyser.parse(token.original_word)
+            if tokens_pymorhy:
+                token.pymorphy_tags = tokens_pymorhy[0].tag
+        return morph_tokens
 
-    @staticmethod
-    def transform_tokens_to_text(tokens: list) -> str:
-        """
-        Transforms given list of tokens to str
-        """
-        pass
 
-
-def validate_given_path(path_to_validate):
+def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    if not isinstance(path_to_validate, str):
+        raise UnknownDatasetError
+    path = Path(path_to_validate)
+    if path.exists():
+        if not path.is_dir():
+            raise NotADirectoryError
+        files = list(path.rglob('*_raw.txt'))
+        if not files:
+            raise EmptyDirectoryError
+        ids = []
+        for file in files:
+            ids.append(int(file.parts[-1].split('_')[0]))
+        if len(ids) != len(files) or not set(ids) == set(range(min(ids), max(ids) + 1)):
+            raise InconsistentDatasetError
+    else:
+        raise FileNotFoundError
+
+
+def main():
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline.run()
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    main()

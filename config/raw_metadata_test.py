@@ -51,7 +51,7 @@ class RawDataValidator(unittest.TestCase):
             html_source = requests.get(metadata[1]['url']).text
 
             self.assertTrue(metadata[1]['title'] in
-                            html_source[:round(len(html_source)*0.5)],
+                            html_source,
                             msg="""Title is not found by specified in metadata URL <{}>.
                             Check how you collect titles""".format(metadata[1]['url']))
 
