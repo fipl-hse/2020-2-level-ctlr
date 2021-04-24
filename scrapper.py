@@ -50,6 +50,7 @@ class Crawler:
     """
 
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
+        self.max_articles = None
         self.seed_urls = seed_urls
         self.total_max_articles = max_articles
         self.max_articles_per_seed = max_articles_per_seed
@@ -57,14 +58,15 @@ class Crawler:
 
     @staticmethod
     def _extract_url(article_bs):
-        article_link = article_bs.find('h2', class_="G9ax").find('a').get('href')
-        return 'https://sovsakh.ru/' + article_link
+        '''article_link = article_bs.find('h2', class_="G9ax").find('a').get('href')
+        return 'https://sovsakh.ru/' + article_link'''
+        return article_bs.find('a').attrs['href']
 
     def find_articles(self):
         """
         Finds articles
         """
-        for url in self.seed_urls:
+        '''for url in self.seed_urls:
             response = requests.get(url, headers=HEADERS)
             if not response:
                 raise IncorrectURLError
@@ -80,7 +82,19 @@ class Crawler:
                     break
 
             if len(self.urls) == max_num_articles:
-                break
+                break'''
+        for urls in self.seed_urls:
+            response = requests.get(urls, headers=HEADERS)
+            sleep(random.randrange(3, 6))
+            if not response:
+                raise IncorrectURLError
+            soup = BeautifulSoup(response.content, features='lxml')
+            article_soup = soup.find_all('h2', class_='entry-title')
+            for article_bs in article_soup[:self.max_articles_per_seed]:
+                if len(self.urls) <= self.max_articles and article_bs not in self.urls:
+                    seed_url = self._extract_url(article_bs)
+                    self.urls.append(seed_url)
+            return self.urls
 
     def get_search_urls(self):
         """
@@ -100,34 +114,46 @@ class ArticleParser:
         self.article = Article(url=full_url, article_id=article_id)
 
     def _fill_article_with_text(self, article_soup):
-        article_text = article_soup.find('div', class_="GFahz").find('div').find_all('p')
+        """article_text = article_soup.find('div', class_="GFahz").find('div').find_all('p')
         for par in article_text:
-            self.article.text += par.text.strip() + '\n'
+            self.article.text += par.text.strip() + '\n' """
+        self.article.text = article_soup.find(name='div', class_="entry-content").text
 
     def _fill_article_with_meta_information(self, article_soup):
-        self.article.title = article_soup.find('h2', class_="CRqd CRsn JPax").find('span').text
+        '''self.article.title = article_soup.find('h2', class_="h1").find('entry-title').text
         self.article.author = 'NOT FOUND'
         self.article.topics = article_soup.find('a', class_="CRqz CRsv JPall").find('span').text
-        self.article.date = article_soup.find('time', class_="HHkz").find('a').text
+        self.article.date = article_soup.find('time', class_="HHkz").find('a').text'''
+        self.article.title = article_soup.find('h1', class_='entry-title').text.strip()
+        self.article.author = 'NOT FOUND'
+        for topic in article_soup.find_all('a', rel="tag"):
+            self.article.topics.append(topic.text)
+        self.article.date = self.unify_date_format(article_soup.find('div', class_='td-module-meta-info').text)
 
     @staticmethod
     def unify_date_format(date_str):
         """
         Unifies date format
         """
-        pass
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y")
 
     def parse(self):
         """
         Parses each article
         """
-        response = requests.get(self.full_url, headers=HEADERS)
+        '''response = requests.get(self.full_url, headers=HEADERS)
         if not response:
             raise IncorrectURLError
 
         article_soup = BeautifulSoup(response.text, 'lxml')
         self._fill_article_with_text(article_soup)
         self._fill_article_with_meta_information(article_soup)
+        return self.article'''
+        request = requests.get(self.full_url, headers=HEADERS).content
+        article_bs = BeautifulSoup(request, features='lxml')
+        self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
+        self.article.save_raw()
         return self.article
 
 
@@ -171,7 +197,7 @@ def validate_config(crawler_path):
 
 if __name__ == '__main__':
     # YOUR CODE HERE
-    seed_urls_list, max_num_articles, max_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    '''seed_urls_list, max_num_articles, max_num_per_seed = validate_config(CRAWLER_CONFIG_PATH)
     crawler = Crawler(seed_urls=seed_urls_list,
                       max_articles=max_num_articles,
                       max_articles_per_seed=max_num_per_seed)
@@ -179,5 +205,14 @@ if __name__ == '__main__':
     prepare_environment(ASSETS_PATH)
     for article_id_num, article_url in enumerate(crawler.urls, 1):
         parser = ArticleParser(full_url=article_url, article_id=article_id_num)
+        article = parser.parse()
+        article.save_raw()'''
+    urls, maximum_articles, maximum_articles_per_seed = validate_config(CRAWLER_CONFIG_PATH)
+    crawler = Crawler(urls, maximum_articles, maximum_articles_per_seed)
+    articles = crawler.find_articles()
+    prepare_environment(ASSETS_PATH)
+    for ind, article_url in enumerate(crawler.urls):
+        parser = ArticleParser(full_url=article_url, article_id=ind + 1)
+        sleep(5)
         article = parser.parse()
         article.save_raw()
