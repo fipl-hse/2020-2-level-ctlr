@@ -48,6 +48,7 @@ class Crawler:
     """
     Crawler implementation
     """
+
     def __init__(self, seed_urls: list, max_articles: int, max_articles_per_seed: int):
         self.seed_urls = seed_urls
         self.total_max_articles = max_articles
@@ -92,6 +93,7 @@ class ArticleParser:
     """
     ArticleParser implementation
     """
+
     def __init__(self, full_url: str, article_id: int):
         self.full_url = full_url
         self.article_id = article_id
