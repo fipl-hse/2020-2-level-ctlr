@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import shutil
 import unittest
 from constants import ASSETS_PATH
 from pipeline import CorpusManager, TextProcessingPipeline, validate_dataset
@@ -13,6 +14,8 @@ TAGS = ["A", "ADV", "S", "V", "PR", "ANUM"]
 class ReferenceTextPreprocessTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        shutil.rmtree(ASSETS_PATH, ignore_errors=True)
+        os.mkdir(ASSETS_PATH)
         with open(os.path.join(TEST_FILES_FOLDER, '0_meta.json')) as f:
             admin_meta = json.load(f)
         with open(os.path.join(ASSETS_PATH, "0_meta.json"), "w", encoding='utf-8') as f:
@@ -41,16 +44,6 @@ class ReferenceTextPreprocessTest(unittest.TestCase):
                          len(re.findall(self.re_pattern, self.processed)),
                          msg=f"""Number of word<tag> sequences in reference {self.reference} 
                                                 and processed {self.processed} texts is different""")
-
-    def test_overall_format(self):
-        # check correctness of word<tag> sequences
-        for word_tag in self.processed.split():
-            self.assertEqual(word_tag[-1], ">",
-                             msg=f"{word_tag} --- There should be > at the end of each word<tag> sequence")
-            self.assertTrue("<" in word_tag,
-                            msg=f"{word_tag} --- < markup symbol should be in processed text")
-            self.assertTrue(word_tag[word_tag.index("<")-1].isalpha(),
-                            msg=f"{word_tag} --- In tagged sequence there should be char symbol before < ")
 
     def test_tag_format(self):
         # check TAGS ander each sequences:

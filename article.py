@@ -90,7 +90,6 @@ class Article:
             'id': self.article_id,
             'url': self.url,
             'title': self.title,
-            'date': self._date_to_text(),
             'author': self.author,
             'topics': self.topics
         }
@@ -99,7 +98,7 @@ class Article:
         """
         Converts datetime object to text
         """
-        return self.date.strftime("%Y-%m-%d %H:%M:%S")
+        pass
     
     def _get_raw_text_path(self):
         """

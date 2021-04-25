@@ -4,11 +4,13 @@ import unittest
 from constants import ASSETS_PATH
 
 
-TAGS = ["A", "ADV", "S", "V", "PR", "ANUM", "CONJ", "SPRO", "APRO", "PART", "NUM", "ADVPRO"]
+TAGS = ["A", "ADV", "S", "V", "PR", "ANUM", "CONJ", "SPRO", "APRO", "PART", "NUM", "ADVPRO", "INTJ", "COM"]
 
 
 class StudentTextPreprocessTest(unittest.TestCase):
     def setUp(self) -> None:
+        shutil.rmtree(ASSETS_PATH, ignore_errors=True)
+        os.mkdir(ASSETS_PATH)
         self.articles = dict()
         for article in os.listdir(ASSETS_PATH):
             if article.endswith("_processed.txt"):
