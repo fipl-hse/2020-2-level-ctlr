@@ -2,7 +2,14 @@
 Pipeline for text processing implementation
 """
 
+import os
 from typing import List
+
+import pymorphy2
+from pymystem3 import Mystem
+
+from article import Article
+from constants import ASSETS_PATH
 
 
 class EmptyDirectoryError(Exception):
@@ -28,10 +35,13 @@ class MorphologicalToken:
     Stores language params for each processed token
     """
     def __init__(self, original_word, normalized_form):
-        pass
+        self.original_word = original_word
+        self.normalized_form = normalized_form
+        self.mystem_tags = ''
+        self.pymorphy_tags = ''
 
     def __str__(self):
-        return "MorphologicalToken instance here"
+        return '{}<{}>({})'.format(str(self.normalized_form), str(self.mystem_tags), str(self.pymorphy_tags))
 
 
 class CorpusManager:
@@ -39,19 +49,29 @@ class CorpusManager:
     Works with articles and stores them
     """
     def __init__(self, path_to_raw_txt_data: str):
-        pass
+        self.path_to_raw_txt_data = path_to_raw_txt_data
+        self._storage = {}
+
+        self._scan_dataset()
 
     def _scan_dataset(self):
         """
         Register each dataset entry
         """
-        pass
+        articles_for_store = []
+        all_files = os.listdir(self.path_to_raw_txt_data)
+        for file in all_files:
+            if file.endswith('.txt'):
+                articles_for_store.append(file)
+        for article in articles_for_store:
+            id_article = article.split('_')[0]
+            self._storage[id_article] = Article(url=None, article_id=id_article)
 
     def get_articles(self):
         """
         Returns storage params
         """
-        pass
+        return self._storage
 
 
 class TextProcessingPipeline:
@@ -59,30 +79,82 @@ class TextProcessingPipeline:
     Process articles from corpus manager
     """
     def __init__(self, corpus_manager: CorpusManager):
-        pass
+        self.corpus_manager = corpus_manager
+        self.raw_text = ''
 
     def run(self):
         """
         Runs pipeline process scenario
         """
-        pass
+        article_storage = self.corpus_manager.get_articles().values()
+        for article in article_storage:
+            self.raw_text = article.get_raw_text()
+            final_tokens = self._process()
+            final_info = []
+            for token in final_tokens:
+                final_info.append(token.__str__())
+            article.save_processed(' '.join(final_info))
 
     def _process(self) -> List[type(MorphologicalToken)]:
         """
         Performs processing of each text
         """
-        pass
+        mystem_analyse = Mystem().analyze(self.raw_text)
+        morphy_tool = pymorphy2.MorphAnalyzer()
+        tokens = []
+        for word in mystem_analyse:
+            if "analysis" in word and word["analysis"]:
+                token = MorphologicalToken(original_word=word["text"], normalized_form=word["analysis"][0]["lex"])
+                token.mystem_tags = word["analysis"][0]["gr"]
+                tokens.append(token)
+        for token in tokens:
+            token.pymorphy_tags = morphy_tool.parse(token.original_word)[0].tag
+        return tokens
 
 
 def validate_dataset(path_to_validate):
     """
     Validates folder with assets
     """
-    pass
+    check_files = True
+    check_consistency = True
+
+    if not os.path.exists(path_to_validate):
+        raise FileNotFoundError
+
+    if not os.path.isdir(path_to_validate):
+        raise NotADirectoryError
+
+    consistency = os.listdir(path_to_validate)
+    if not consistency:
+        check_files = False
+
+    if not check_files:
+        raise EmptyDirectoryError
+
+    id_meta = []
+    id_article = []
+    for file in consistency:
+        if file == '*.json':
+            id_meta.append(file.split('_')[0])
+        elif file == '*._raw.txt':
+            id_article.append(file.split('_')[0])
+    if set(id_meta) != set(id_article):
+        check_consistency = False
+
+    if not check_consistency:
+        raise InconsistentDatasetError
+
+    if check_files and check_consistency:
+        return None
 
 
 def main():
     print('Your code goes here')
+    validate_dataset(ASSETS_PATH)
+    corpus_manager = CorpusManager(path_to_raw_txt_data=ASSETS_PATH)
+    pipeline = TextProcessingPipeline(corpus_manager=corpus_manager)
+    pipeline.run()
 
 
 if __name__ == "__main__":
